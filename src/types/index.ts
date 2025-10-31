@@ -66,8 +66,8 @@ export interface Garniture {
  * Complete taco configuration
  */
 export interface Taco {
-  /** Unique taco ID within the cart (0-based index) */
-  id: number;
+  /** Unique taco UUID */
+  id: string;
   size: TacoSize;
   meats: Meat[];
   sauces: Sauce[];
@@ -92,7 +92,7 @@ export interface AddTacoRequest {
  * Request to update a taco
  */
 export interface UpdateTacoRequest extends AddTacoRequest {
-  id: number;
+  id: string;
 }
 
 /**

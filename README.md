@@ -114,16 +114,17 @@ class TacosAPI {
     return this.request('GET', `/carts/${this.cartId}`);
   }
 
-  addTaco(taco) {
-    return this.request('POST', `/carts/${this.cartId}/tacos`, taco);
+  async addTaco(taco) {
+    const response = await this.request('POST', `/carts/${this.cartId}/tacos`, taco);
+    return response.data;  // Returns { id: "uuid", size: "tacos_XL", ... }
   }
 
-  updateTaco(id, taco) {
-    return this.request('PUT', `/carts/${this.cartId}/tacos/${id}`, taco);
+  updateTaco(tacoId, taco) {
+    return this.request('PUT', `/carts/${this.cartId}/tacos/${tacoId}`, taco);
   }
 
-  deleteTaco(id) {
-    return this.request('DELETE', `/carts/${this.cartId}/tacos/${id}`);
+  deleteTaco(tacoId) {
+    return this.request('DELETE', `/carts/${this.cartId}/tacos/${tacoId}`);
   }
 
   addExtra(extra) {
@@ -136,19 +137,31 @@ class TacosAPI {
 }
 
 // Usage
-const api = new TacosAPI();  // Auto-generates UUID
+const api = new TacosAPI();  // Auto-generates cart UUID
 console.log(`Cart ID: ${api.cartId}`);
 
-await api.addTaco({
+// Add taco - returns taco with UUID
+const taco = await api.addTaco({
   size: 'tacos_XL',
   meats: [{ id: 'viande_hachee', quantity: 2 }],
   sauces: ['harissa'],
   garnitures: ['salade']
 });
+console.log(`Taco ID: ${taco.id}`);  // UUID like "550e8400-..."
 
+// Get cart
 await api.getCart();
-await api.updateTaco(0, { /* updated taco */ });
-await api.deleteTaco(0);
+
+// Update taco using its UUID
+await api.updateTaco(taco.id, { 
+  size: 'tacos_XXL',
+  meats: [{ id: 'viande_hachee', quantity: 3 }],
+  sauces: ['harissa'],
+  garnitures: ['salade']
+});
+
+// Delete taco using its UUID
+await api.deleteTaco(taco.id);
 ```
 
 ## Multiple Concurrent Orders
@@ -292,17 +305,24 @@ const response = await fetch('/api/v1/carts', { method: 'POST' });
 const { cartId } = response.data;
 ```
 
-### 2. Use UUID in Requests
+### 2. Use UUIDs in Requests
 ```javascript
-// All requests use the cart UUID in the path
+// Cart UUID in the path
 GET    /api/v1/carts/{cartId}
 POST   /api/v1/carts/{cartId}/tacos
-PUT    /api/v1/carts/{cartId}/tacos/0
-DELETE /api/v1/carts/{cartId}/tacos/0
+
+// Taco UUID also in the path
+GET    /api/v1/carts/{cartId}/tacos/{tacoId}
+PUT    /api/v1/carts/{cartId}/tacos/{tacoId}
+DELETE /api/v1/carts/{cartId}/tacos/{tacoId}
 ```
 
-### 3. Session Auto-Created
-Behind the scenes, the API creates a session with your UUID automatically. You don't need to manage it!
+**Both cart and tacos use UUIDs!**
+
+### 3. UUIDs Everywhere
+- **Cart ID**: Your cart identifier (UUID)
+- **Taco ID**: Each taco gets its own UUID when added
+- Behind the scenes, the API creates a session automatically!
 
 ## Why This Design?
 
@@ -332,11 +352,24 @@ Behind the scenes, the API creates a session with your UUID automatically. You d
 # Manual testing
 CART_ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 
-curl -X POST http://localhost:4000/api/v1/carts/$CART_ID/tacos \
+# Add taco - returns taco with UUID
+RESPONSE=$(curl -X POST http://localhost:4000/api/v1/carts/$CART_ID/tacos \
   -H "Content-Type: application/json" \
-  -d '{"size":"tacos_L","meats":[{"id":"viande_hachee","quantity":1}],"sauces":["harissa"],"garnitures":["salade"]}'
+  -d '{"size":"tacos_L","meats":[{"id":"viande_hachee","quantity":1}],"sauces":["harissa"],"garnitures":["salade"]}')
 
+# Extract taco UUID from response
+TACO_ID=$(echo $RESPONSE | jq -r '.data.id')
+
+# Get cart
 curl http://localhost:4000/api/v1/carts/$CART_ID
+
+# Edit taco
+curl -X PUT http://localhost:4000/api/v1/carts/$CART_ID/tacos/$TACO_ID \
+  -H "Content-Type: application/json" \
+  -d '{"size":"tacos_XL","meats":[{"id":"viande_hachee","quantity":2}],"sauces":["harissa"],"garnitures":["salade"]}'
+
+# Delete taco
+curl -X DELETE http://localhost:4000/api/v1/carts/$CART_ID/tacos/$TACO_ID
 ```
 
 ## Support

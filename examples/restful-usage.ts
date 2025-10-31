@@ -1,7 +1,7 @@
 /**
- * Example: Pure RESTful API with UUID in paths
+ * Example: Pure RESTful API with UUIDs in paths
  * 
- * No headers, no session endpoints - just clean RESTful URLs
+ * Both carts and tacos use UUIDs - fully RESTful!
  */
 
 import axios from 'axios';
@@ -40,23 +40,24 @@ class TacosAPI {
     garnitures: string[];
     note?: string;
   }) {
-    return this.request('POST', `/carts/${this.cartId}/tacos`, taco);
+    const response = await this.request('POST', `/carts/${this.cartId}/tacos`, taco);
+    return response.data;  // Returns taco with UUID
   }
 
-  async getTaco(id: number) {
-    return this.request('GET', `/carts/${this.cartId}/tacos/${id}`);
+  async getTaco(tacoId: string) {
+    return this.request('GET', `/carts/${this.cartId}/tacos/${tacoId}`);
   }
 
-  async updateTaco(id: number, taco: Parameters<typeof this.addTaco>[0]) {
-    return this.request('PUT', `/carts/${this.cartId}/tacos/${id}`, taco);
+  async updateTaco(tacoId: string, taco: Parameters<typeof this.addTaco>[0]) {
+    return this.request('PUT', `/carts/${this.cartId}/tacos/${tacoId}`, taco);
   }
 
-  async updateTacoQuantity(id: number, action: 'increase' | 'decrease') {
-    return this.request('PATCH', `/carts/${this.cartId}/tacos/${id}/quantity`, { action });
+  async updateTacoQuantity(tacoId: string, action: 'increase' | 'decrease') {
+    return this.request('PATCH', `/carts/${this.cartId}/tacos/${tacoId}/quantity`, { action });
   }
 
-  async deleteTaco(id: number) {
-    return this.request('DELETE', `/carts/${this.cartId}/tacos/${id}`);
+  async deleteTaco(tacoId: string) {
+    return this.request('DELETE', `/carts/${this.cartId}/tacos/${tacoId}`);
   }
 
   async addExtra(extra: {
@@ -87,22 +88,22 @@ class TacosAPI {
 }
 
 /**
- * Example 1: Basic usage
+ * Example 1: Basic usage with UUID tacos
  */
 async function basicUsage() {
-  console.log('\n📝 Example 1: Basic Usage\n');
+  console.log('\n📝 Example 1: Basic Usage with UUID Tacos\n');
 
-  const api = new TacosAPI();  // Auto-generates UUID
+  const api = new TacosAPI();
 
-  // Add taco
+  // Add taco - returns taco with UUID
   console.log('1. Adding taco...');
-  await api.addTaco({
+  const taco = await api.addTaco({
     size: 'tacos_XL',
     meats: [{ id: 'viande_hachee', quantity: 2 }],
     sauces: ['harissa'],
     garnitures: ['salade'],
   });
-  console.log('   ✓ Taco added\n');
+  console.log(`   ✓ Taco added with ID: ${taco.id}\n`);
 
   // Get cart
   console.log('2. Getting cart...');
@@ -113,32 +114,34 @@ async function basicUsage() {
 }
 
 /**
- * Example 2: Edit and remove tacos
+ * Example 2: Edit and remove tacos by UUID
  */
 async function editAndRemove() {
-  console.log('\n📝 Example 2: Edit and Remove\n');
+  console.log('\n📝 Example 2: Edit and Remove by UUID\n');
 
   const api = new TacosAPI();
 
   // Add multiple tacos
   console.log('1. Adding 2 tacos...');
-  await api.addTaco({
+  const taco1 = await api.addTaco({
     size: 'tacos_L',
     meats: [{ id: 'viande_hachee', quantity: 1 }],
     sauces: ['harissa'],
     garnitures: ['salade'],
   });
-  await api.addTaco({
+  console.log(`   Taco 1 ID: ${taco1.id}`);
+
+  const taco2 = await api.addTaco({
     size: 'tacos_XL',
     meats: [{ id: 'escalope_de_poulet', quantity: 2 }],
     sauces: ['algérienne'],
     garnitures: ['tomates'],
   });
-  console.log('   ✓ 2 tacos added\n');
+  console.log(`   Taco 2 ID: ${taco2.id}\n`);
 
-  // Edit first taco (upgrade)
-  console.log('2. Editing taco #0 (upgrade to XXL)...');
-  await api.updateTaco(0, {
+  // Edit first taco using its UUID
+  console.log(`2. Editing taco ${taco1.id} (upgrade to XXL)...`);
+  await api.updateTaco(taco1.id, {
     size: 'tacos_XXL',
     meats: [{ id: 'viande_hachee', quantity: 3 }],
     sauces: ['harissa', 'algérienne'],
@@ -146,9 +149,9 @@ async function editAndRemove() {
   });
   console.log('   ✓ Taco upgraded\n');
 
-  // Remove second taco
-  console.log('3. Removing taco #1...');
-  await api.deleteTaco(1);
+  // Remove second taco using its UUID
+  console.log(`3. Removing taco ${taco2.id}...`);
+  await api.deleteTaco(taco2.id);
   console.log('   ✓ Taco removed\n');
 
   // Check final cart
@@ -159,60 +162,34 @@ async function editAndRemove() {
 }
 
 /**
- * Example 3: Multiple concurrent carts
- */
-async function multipleCarts() {
-  console.log('\n📝 Example 3: Multiple Concurrent Carts\n');
-
-  // Cart A
-  console.log('Cart A:');
-  const cartA = new TacosAPI();
-  await cartA.addTaco({
-    size: 'tacos_XXL',
-    meats: [{ id: 'viande_hachee', quantity: 3 }],
-    sauces: ['harissa', 'algérienne', 'blanche'],
-    garnitures: ['salade', 'tomates', 'oignons'],
-  });
-  console.log('   ✓ Taco added\n');
-
-  // Cart B (completely independent)
-  console.log('Cart B:');
-  const cartB = new TacosAPI();
-  await cartB.addTaco({
-    size: 'tacos_L',
-    meats: [{ id: 'escalope_de_poulet', quantity: 1 }],
-    sauces: ['harissa'],
-    garnitures: ['salade'],
-  });
-  console.log('   ✓ Taco added\n');
-
-  // Verify isolation
-  const cartAData = await cartA.getCart();
-  const cartBData = await cartB.getCart();
-
-  console.log(`Cart A: ${cartAData.data.summary.total.quantity} items`);
-  console.log(`Cart B: ${cartBData.data.summary.total.quantity} items`);
-  console.log('   ✓ Carts are isolated!\n');
-
-  console.log('✅ Multiple carts complete!\n');
-}
-
-/**
- * Example 4: Complete order flow
+ * Example 3: Complete order flow with UUID tracking
  */
 async function completeOrderFlow() {
-  console.log('\n📝 Example 4: Complete Order Flow\n');
+  console.log('\n📝 Example 3: Complete Order Flow\n');
 
   const api = new TacosAPI();
+  const tacoIds: string[] = [];
 
   // Build order
   console.log('1. Building order...');
-  await api.addTaco({
+  const taco1 = await api.addTaco({
     size: 'tacos_XL',
     meats: [{ id: 'viande_hachee', quantity: 2 }],
     sauces: ['harissa'],
     garnitures: ['salade'],
   });
+  tacoIds.push(taco1.id);
+  console.log(`   Taco 1: ${taco1.id}`);
+
+  const taco2 = await api.addTaco({
+    size: 'tacos_L',
+    meats: [{ id: 'escalope_de_poulet', quantity: 1 }],
+    sauces: ['algérienne'],
+    garnitures: ['tomates'],
+  });
+  tacoIds.push(taco2.id);
+  console.log(`   Taco 2: ${taco2.id}`);
+
   await api.addExtra({
     id: 'extra_frites',
     name: 'Frites',
@@ -220,29 +197,23 @@ async function completeOrderFlow() {
     quantity: 1,
     free_sauces: [],
   });
-  await api.addDrink({
-    id: 'boisson_coca',
-    name: 'Coca Cola',
-    price: 2.50,
-    quantity: 1,
-  });
   console.log('   ✓ Items added\n');
 
-  // Review cart
-  console.log('2. Reviewing cart...');
-  const cart = await api.getCart();
-  console.log(`   Items: ${cart.data.summary.total.quantity}`);
-  console.log(`   Total: CHF ${cart.data.summary.total.price}\n`);
-
-  // Edit taco (change mind - upgrade!)
-  console.log('3. Upgrading taco...');
-  await api.updateTaco(0, {
+  // Change mind - upgrade first taco
+  console.log('2. Upgrading first taco...');
+  await api.updateTaco(tacoIds[0]!, {
     size: 'tacos_XXL',
     meats: [{ id: 'viande_hachee', quantity: 3 }],
     sauces: ['harissa', 'algérienne'],
     garnitures: ['salade', 'tomates'],
   });
-  console.log('   ✓ Taco upgraded\n');
+  console.log('   ✓ Upgraded\n');
+
+  // Review cart
+  console.log('3. Reviewing cart...');
+  const cart = await api.getCart();
+  console.log(`   Items: ${cart.data.summary.total.quantity}`);
+  console.log(`   Total: CHF ${cart.data.summary.total.price}\n`);
 
   // Place order
   console.log('4. Placing order...');
@@ -263,76 +234,96 @@ async function completeOrderFlow() {
 }
 
 /**
- * Example 5: Using custom UUID
- */
-async function customUUID() {
-  console.log('\n📝 Example 5: Using Custom UUID\n');
-
-  // Use your own UUID
-  const myCartId = 'my-custom-uuid-12345';
-  console.log(`Using custom cart ID: ${myCartId}\n`);
-
-  const api = new TacosAPI(myCartId);
-
-  await api.addTaco({
-    size: 'tacos_L',
-    meats: [{ id: 'viande_hachee', quantity: 1 }],
-    sauces: ['harissa'],
-    garnitures: ['salade'],
-  });
-
-  const cart = await api.getCart();
-  console.log(`Cart ID in response: ${cart.data.sessionId}`);
-  console.log(`Match: ${cart.data.sessionId === myCartId ? '✓' : '✗'}\n`);
-
-  console.log('✅ Custom UUID complete!\n');
-}
-
-/**
- * Example 6: RESTful patterns
+ * Example 4: RESTful patterns with UUIDs
  */
 async function restfulPatterns() {
-  console.log('\n📝 Example 6: RESTful Patterns\n');
+  console.log('\n📝 Example 4: RESTful Patterns\n');
 
   const api = new TacosAPI();
 
-  // POST - Create
+  // POST - Create (returns resource with UUID)
   console.log('POST (Create):');
-  await api.addTaco({
+  const taco = await api.addTaco({
     size: 'tacos_L',
     meats: [{ id: 'viande_hachee', quantity: 1 }],
     sauces: ['harissa'],
     garnitures: ['salade'],
   });
-  console.log(`   POST /carts/${api.cartId}/tacos ✓\n`);
+  console.log(`   POST /carts/${api.cartId}/tacos`);
+  console.log(`   Created taco: ${taco.id} ✓\n`);
 
-  // GET - Read
-  console.log('GET (Read):');
-  const cart = await api.getCart();
-  console.log(`   GET /carts/${api.cartId} ✓`);
-  console.log(`   Cart has ${cart.data.tacos.length} tacos\n`);
+  // GET - Read (by UUID)
+  console.log('GET (Read by UUID):');
+  const fetchedTaco = await api.getTaco(taco.id);
+  console.log(`   GET /carts/${api.cartId}/tacos/${taco.id} ✓\n`);
 
-  // PUT - Update
-  console.log('PUT (Update):');
-  await api.updateTaco(0, {
+  // PUT - Update (by UUID)
+  console.log('PUT (Update by UUID):');
+  await api.updateTaco(taco.id, {
     size: 'tacos_XL',
     meats: [{ id: 'viande_hachee', quantity: 2 }],
     sauces: ['harissa'],
     garnitures: ['salade'],
   });
-  console.log(`   PUT /carts/${api.cartId}/tacos/0 ✓\n`);
+  console.log(`   PUT /carts/${api.cartId}/tacos/${taco.id} ✓\n`);
 
-  // PATCH - Partial update
-  console.log('PATCH (Partial Update):');
-  await api.updateTacoQuantity(0, 'increase');
-  console.log(`   PATCH /carts/${api.cartId}/tacos/0/quantity ✓\n`);
+  // PATCH - Partial update (by UUID)
+  console.log('PATCH (Partial Update by UUID):');
+  await api.updateTacoQuantity(taco.id, 'increase');
+  console.log(`   PATCH /carts/${api.cartId}/tacos/${taco.id}/quantity ✓\n`);
 
-  // DELETE - Remove
-  console.log('DELETE (Remove):');
-  await api.deleteTaco(0);
-  console.log(`   DELETE /carts/${api.cartId}/tacos/0 ✓\n`);
+  // DELETE - Remove (by UUID)
+  console.log('DELETE (Remove by UUID):');
+  await api.deleteTaco(taco.id);
+  console.log(`   DELETE /carts/${api.cartId}/tacos/${taco.id} ✓\n`);
 
   console.log('✅ RESTful patterns complete!\n');
+}
+
+/**
+ * Example 5: Managing multiple tacos by UUID
+ */
+async function managingMultipleTacos() {
+  console.log('\n📝 Example 5: Managing Multiple Tacos\n');
+
+  const api = new TacosAPI();
+  const tacos: Array<{ id: string; size: string }> = [];
+
+  // Add 3 tacos
+  console.log('1. Adding 3 tacos...');
+  for (let i = 0; i < 3; i++) {
+    const taco = await api.addTaco({
+      size: 'tacos_L',
+      meats: [{ id: 'viande_hachee', quantity: 1 }],
+      sauces: ['harissa'],
+      garnitures: ['salade'],
+    });
+    tacos.push({ id: taco.id, size: 'tacos_L' });
+    console.log(`   Taco ${i + 1}: ${taco.id}`);
+  }
+  console.log();
+
+  // Upgrade middle taco
+  console.log('2. Upgrading middle taco...');
+  await api.updateTaco(tacos[1]!.id, {
+    size: 'tacos_XXL',
+    meats: [{ id: 'viande_hachee', quantity: 3 }],
+    sauces: ['harissa', 'algérienne'],
+    garnitures: ['salade', 'tomates'],
+  });
+  console.log(`   ✓ Taco ${tacos[1]!.id} upgraded to XXL\n`);
+
+  // Remove first and last tacos
+  console.log('3. Removing first and last tacos...');
+  await api.deleteTaco(tacos[0]!.id);
+  await api.deleteTaco(tacos[2]!.id);
+  console.log('   ✓ 2 tacos removed\n');
+
+  // Only middle taco remains
+  const cart = await api.getCart();
+  console.log(`Final cart: ${cart.data.summary.tacos.totalQuantity} taco (the upgraded one)\n`);
+
+  console.log('✅ Multiple tacos managed!\n');
 }
 
 /**
@@ -340,17 +331,16 @@ async function restfulPatterns() {
  */
 async function main() {
   console.log('═══════════════════════════════════════════════════════════');
-  console.log('  Pure RESTful API Examples');
-  console.log('  UUID in path - no headers needed!');
+  console.log('  Pure RESTful API with UUIDs');
+  console.log('  Carts use UUIDs, Tacos use UUIDs - Fully RESTful!');
   console.log('═══════════════════════════════════════════════════════════');
 
   try {
     await basicUsage();
     await editAndRemove();
-    await multipleCarts();
     await completeOrderFlow();
-    await customUUID();
     await restfulPatterns();
+    await managingMultipleTacos();
 
     console.log('═══════════════════════════════════════════════════════════');
     console.log('  ✅ All examples completed!');

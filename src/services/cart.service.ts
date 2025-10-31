@@ -1,8 +1,9 @@
 /**
- * Session-aware cart service for managing shopping cart operations
+ * Session-aware cart service with UUID-based tacos
  * @module services/cart
  */
 
+import { v4 as uuidv4 } from 'uuid';
 import { sessionApiClient } from '../api/session-client';
 import { logger } from '../utils/logger';
 import {
@@ -17,26 +18,30 @@ import {
 } from '../types';
 
 /**
- * Cart Service - Session-aware
- * All operations require a sessionId
+ * Cart Service - UUID-based tacos
+ * All operations require a cartId (sessionId)
  */
 export class CartService {
+  // In-memory mapping of backend index to UUID (would use database in production)
+  private tacoIndexToUuid: Map<string, Map<number, string>> = new Map();
+  private tacoUuidToIndex: Map<string, Map<string, number>> = new Map();
+
   /**
-   * Get complete cart contents for a session
+   * Get complete cart contents for a cart
    */
-  async getCart(sessionId: string): Promise<Cart> {
-    logger.debug('Fetching cart contents', { sessionId });
+  async getCart(cartId: string): Promise<Cart> {
+    logger.debug('Fetching cart contents', { cartId });
 
     const [tacos, extras, drinks, desserts, summary] = await Promise.all([
-      this.getTacos(sessionId),
-      this.getExtras(sessionId),
-      this.getDrinks(sessionId),
-      this.getDesserts(sessionId),
-      this.getCategorySummary(sessionId),
+      this.getTacos(cartId),
+      this.getExtras(cartId),
+      this.getDrinks(cartId),
+      this.getDesserts(cartId),
+      this.getCategorySummary(cartId),
     ]);
 
     const cart: Cart = {
-      sessionId,
+      sessionId: cartId,
       tacos,
       extras,
       drinks,
@@ -59,7 +64,7 @@ export class CartService {
     };
 
     logger.info('Cart fetched successfully', {
-      sessionId,
+      cartId,
       totalItems: cart.summary.total.quantity,
       totalPrice: cart.summary.total.price,
     });
@@ -68,12 +73,12 @@ export class CartService {
   }
 
   /**
-   * Get all tacos in cart for a session
+   * Get all tacos in cart for a cart
    */
-  async getTacos(sessionId: string): Promise<Taco[]> {
-    logger.debug('Fetching tacos from cart', { sessionId });
+  async getTacos(cartId: string): Promise<Taco[]> {
+    logger.debug('Fetching tacos from cart', { cartId });
     const response = await sessionApiClient.post<string>(
-      sessionId,
+      cartId,
       '/ajax/owt.php',
       { loadProducts: true }
     );
@@ -83,10 +88,10 @@ export class CartService {
   }
 
   /**
-   * Add taco to cart for a session
+   * Add taco to cart
    */
-  async addTaco(sessionId: string, request: AddTacoRequest): Promise<Taco> {
-    logger.debug('Adding taco to cart', { sessionId, size: request.size });
+  async addTaco(cartId: string, request: AddTacoRequest): Promise<Taco> {
+    logger.debug('Adding taco to cart', { cartId, size: request.size });
 
     const formData: Record<string, unknown> = {
       selectProduct: request.size,
@@ -118,13 +123,23 @@ export class CartService {
       (formData['garniture[]'] as string[]).push(garniture);
     });
 
-    await sessionApiClient.postForm(sessionId, '/ajax/owt.php', formData);
+    await sessionApiClient.postForm(cartId, '/ajax/owt.php', formData);
 
-    logger.info('Taco added to cart successfully', { sessionId });
+    // Generate UUID for this taco
+    const tacoId = uuidv4();
+    
+    // Get current taco count to determine index (backend uses 0-based index)
+    const currentTacos = await this.getTacos(cartId);
+    const backendIndex = currentTacos.length;
+    
+    // Store mapping
+    this.storeTacoMapping(cartId, backendIndex, tacoId);
 
-    // Return placeholder - would parse HTML response in real implementation
+    logger.info('Taco added to cart successfully', { cartId, tacoId });
+
+    // Return taco with UUID
     return {
-      id: 0, // Would be determined from backend response
+      id: tacoId,
       size: request.size,
       meats: request.meats.map((m) => ({ ...m, name: m.id })),
       sauces: request.sauces.map((s) => ({ id: s, name: s })),
@@ -136,33 +151,46 @@ export class CartService {
   }
 
   /**
-   * Get taco details by index
+   * Get taco details by UUID
    */
-  async getTacoDetails(sessionId: string, index: number): Promise<Taco> {
-    logger.debug('Fetching taco details', { sessionId, index });
+  async getTacoDetails(cartId: string, tacoId: string): Promise<Taco> {
+    logger.debug('Fetching taco details', { cartId, tacoId });
+
+    const backendIndex = this.getBackendIndex(cartId, tacoId);
 
     const response = await sessionApiClient.postForm<{ status: string; data: unknown }>(
-      sessionId,
+      cartId,
       '/ajax/gtd.php',
-      { index }
+      { index: backendIndex }
     );
 
     if (response.status !== 'success') {
       throw new Error('Failed to get taco details');
     }
 
-    logger.info('Taco details fetched', { sessionId, index });
-    // Would parse and return proper Taco object
-    return {} as Taco;
+    logger.info('Taco details fetched', { cartId, tacoId });
+    
+    return {
+      id: tacoId,
+      size: 'tacos_L', // Would parse from response
+      meats: [],
+      sauces: [],
+      garnitures: [],
+      quantity: 1,
+      price: 0,
+    };
   }
 
   /**
-   * Update taco in cart
+   * Update taco in cart by UUID
    */
-  async updateTaco(sessionId: string, request: UpdateTacoRequest): Promise<Taco> {
-    logger.debug('Updating taco', { sessionId, id: request.id });
+  async updateTaco(cartId: string, request: UpdateTacoRequest): Promise<Taco> {
+    logger.debug('Updating taco', { cartId, tacoId: request.id });
+
+    const backendIndex = this.getBackendIndex(cartId, request.id);
 
     const formData: Record<string, unknown> = {
+      index: backendIndex,
       editSelectProduct: request.size,
       tacosNote: request.note || '',
     };
@@ -192,50 +220,68 @@ export class CartService {
       (formData['garniture[]'] as string[]).push(garniture);
     });
 
-    await sessionApiClient.postFormData(sessionId, '/ajax/et.php', formData);
+    await sessionApiClient.postFormData(cartId, '/ajax/et.php', formData);
 
-    logger.info('Taco updated successfully', { sessionId, id: request.id });
+    logger.info('Taco updated successfully', { cartId, tacoId: request.id });
 
-    return {} as Taco;
+    return {
+      id: request.id,
+      size: request.size,
+      meats: request.meats.map((m) => ({ ...m, name: m.id })),
+      sauces: request.sauces.map((s) => ({ id: s, name: s })),
+      garnitures: request.garnitures.map((g) => ({ id: g, name: g })),
+      note: request.note,
+      quantity: 1,
+      price: 0,
+    };
   }
 
   /**
-   * Update taco quantity
+   * Update taco quantity by UUID
    */
   async updateTacoQuantity(
-    sessionId: string,
-    index: number,
+    cartId: string,
+    tacoId: string,
     action: 'increase' | 'decrease'
   ): Promise<{ quantity: number }> {
-    logger.debug('Updating taco quantity', { sessionId, index, action });
+    logger.debug('Updating taco quantity', { cartId, tacoId, action });
 
+    const backendIndex = this.getBackendIndex(cartId, tacoId);
     const formAction = action === 'increase' ? 'increaseQuantity' : 'decreaseQuantity';
+    
     const response = await sessionApiClient.postForm<{ status: string; quantity: number }>(
-      sessionId,
+      cartId,
       '/ajax/owt.php',
-      { action: formAction, index }
+      { action: formAction, index: backendIndex }
     );
 
-    logger.info('Taco quantity updated', { sessionId, index, newQuantity: response.quantity });
+    logger.info('Taco quantity updated', { cartId, tacoId, newQuantity: response.quantity });
     return { quantity: response.quantity };
   }
 
   /**
-   * Delete taco from cart
+   * Delete taco from cart by UUID
    */
-  async deleteTaco(sessionId: string, index: number): Promise<void> {
-    logger.debug('Deleting taco', { sessionId, index });
-    await sessionApiClient.post(sessionId, '/ajax/dt.php', { index });
-    logger.info('Taco deleted from cart', { sessionId, index });
+  async deleteTaco(cartId: string, tacoId: string): Promise<void> {
+    logger.debug('Deleting taco', { cartId, tacoId });
+    
+    const backendIndex = this.getBackendIndex(cartId, tacoId);
+    
+    await sessionApiClient.post(cartId, '/ajax/dt.php', { index: backendIndex });
+    
+    // Remove mapping
+    this.removeTacoMapping(cartId, tacoId);
+    
+    logger.info('Taco deleted from cart', { cartId, tacoId });
   }
 
   /**
    * Get all extras in cart
    */
-  async getExtras(sessionId: string): Promise<Extra[]> {
-    logger.debug('Fetching extras from cart', { sessionId });
+  async getExtras(cartId: string): Promise<Extra[]> {
+    logger.debug('Fetching extras from cart', { cartId });
     const response = await sessionApiClient.post<Record<string, Extra>>(
-      sessionId,
+      cartId,
       '/ajax/gse.php'
     );
     return Object.values(response);
@@ -244,20 +290,20 @@ export class CartService {
   /**
    * Add or update extra in cart
    */
-  async addExtra(sessionId: string, extra: Extra): Promise<Extra> {
-    logger.debug('Adding extra to cart', { sessionId, id: extra.id });
-    await sessionApiClient.post(sessionId, '/ajax/ues.php', extra);
-    logger.info('Extra added to cart', { sessionId, id: extra.id });
+  async addExtra(cartId: string, extra: Extra): Promise<Extra> {
+    logger.debug('Adding extra to cart', { cartId, id: extra.id });
+    await sessionApiClient.post(cartId, '/ajax/ues.php', extra);
+    logger.info('Extra added to cart', { cartId, id: extra.id });
     return extra;
   }
 
   /**
    * Get all drinks in cart
    */
-  async getDrinks(sessionId: string): Promise<Drink[]> {
-    logger.debug('Fetching drinks from cart', { sessionId });
+  async getDrinks(cartId: string): Promise<Drink[]> {
+    logger.debug('Fetching drinks from cart', { cartId });
     const response = await sessionApiClient.post<Record<string, Drink>>(
-      sessionId,
+      cartId,
       '/ajax/gsb.php'
     );
     return Object.values(response);
@@ -266,20 +312,20 @@ export class CartService {
   /**
    * Add or update drink in cart
    */
-  async addDrink(sessionId: string, drink: Drink): Promise<Drink> {
-    logger.debug('Adding drink to cart', { sessionId, id: drink.id });
-    await sessionApiClient.post(sessionId, '/ajax/ubs.php', drink);
-    logger.info('Drink added to cart', { sessionId, id: drink.id });
+  async addDrink(cartId: string, drink: Drink): Promise<Drink> {
+    logger.debug('Adding drink to cart', { cartId, id: drink.id });
+    await sessionApiClient.post(cartId, '/ajax/ubs.php', drink);
+    logger.info('Drink added to cart', { cartId, id: drink.id });
     return drink;
   }
 
   /**
    * Get all desserts in cart
    */
-  async getDesserts(sessionId: string): Promise<Dessert[]> {
-    logger.debug('Fetching desserts from cart', { sessionId });
+  async getDesserts(cartId: string): Promise<Dessert[]> {
+    logger.debug('Fetching desserts from cart', { cartId });
     const response = await sessionApiClient.post<Record<string, Dessert>>(
-      sessionId,
+      cartId,
       '/ajax/gsd.php'
     );
     return Object.values(response);
@@ -288,35 +334,69 @@ export class CartService {
   /**
    * Add or update dessert in cart
    */
-  async addDessert(sessionId: string, dessert: Dessert): Promise<Dessert> {
-    logger.debug('Adding dessert to cart', { sessionId, id: dessert.id });
-    await sessionApiClient.post(sessionId, '/ajax/uds.php', dessert);
-    logger.info('Dessert added to cart', { sessionId, id: dessert.id });
+  async addDessert(cartId: string, dessert: Dessert): Promise<Dessert> {
+    logger.debug('Adding dessert to cart', { cartId, id: dessert.id });
+    await sessionApiClient.post(cartId, '/ajax/uds.php', dessert);
+    logger.info('Dessert added to cart', { cartId, id: dessert.id });
     return dessert;
   }
 
   /**
    * Get category summary (quantities and prices)
    */
-  async getCategorySummary(sessionId: string): Promise<{
+  async getCategorySummary(cartId: string): Promise<{
     tacos: CategorySummary;
     extras: CategorySummary;
     boissons: CategorySummary;
     desserts: CategorySummary;
   }> {
-    logger.debug('Fetching category summary', { sessionId });
+    logger.debug('Fetching category summary', { cartId });
     const response = await sessionApiClient.post<{
       tacos: CategorySummary;
       extras: CategorySummary;
       boissons: CategorySummary;
       desserts: CategorySummary;
-    }>(sessionId, '/ajax/sd.php');
+    }>(cartId, '/ajax/sd.php');
     return {
       tacos: response.tacos,
       extras: response.extras,
       boissons: response.boissons,
       desserts: response.desserts,
     };
+  }
+
+  /**
+   * Store UUID to backend index mapping
+   */
+  private storeTacoMapping(cartId: string, backendIndex: number, tacoId: string): void {
+    if (!this.tacoIndexToUuid.has(cartId)) {
+      this.tacoIndexToUuid.set(cartId, new Map());
+      this.tacoUuidToIndex.set(cartId, new Map());
+    }
+    this.tacoIndexToUuid.get(cartId)!.set(backendIndex, tacoId);
+    this.tacoUuidToIndex.get(cartId)!.set(tacoId, backendIndex);
+  }
+
+  /**
+   * Get backend index from UUID
+   */
+  private getBackendIndex(cartId: string, tacoId: string): number {
+    const index = this.tacoUuidToIndex.get(cartId)?.get(tacoId);
+    if (index === undefined) {
+      throw new Error(`Taco not found: ${tacoId}`);
+    }
+    return index;
+  }
+
+  /**
+   * Remove taco mapping
+   */
+  private removeTacoMapping(cartId: string, tacoId: string): void {
+    const backendIndex = this.tacoUuidToIndex.get(cartId)?.get(tacoId);
+    if (backendIndex !== undefined) {
+      this.tacoIndexToUuid.get(cartId)?.delete(backendIndex);
+      this.tacoUuidToIndex.get(cartId)?.delete(tacoId);
+    }
   }
 }
 

@@ -52,8 +52,7 @@ export class ApiController {
   async getTaco(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { cartId, id } = req.params;
-      const tacoId = parseInt(id || '0', 10);
-      const taco = await cartService.getTacoDetails(cartId || '', tacoId);
+      const taco = await cartService.getTacoDetails(cartId || '', id || '');
       res.json({ success: true, data: taco });
     } catch (error) {
       next(error);
@@ -66,8 +65,7 @@ export class ApiController {
   async updateTaco(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { cartId, id } = req.params;
-      const tacoId = parseInt(id || '0', 10);
-      const request = { ...req.body, id: tacoId } as UpdateTacoRequest;
+      const request = { ...req.body, id: id || '' } as UpdateTacoRequest;
       const taco = await cartService.updateTaco(cartId || '', request);
       res.json({ success: true, data: taco });
     } catch (error) {
@@ -81,9 +79,8 @@ export class ApiController {
   async updateTacoQuantity(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { cartId, id } = req.params;
-      const tacoId = parseInt(id || '0', 10);
       const { action } = req.body as { action: 'increase' | 'decrease' };
-      const result = await cartService.updateTacoQuantity(cartId || '', tacoId, action);
+      const result = await cartService.updateTacoQuantity(cartId || '', id || '', action);
       res.json({ success: true, data: result });
     } catch (error) {
       next(error);
@@ -96,8 +93,7 @@ export class ApiController {
   async deleteTaco(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { cartId, id } = req.params;
-      const tacoId = parseInt(id || '0', 10);
-      await cartService.deleteTaco(cartId || '', tacoId);
+      await cartService.deleteTaco(cartId || '', id || '');
       res.json({ success: true });
     } catch (error) {
       next(error);
