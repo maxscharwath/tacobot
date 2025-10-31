@@ -87,7 +87,7 @@
 
         new Date(orderData.OrderData.date).toDateString() === new Date().toDateString() || 'pending' !== orderData.OrderData.status && "confirmed" !== orderData.OrderData.status && "ondelivery" !== orderData.OrderData.status ? "pending" !== orderData.OrderData.status && 'confirmed' !== orderData.OrderData.status && 'ondelivery' !== orderData.OrderData.status || (hasActiveOrders = true) : orderData.OrderData.status = 'delivered';
         const orderCard = function(orderData) {
-          const const orderItemsHtml = function(order) {
+          const orderItemsHtml = function(order) {
               let itemsHtml = "<ul class=\"list-group list-group-flush\">";
               return itemsHtml += buildOrderItemsList(order.tacos, "Tacos"), itemsHtml += buildOrderItemsList(order.extras, 'Extras'), itemsHtml += buildOrderItemsList(order.boissons, "Boissons"), itemsHtml += buildOrderItemsList(order.desserts, 'Desserts'), itemsHtml += '</ul>', itemsHtml;
             }(orderData);
@@ -476,7 +476,7 @@
 
   function resetTacoForm() {
 
-    document.getElementById('tacosForm')["reset"](), [...meatCheckboxes, ...sauceCheckboxes, ...garnishCheckboxes].forEach(checkbox => {
+    document.getElementById('tacosForm').reset(), [...meatCheckboxes, ...sauceCheckboxes, ...garnishCheckboxes].forEach(checkbox => {
 
       checkbox.checked = false, checkbox.disabled = false;
     });
@@ -484,7 +484,7 @@
 
   function refreshTacoListUI() {
 
-    0 === $("#products-list")["children"]().length ? ($('#product-messages').html("<p class=\"fst-italic\">Veuillez commencer par choisir la taille de vos tacos.</p>"), $("div:contains(\"Tacos dans votre panier\")").remove()) : $("#product-messages").html('<div class="bg-danger rounded text-light p-2" role="alert"><i class="fa-solid fa-chevron-down"></i> Tacos dans votre panier</div>'), $("#products-list .card").each(function(index) {
+    0 === $("#products-list").children().length ? ($('#product-messages').html("<p class=\"fst-italic\">Veuillez commencer par choisir la taille de vos tacos.</p>"), $("div:contains(\"Tacos dans votre panier\")").remove()) : $("#product-messages").html('<div class="bg-danger rounded text-light p-2" role="alert"><i class="fa-solid fa-chevron-down"></i> Tacos dans votre panier</div>'), $("#products-list .card").each(function(index) {
 
       $(this).attr('id', 'tacos-' + index), $(this).attr("data-index", index), $(this).find(".delete-tacos").attr("data-index", index);
     });
@@ -1049,7 +1049,7 @@
       originalButtonText = finalizeButton ? finalizeButton.innerHTML : 'Finaliser la commande';
     if (document.getElementById("phone").value !== document.getElementById("confirmPhone").value) return void alert("Les num\u00e9ros de t\u00e9l\u00e9phone ne correspondent pas, veuillez v\u00e9rifier !");
     finalizeButton && (finalizeButton.disabled = true, finalizeButton.innerHTML = "<span class=\"spinner-border spinner-border-sm me-2\"></span>Traitement en cours...", finalizeButton.classList.add("disabled"));
-    const transactionId = Date.now() + '_' + Math.random()['toString'](36)['substr'](2, 9),
+    const transactionId = Date.now() + '_' + Math.random().toString(36).substr(2, 9),
       csrfToken = getCsrfToken();
     var formData = new FormData(this);
     formData.append("transaction_id", transactionId), fetch("ajax/RocknRoll.php", {
@@ -1083,9 +1083,9 @@
           }).hide();
         });
         var orderStories = localStorage.getItem('order_stories');
-        (orderStories = orderStories ? JSON.parse(orderStories) : [])['push'](orderResult), localStorage.setItem('order_stories', JSON.stringify(orderStories));
+        (orderStories = orderStories ? JSON.parse(orderStories) : []).push(orderResult), localStorage.setItem('order_stories', JSON.stringify(orderStories));
         let successMessage = '';
-        "livraison" === new URLSearchParams(window.location.search)["get"]("content") ? successMessage = '<div class="d-flex justify-content-center align-items-center" style="height: 100px;"><i class='fa fa-check-circle' style='color: green; font-size: 100px;'></i></div><br />Votre commande a été reçue et sera préparée.<br>Restez joignable s'il vous plaît.<br>Celui-ci sera mis à jour lorsque votre commande sera en route.' : "emporter" === new URLSearchParams(window.location.search)["get"]("content") && (successMessage = "<div class=\"d-flex justify-content-center align-items-center\" style=\"height: 100px;\"><i class='fa fa-check-circle' style='color: green; font-size: 100px; margin-right: 15px;'></i>Votre commande a \u00e9t\u00e9 re\u00e7ue et sera pr\u00e9par\u00e9e.</div>"), $("#orderModal").on("hidden.bs.modal", function() {
+        "livraison" === new URLSearchParams(window.location.search).get("content") ? successMessage = '<div class="d-flex justify-content-center align-items-center" style="height: 100px;"><i class='fa fa-check-circle' style='color: green; font-size: 100px;'></i></div><br />Votre commande a été reçue et sera préparée.<br>Restez joignable s'il vous plaît.<br>Celui-ci sera mis à jour lorsque votre commande sera en route.' : "emporter" === new URLSearchParams(window.location.search)["get"]("content") && (successMessage = "<div class=\"d-flex justify-content-center align-items-center\" style=\"height: 100px;\"><i class='fa fa-check-circle' style='color: green; font-size: 100px; margin-right: 15px;'></i>Votre commande a \u00e9t\u00e9 re\u00e7ue et sera pr\u00e9par\u00e9e.</div>"), $("#orderModal").on("hidden.bs.modal", function() {
 
           $('#successModalBody').html(successMessage), $("#successModal").modal("show");
         }).modal("hide"), $('#successModal').on("hidden.bs.modal", function() {
@@ -1570,25 +1570,25 @@
         if (!postalCode) return void autocompleteDropdown.classList.remove("show");
         const results = await async function(street, postalCode) {
           if (!postalCode || street.length < 3) return [];
-          const const normalizedStreet = function(street) {
+          const normalizedStreet = function(street) {
               const replacements = [{
                   'pattern': /\bchem\.\s*/gi,
-                  'replacement': lookup(470)
+                  'replacement': "Chemin "
                 }, {
                   'pattern': /\bch\.\s*/gi,
-                  'replacement': lookup(470)
+                  'replacement': "Chemin "
                 }, {
                   'pattern': /\bav\.\s*/gi,
-                  'replacement': lookup(459)
+                  'replacement': "Avenue "
                 }, {
                   'pattern': /\bbd\s+/gi,
                   'replacement': 'Boulevard '
                 }, {
                   'pattern': /\bpl\.\s*/gi,
-                  'replacement': lookup(629)
+                  'replacement': "Place "
                 }, {
                   'pattern': /\brte\s+/gi,
-                  'replacement': lookup(353)
+                  'replacement': "Route "
                 }, {
                   'pattern': /\br\.\s*/gi,
                   'replacement': 'Rue '
@@ -1598,7 +1598,7 @@
                   pattern: pattern,
                   replacement: replacement
                 }
-                of replacements) normalized = normalized[lookup(589)](pattern, replacement);
+                of replacements) normalized = normalized.replace(pattern, replacement);
               return normalized;
             }(street),
             apiUrl = "https://nominatim.openstreetmap.org/search?" + new URLSearchParams({
