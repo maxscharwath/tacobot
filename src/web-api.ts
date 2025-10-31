@@ -1,5 +1,5 @@
 /**
- * Web API Server - Session-aware
+ * Web API Server - Session-aware (hidden sessions)
  * @module web-api
  */
 
@@ -13,6 +13,7 @@ import { resourceService } from './services';
 import { apiController } from './controllers/api.controller';
 import { errorHandler } from './middleware/error-handler';
 import { validate, schemas } from './middleware/validation';
+import { sessionHandler } from './middleware/session-handler';
 
 /**
  * Create Express application
@@ -31,7 +32,8 @@ function createApp(): Application {
   app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', config.webApi.corsOrigin);
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id');
+    res.header('Access-Control-Expose-Headers', 'X-Session-Id');
 
     if (req.method === 'OPTIONS') {
       res.sendStatus(200);
@@ -57,66 +59,59 @@ function createApp(): Application {
       method: req.method,
       url: req.url,
       ip: req.ip,
+      sessionId: req.headers['x-session-id'],
     });
     next();
   });
 
-  // Health check
+  // Health check (no session required)
   app.get('/health', apiController.healthCheck.bind(apiController));
 
   // API routes
   const router = express.Router();
 
-  // Session management routes
-  router.post('/sessions', apiController.createSession.bind(apiController));
-  router.get('/sessions', apiController.listSessions.bind(apiController));
-  router.get('/sessions/stats', apiController.getSessionStats.bind(apiController));
-  router.get('/sessions/:sessionId', apiController.getSession.bind(apiController));
-  router.delete('/sessions/:sessionId', apiController.deleteSession.bind(apiController));
+  // Apply session handler middleware to all routes
+  router.use(sessionHandler);
 
-  // Session-specific cart routes
-  router.get('/sessions/:sessionId/cart', apiController.getCart.bind(apiController));
-  router.post(
-    '/sessions/:sessionId/cart/tacos',
-    validate(schemas.addTaco),
-    apiController.addTaco.bind(apiController)
-  );
-  router.get('/sessions/:sessionId/cart/tacos/:id', apiController.getTaco.bind(apiController));
+  // Cart routes (sessionId auto-handled via middleware)
+  router.get('/cart', apiController.getCart.bind(apiController));
+  router.post('/cart/tacos', validate(schemas.addTaco), apiController.addTaco.bind(apiController));
+  router.get('/cart/tacos/:id', apiController.getTaco.bind(apiController));
   router.put(
-    '/sessions/:sessionId/cart/tacos/:id',
+    '/cart/tacos/:id',
     validate(schemas.addTaco),
     apiController.updateTaco.bind(apiController)
   );
   router.patch(
-    '/sessions/:sessionId/cart/tacos/:id/quantity',
+    '/cart/tacos/:id/quantity',
     validate(schemas.updateTacoQuantity),
     apiController.updateTacoQuantity.bind(apiController)
   );
-  router.delete('/sessions/:sessionId/cart/tacos/:id', apiController.deleteTaco.bind(apiController));
+  router.delete('/cart/tacos/:id', apiController.deleteTaco.bind(apiController));
   router.post(
-    '/sessions/:sessionId/cart/extras',
+    '/cart/extras',
     validate(schemas.addExtra),
     apiController.addExtra.bind(apiController)
   );
   router.post(
-    '/sessions/:sessionId/cart/drinks',
+    '/cart/drinks',
     validate(schemas.addDrink),
     apiController.addDrink.bind(apiController)
   );
   router.post(
-    '/sessions/:sessionId/cart/desserts',
+    '/cart/desserts',
     validate(schemas.addDessert),
     apiController.addDessert.bind(apiController)
   );
 
-  // Session-specific order routes
+  // Order routes (sessionId auto-handled via middleware)
   router.post(
-    '/sessions/:sessionId/orders',
+    '/orders',
     validate(schemas.createOrder),
     apiController.createOrder.bind(apiController)
   );
 
-  // Global resource routes (not session-specific)
+  // Global resource routes (no session required, but middleware still runs)
   router.get('/resources/stock', apiController.getStock.bind(apiController));
 
   app.use('/api/v1', router);
@@ -151,7 +146,7 @@ async function startWebApi(): Promise<void> {
 
   // Initialize API client (for global operations like stock)
   await apiClient.initialize();
-  
+
   // Initialize resource service
   await resourceService.initialize();
 
@@ -163,9 +158,9 @@ async function startWebApi(): Promise<void> {
       port: config.webApi.port,
       env: config.env,
     });
-    logger.info('📝 Session-based architecture enabled');
-    logger.info(`   Create session: POST /api/v1/sessions`);
-    logger.info(`   Use session: /api/v1/sessions/{sessionId}/cart`);
+    logger.info('🔐 Sessions are automatically managed via X-Session-Id header');
+    logger.info('   Add header: X-Session-Id: <your-uuid>');
+    logger.info('   Or let the API auto-generate one for you');
   });
 }
 
