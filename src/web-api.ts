@@ -1,19 +1,50 @@
 /**
- * Web API Server - Session-aware (hidden sessions)
+ * Web API Server - Pure RESTful with UUID in paths
  * @module web-api
  */
 
-import express, { Application } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { v4 as uuidv4 } from 'uuid';
 import config from './config';
 import { logger } from './utils/logger';
 import { apiClient } from './api/client';
-import { resourceService } from './services';
+import { resourceService, sessionService } from './services';
 import { apiController } from './controllers/api.controller';
 import { errorHandler } from './middleware/error-handler';
 import { validate, schemas } from './middleware/validation';
-import { sessionHandler } from './middleware/session-handler';
+
+/**
+ * Middleware to ensure session exists (auto-create if needed)
+ */
+async function ensureSession(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const cartId = req.params.cartId;
+    
+    if (!cartId) {
+      next();
+      return;
+    }
+
+    // Check if session exists, create if not
+    const exists = await sessionService.hasSession(cartId);
+    if (!exists) {
+      await sessionService.createSession({
+        sessionId: cartId,
+        metadata: {
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+        },
+      });
+      logger.info('Auto-created session for cart', { cartId });
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
 
 /**
  * Create Express application
@@ -32,8 +63,7 @@ function createApp(): Application {
   app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', config.webApi.corsOrigin);
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id');
-    res.header('Access-Control-Expose-Headers', 'X-Session-Id');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
     if (req.method === 'OPTIONS') {
       res.sendStatus(200);
@@ -59,59 +89,87 @@ function createApp(): Application {
       method: req.method,
       url: req.url,
       ip: req.ip,
-      sessionId: req.headers['x-session-id'],
+      cartId: req.params.cartId,
     });
     next();
   });
 
-  // Health check (no session required)
+  // Health check
   app.get('/health', apiController.healthCheck.bind(apiController));
 
   // API routes
   const router = express.Router();
 
-  // Apply session handler middleware to all routes
-  router.use(sessionHandler);
+  // Generate new cart ID (optional convenience endpoint)
+  router.post('/carts', (req: Request, res: Response) => {
+    const cartId = uuidv4();
+    res.status(201).json({
+      success: true,
+      data: {
+        cartId,
+        message: 'Use this ID in your requests: /api/v1/carts/{cartId}/...',
+      },
+    });
+  });
 
-  // Cart routes (sessionId auto-handled via middleware)
-  router.get('/cart', apiController.getCart.bind(apiController));
-  router.post('/cart/tacos', validate(schemas.addTaco), apiController.addTaco.bind(apiController));
-  router.get('/cart/tacos/:id', apiController.getTaco.bind(apiController));
+  // Cart routes - RESTful with UUID in path
+  router.get('/carts/:cartId', ensureSession, apiController.getCart.bind(apiController));
+  router.post(
+    '/carts/:cartId/tacos',
+    ensureSession,
+    validate(schemas.addTaco),
+    apiController.addTaco.bind(apiController)
+  );
+  router.get(
+    '/carts/:cartId/tacos/:id',
+    ensureSession,
+    apiController.getTaco.bind(apiController)
+  );
   router.put(
-    '/cart/tacos/:id',
+    '/carts/:cartId/tacos/:id',
+    ensureSession,
     validate(schemas.addTaco),
     apiController.updateTaco.bind(apiController)
   );
   router.patch(
-    '/cart/tacos/:id/quantity',
+    '/carts/:cartId/tacos/:id/quantity',
+    ensureSession,
     validate(schemas.updateTacoQuantity),
     apiController.updateTacoQuantity.bind(apiController)
   );
-  router.delete('/cart/tacos/:id', apiController.deleteTaco.bind(apiController));
+  router.delete(
+    '/carts/:cartId/tacos/:id',
+    ensureSession,
+    apiController.deleteTaco.bind(apiController)
+  );
   router.post(
-    '/cart/extras',
+    '/carts/:cartId/extras',
+    ensureSession,
     validate(schemas.addExtra),
     apiController.addExtra.bind(apiController)
   );
   router.post(
-    '/cart/drinks',
+    '/carts/:cartId/drinks',
+    ensureSession,
     validate(schemas.addDrink),
     apiController.addDrink.bind(apiController)
   );
   router.post(
-    '/cart/desserts',
+    '/carts/:cartId/desserts',
+    ensureSession,
     validate(schemas.addDessert),
     apiController.addDessert.bind(apiController)
   );
 
-  // Order routes (sessionId auto-handled via middleware)
+  // Order routes - RESTful with UUID in path
   router.post(
-    '/orders',
+    '/carts/:cartId/orders',
+    ensureSession,
     validate(schemas.createOrder),
     apiController.createOrder.bind(apiController)
   );
 
-  // Global resource routes (no session required, but middleware still runs)
+  // Global resource routes (no cart ID needed)
   router.get('/resources/stock', apiController.getStock.bind(apiController));
 
   app.use('/api/v1', router);
@@ -158,9 +216,9 @@ async function startWebApi(): Promise<void> {
       port: config.webApi.port,
       env: config.env,
     });
-    logger.info('🔐 Sessions are automatically managed via X-Session-Id header');
-    logger.info('   Add header: X-Session-Id: <your-uuid>');
-    logger.info('   Or let the API auto-generate one for you');
+    logger.info('📝 RESTful API - use UUIDs in path:');
+    logger.info('   POST /api/v1/carts → Get a new cart ID');
+    logger.info('   Or use your own UUID in: /api/v1/carts/{uuid}/...');
   });
 }
 

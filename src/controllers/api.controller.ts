@@ -1,5 +1,5 @@
 /**
- * REST API controllers - Session-aware (hidden sessions)
+ * REST API controllers - Pure RESTful with UUID in paths
  * @module controllers/api
  */
 
@@ -16,15 +16,16 @@ import {
 } from '../types';
 
 /**
- * API Controller - Session-aware (sessions are transparent)
+ * API Controller - RESTful with cart UUID in path
  */
 export class ApiController {
   /**
-   * GET /api/v1/cart - Get cart contents
+   * GET /api/v1/carts/:cartId - Get cart contents
    */
   async getCart(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const cart = await cartService.getCart(req.sessionId);
+      const { cartId } = req.params;
+      const cart = await cartService.getCart(cartId || '');
       res.json({ success: true, data: cart });
     } catch (error) {
       next(error);
@@ -32,12 +33,13 @@ export class ApiController {
   }
 
   /**
-   * POST /api/v1/cart/tacos - Add taco to cart
+   * POST /api/v1/carts/:cartId/tacos - Add taco to cart
    */
   async addTaco(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const { cartId } = req.params;
       const request = req.body as AddTacoRequest;
-      const taco = await cartService.addTaco(req.sessionId, request);
+      const taco = await cartService.addTaco(cartId || '', request);
       res.status(201).json({ success: true, data: taco });
     } catch (error) {
       next(error);
@@ -45,12 +47,13 @@ export class ApiController {
   }
 
   /**
-   * GET /api/v1/cart/tacos/:id - Get taco details
+   * GET /api/v1/carts/:cartId/tacos/:id - Get taco details
    */
   async getTaco(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const id = parseInt(req.params.id || '0', 10);
-      const taco = await cartService.getTacoDetails(req.sessionId, id);
+      const { cartId, id } = req.params;
+      const tacoId = parseInt(id || '0', 10);
+      const taco = await cartService.getTacoDetails(cartId || '', tacoId);
       res.json({ success: true, data: taco });
     } catch (error) {
       next(error);
@@ -58,13 +61,14 @@ export class ApiController {
   }
 
   /**
-   * PUT /api/v1/cart/tacos/:id - Update taco
+   * PUT /api/v1/carts/:cartId/tacos/:id - Update taco
    */
   async updateTaco(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const id = parseInt(req.params.id || '0', 10);
-      const request = { ...req.body, id } as UpdateTacoRequest;
-      const taco = await cartService.updateTaco(req.sessionId, request);
+      const { cartId, id } = req.params;
+      const tacoId = parseInt(id || '0', 10);
+      const request = { ...req.body, id: tacoId } as UpdateTacoRequest;
+      const taco = await cartService.updateTaco(cartId || '', request);
       res.json({ success: true, data: taco });
     } catch (error) {
       next(error);
@@ -72,13 +76,14 @@ export class ApiController {
   }
 
   /**
-   * PATCH /api/v1/cart/tacos/:id/quantity - Update taco quantity
+   * PATCH /api/v1/carts/:cartId/tacos/:id/quantity - Update taco quantity
    */
   async updateTacoQuantity(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const id = parseInt(req.params.id || '0', 10);
+      const { cartId, id } = req.params;
+      const tacoId = parseInt(id || '0', 10);
       const { action } = req.body as { action: 'increase' | 'decrease' };
-      const result = await cartService.updateTacoQuantity(req.sessionId, id, action);
+      const result = await cartService.updateTacoQuantity(cartId || '', tacoId, action);
       res.json({ success: true, data: result });
     } catch (error) {
       next(error);
@@ -86,12 +91,13 @@ export class ApiController {
   }
 
   /**
-   * DELETE /api/v1/cart/tacos/:id - Delete taco from cart
+   * DELETE /api/v1/carts/:cartId/tacos/:id - Delete taco from cart
    */
   async deleteTaco(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const id = parseInt(req.params.id || '0', 10);
-      await cartService.deleteTaco(req.sessionId, id);
+      const { cartId, id } = req.params;
+      const tacoId = parseInt(id || '0', 10);
+      await cartService.deleteTaco(cartId || '', tacoId);
       res.json({ success: true });
     } catch (error) {
       next(error);
@@ -99,12 +105,13 @@ export class ApiController {
   }
 
   /**
-   * POST /api/v1/cart/extras - Add extra to cart
+   * POST /api/v1/carts/:cartId/extras - Add extra to cart
    */
   async addExtra(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const { cartId } = req.params;
       const extra = req.body as Extra;
-      const result = await cartService.addExtra(req.sessionId, extra);
+      const result = await cartService.addExtra(cartId || '', extra);
       res.status(201).json({ success: true, data: result });
     } catch (error) {
       next(error);
@@ -112,12 +119,13 @@ export class ApiController {
   }
 
   /**
-   * POST /api/v1/cart/drinks - Add drink to cart
+   * POST /api/v1/carts/:cartId/drinks - Add drink to cart
    */
   async addDrink(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const { cartId } = req.params;
       const drink = req.body as Drink;
-      const result = await cartService.addDrink(req.sessionId, drink);
+      const result = await cartService.addDrink(cartId || '', drink);
       res.status(201).json({ success: true, data: result });
     } catch (error) {
       next(error);
@@ -125,12 +133,13 @@ export class ApiController {
   }
 
   /**
-   * POST /api/v1/cart/desserts - Add dessert to cart
+   * POST /api/v1/carts/:cartId/desserts - Add dessert to cart
    */
   async addDessert(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const { cartId } = req.params;
       const dessert = req.body as Dessert;
-      const result = await cartService.addDessert(req.sessionId, dessert);
+      const result = await cartService.addDessert(cartId || '', dessert);
       res.status(201).json({ success: true, data: result });
     } catch (error) {
       next(error);
@@ -138,12 +147,13 @@ export class ApiController {
   }
 
   /**
-   * POST /api/v1/orders - Create order
+   * POST /api/v1/carts/:cartId/orders - Create order
    */
   async createOrder(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const { cartId } = req.params;
       const request = req.body as CreateOrderRequest;
-      const order = await orderService.createOrder(req.sessionId, request);
+      const order = await orderService.createOrder(cartId || '', request);
       res.status(201).json({ success: true, data: order });
     } catch (error) {
       next(error);
