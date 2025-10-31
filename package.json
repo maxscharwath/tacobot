@@ -1,0 +1,53 @@
+{
+  "name": "tacos-api-integration",
+  "version": "1.0.0",
+  "description": "Fully typed TypeScript application for tacos ordering system with Slack bot and web API integration",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "tacos",
+    "api",
+    "slack",
+    "typescript",
+    "rest-api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@slack/bolt": "^3.17.1",
+    "@slack/web-api": "^7.0.2",
+    "express": "^4.18.2",
+    "axios": "^1.6.7",
+    "dotenv": "^16.4.1",
+    "zod": "^3.22.4",
+    "winston": "^3.11.0",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.24",
+    "@types/cors": "^2.8.17",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.1",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.12",
+    "ts-jest": "^29.1.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,53 +1,270 @@
-# README - Tacos Ordering API Documentation
+# Tacos API Integration
 
-## Overview
+A fully typed TypeScript application for integrating with the tacos ordering system backend API. This application provides both a RESTful Web API and Slack bot integration for managing tacos orders.
 
-This repository contains documentation for the tacos ordering system backend API. The frontend code (`bundle.js`) has been deobfuscated and analyzed to understand the backend endpoints.
+## Features
 
-## Documentation Files
+- ? **Fully Typed**: Complete TypeScript type definitions for all API models
+- ? **Clean Architecture**: Service layer, API client, and integration separation
+- ? **Modern Stack**: Express.js, Slack Bolt, Winston logging
+- ? **RESTful API**: Clean REST endpoints wrapping legacy PHP backend
+- ? **Slack Bot**: Interactive Slack commands for order management
+- ? **Error Handling**: Comprehensive error handling with custom error types
+- ? **CSRF Management**: Automatic CSRF token refresh and management
+- ? **Well Documented**: Inline documentation and type annotations
 
-- **`BACKEND_API_DOCUMENTATION.md`** - Complete documentation of all backend endpoints (PHP)
-- **`MINIMAL_API_DESIGN.md`** - Proposed minimal REST API design
+## Project Structure
 
-## Quick Reference
+```
+src/
+??? api/                  # API layer
+?   ??? client.ts        # Backend API client wrapper
+?   ??? web-server.ts    # Express REST API server
+??? services/            # Business logic layer
+?   ??? tacos-api.service.ts
+??? integrations/        # External integrations
+?   ??? slack-bot.service.ts
+??? types/               # TypeScript type definitions
+?   ??? models.ts        # Core data models
+?   ??? config.ts        # Configuration types
+?   ??? errors.ts        # Custom error classes
+?   ??? index.ts         # Barrel exports
+??? utils/               # Utilities
+?   ??? config.ts        # Configuration management
+?   ??? logger.ts        # Winston logger setup
+??? index.ts             # Application entry point
+```
 
-### Backend Endpoints (Current System)
+## Installation
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/ajax/refresh_token.php` | GET | Get CSRF token |
-| `/ajax/owt.php` | POST | Taco operations (add/update/load) |
-| `/ajax/gtd.php` | POST | Get taco details |
-| `/ajax/et.php` | POST | Edit taco |
-| `/ajax/dt.php` | POST | Delete taco |
-| `/ajax/ues.php` | POST | Add/update extra |
-| `/ajax/ubs.php` | POST | Add/update drink |
-| `/ajax/uds.php` | POST | Add/update dessert |
-| `/ajax/cs.php` | POST | Get cart summary |
-| `/ajax/RocknRoll.php` | POST | Submit order |
-| `/ajax/oh.php` | POST | Get order statuses |
-| `/ajax/restore_order.php` | POST | Restore order |
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-See `BACKEND_API_DOCUMENTATION.md` for complete details.
+2. **Copy environment variables:**
+   ```bash
+   cp .env.example .env
+   ```
 
-### Proposed Minimal API
+3. **Configure environment variables:**
+   Edit `.env` file with your configuration:
+   ```env
+   BACKEND_API_BASE_URL=https://your-tacos-api.com
+   PORT=3000
+   NODE_ENV=development
+   
+   # Optional: Slack Bot Configuration
+   SLACK_BOT_TOKEN=xoxb-your-bot-token
+   SLACK_SIGNING_SECRET=your-signing-secret
+   SLACK_APP_TOKEN=xapp-your-app-token
+   ```
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/v1/resources` | GET | List all resources |
-| `/api/v1/cart` | GET | Get cart |
-| `/api/v1/cart/tacos` | POST | Add taco |
-| `/api/v1/cart/tacos/:id` | GET/PUT/DELETE | Get/update/delete taco |
-| `/api/v1/orders` | POST | Create order |
-| `/api/v1/orders/:id` | GET | Get order |
-| `/api/v1/orders/:id/status` | GET | Get order status |
+## Usage
 
-See `MINIMAL_API_DESIGN.md` for complete API design.
+### Development
 
-## Next Steps
+```bash
+npm run dev
+```
 
-1. Review `BACKEND_API_DOCUMENTATION.md` to understand backend behavior
-2. Review `MINIMAL_API_DESIGN.md` for API wrapper design
-3. Implement API wrapper following the design
-4. Test endpoints against backend
-5. Migrate frontend to use new API
+This starts the application with hot-reload using `tsx watch`.
+
+### Production
+
+```bash
+npm run build
+npm start
+```
+
+### Scripts
+
+- `npm run build` - Build TypeScript to JavaScript
+- `npm run dev` - Start development server with hot-reload
+- `npm start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint errors
+- `npm run type-check` - Type check without building
+- `npm test` - Run tests
+
+## API Endpoints
+
+The Web API server provides RESTful endpoints at `/api/v1`:
+
+### Resources
+- `GET /api/v1/resources/stock` - Get stock availability
+
+### Cart
+- `GET /api/v1/cart` - Get current cart
+- `POST /api/v1/cart/tacos` - Add taco to cart
+- `GET /api/v1/cart/tacos/:id` - Get taco details
+- `PUT /api/v1/cart/tacos/:id` - Update taco
+- `PATCH /api/v1/cart/tacos/:id/quantity` - Update taco quantity
+- `DELETE /api/v1/cart/tacos/:id` - Delete taco
+
+### Orders
+- `POST /api/v1/orders` - Submit order
+- `GET /api/v1/orders/:id/status` - Get order status
+- `POST /api/v1/orders/:id/restore` - Restore order to cart
+
+### Delivery
+- `GET /api/v1/delivery/demand/:time` - Check delivery demand
+
+### Health
+- `GET /api/v1/health` - Health check
+
+## Slack Bot Commands
+
+If Slack bot is configured, the following commands are available:
+
+- `/tacos` - Show tacos ordering system info
+- `/tacos-menu` - View menu
+- `/tacos-cart` - View current cart
+- `/tacos-order` - Place order
+
+## Example Usage
+
+### Using the API Client
+
+```typescript
+import { getTacosApiService } from '@/services/tacos-api.service';
+
+const service = getTacosApiService();
+
+// Get stock availability
+const stock = await service.getStockAvailability();
+
+// Add taco to cart
+const taco = await service.addTacoToCart({
+  size: 'tacos_XL',
+  meats: [
+    { slug: 'viande_hachee', name: 'Viande Hach?e', quantity: 2 }
+  ],
+  sauces: [
+    { slug: 'harissa', name: 'Harissa' }
+  ],
+  garnitures: [
+    { slug: 'salade', name: 'Salade' }
+  ],
+  note: 'Pas trop ?pic?'
+});
+
+// Submit order
+const order = await service.submitOrder(
+  {
+    name: 'John Doe',
+    phone: '+41791234567'
+  },
+  {
+    type: 'livraison',
+    address: '123 Rue Example, 1000 Lausanne',
+    requestedFor: '15:00'
+  }
+);
+```
+
+### Using the REST API
+
+```bash
+# Get cart
+curl http://localhost:3000/api/v1/cart
+
+# Add taco to cart
+curl -X POST http://localhost:3000/api/v1/cart/tacos \
+  -H "Content-Type: application/json" \
+  -d '{
+    "size": "tacos_XL",
+    "meats": [{"slug": "viande_hachee", "name": "Viande Hach?e", "quantity": 2}],
+    "sauces": [{"slug": "harissa", "name": "Harissa"}],
+    "garnitures": [{"slug": "salade", "name": "Salade"}]
+  }'
+
+# Submit order
+curl -X POST http://localhost:3000/api/v1/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer": {
+      "name": "John Doe",
+      "phone": "+41791234567"
+    },
+    "delivery": {
+      "type": "livraison",
+      "address": "123 Rue Example",
+      "requestedFor": "15:00"
+    }
+  }'
+```
+
+## Type Definitions
+
+All types are defined in `src/types/`:
+
+- `TacoSize` - Available taco sizes
+- `TacoConfig` - Taco configuration
+- `CartTaco` - Taco in cart
+- `Cart` - Cart contents
+- `Order` - Order structure
+- `OrderStatus` - Order status lifecycle
+- `StockAvailability` - Stock information
+- And more...
+
+## Error Handling
+
+The application uses custom error classes:
+
+- `ApiClientError` - Base API error
+- `CsrfTokenError` - CSRF token issues
+- `RateLimitError` - Rate limit exceeded
+- `ValidationError` - Validation errors
+- `NotFoundError` - Resource not found
+- `DuplicateOrderError` - Duplicate order
+
+All errors are properly typed and include status codes and error details.
+
+## Configuration
+
+Configuration is managed through environment variables and loaded via `src/utils/config.ts`. The configuration is validated on startup and provides type-safe access throughout the application.
+
+## Logging
+
+Logging is handled by Winston and configured in `src/utils/logger.ts`. Log levels and formats can be configured via environment variables.
+
+## Development
+
+### Type Checking
+
+```bash
+npm run type-check
+```
+
+### Linting
+
+```bash
+npm run lint
+npm run lint:fix
+```
+
+### Building
+
+```bash
+npm run build
+```
+
+## Contributing
+
+1. Follow TypeScript best practices
+2. Maintain type safety - avoid `any` types
+3. Add JSDoc comments for public APIs
+4. Run linter and type checker before committing
+5. Write tests for new features
+
+## License
+
+MIT
+
+## Documentation
+
+For detailed API documentation, see:
+- `API_DOCUMENTATION.md` - Full API documentation
+- `BACKEND_API_DOCUMENTATION.md` - Backend endpoint reference
+- `MINIMAL_API_DESIGN.md` - API design documentation
