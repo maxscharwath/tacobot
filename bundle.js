@@ -45,7 +45,7 @@
       'credentials': "same-origin"
     }).then(tokenResponse => {
 
-      if (!tokenResponse.ok) throw 403 === tokenResponse.status && console.log("REFRESH TOKEN ERROR"), new Error('REFRESH\x20TOKEN\x20Network\x20response\x20was\x20not\x20ok');
+      if (!tokenResponse.ok) throw 403 === tokenResponse.status && console.log("REFRESH TOKEN ERROR"), new Error('REFRESH TOKEN Network response was not ok');
       return tokenResponse.json();
     }).then(tokenData => {
 
@@ -86,40 +86,48 @@
       orderStories.forEach(orderData => {
 
         new Date(orderData.OrderData.date).toDateString() === new Date().toDateString() || 'pending' !== orderData.OrderData.status && "confirmed" !== orderData.OrderData.status && "ondelivery" !== orderData.OrderData.status ? "pending" !== orderData.OrderData.status && 'confirmed' !== orderData.OrderData.status && 'ondelivery' !== orderData.OrderData.status || (hasActiveOrders = true) : orderData.OrderData.status = 'delivered';
-        const orderCard = function(_3937618) {
-          const _3304620 = _1668924,
-            _3582845 = function(_472414) {
-              const _2269029 = a0_17364;
-              let _7379560 = _2269029(336);
-              return _7379560 += buildOrderItemsList(_472414[_2269029(637)], _2269029(632)), _7379560 += buildOrderItemsList(_472414[_2269029(696)], 'Extras'), _7379560 += buildOrderItemsList(_472414[_2269029(560)], _2269029(730)), _7379560 += buildOrderItemsList(_472414[_2269029(724)], 'Desserts'), _7379560 += '</ul>', _7379560;
-            }(_3937618),
-            _4821971 = document[_3304620(365)](_3304620(621));
-          _4821971.className = _3304620(799) + getStatusVariant(_3937618[_3304620(817)].status) + '\x20bg-light-subtle\x20border\x20border-' + getStatusVariant(_3937618[_3304620(817)].status), _4821971.setAttribute(_3304620(703), _3937618.orderId);
-          const _6167822 = new Date()[_3304620(577)](),
-            _2165547 = new Date()[_3304620(810)](),
-            _5614620 = new Date().getDay(),
-            _1996534 = 10 === _6167822 && _2165547 >= 0 || 5 === _5614620 && 22 === _6167822 && _2165547 <= 50 || 0 === _5614620 && 22 === _6167822 && _2165547 <= 50 || 5 !== _5614620 && 0 !== _5614620 && 21 === _6167822 && _2165547 <= 50 || _6167822 > 10 && _6167822 < 21;
-          let _3635958 = _3304620(514) !== _3937618.OrderData[_3304620(677)] && _3304620(534) !== _3937618[_3304620(817)][_3304620(677)] && 'ondelivery' !== _3937618[_3304620(817)].status && _3304620(486) !== _3937618[_3304620(817)].status;
-          return _3635958 = _3635958 && _1996534, _4821971[_3304620(634)] = _3304620(583) + function(_1836650, _5966286) {
+        const orderCard = function(orderData) {
+          const const orderItemsHtml = function(order) {
+              let itemsHtml = "<ul class=\"list-group list-group-flush\">";
+              return itemsHtml += buildOrderItemsList(order.tacos, "Tacos"), itemsHtml += buildOrderItemsList(order.extras, 'Extras'), itemsHtml += buildOrderItemsList(order.boissons, "Boissons"), itemsHtml += buildOrderItemsList(order.desserts, 'Desserts'), itemsHtml += '</ul>', itemsHtml;
+            }(orderData);
+            const orderCard = document.createElement("div");
+          orderCard.className = "card border-" + getStatusVariant(orderData.OrderData.status) + ' bg-light-subtle border border-' + getStatusVariant(orderData.OrderData.status), orderCard.setAttribute("data-order-id", orderData.orderId);
+          const currentHour = new Date().getHours(),
+            currentMinute = new Date().getMinutes(),
+            currentDay = new Date().getDay(),
+            isBusinessHours = 10 === currentHour && currentMinute >= 0 || 5 === currentDay && 22 === currentHour && currentMinute <= 50 || 0 === currentDay && 22 === currentHour && currentMinute <= 50 || 5 !== currentDay && 0 !== currentDay && 21 === currentHour && currentMinute <= 50 || currentHour > 10 && currentHour < 21;
+          let canRepeatOrder = "pending" !== orderData.OrderData.status && "confirmed" !== orderData.OrderData.status && 'ondelivery' !== orderData.OrderData.status && "cancelled" !== orderData.OrderData.status;
+          return canRepeatOrder = canRepeatOrder && isBusinessHours, orderCard.innerHTML = "<div class="card-body"><h5 class="card-title">" + function(orderStatus, orderType) {
 
-            switch (_1836650) {
-              case _391906(514):
-                return _391906(574);
-              case _391906(534):
-                return _391906(601) === _5966286 ? 'Confirmé\x20pour\x20retrait.' : 'Confirmé.';
-              case _391906(792):
-                return _391906(595);
-              case _391906(434):
-                return _391906(594);
-              case _391906(486):
+            switch (orderStatus) {
+              case "pending":
+                return "En attente de confirmation.";
+              case "confirmed":
+                return "emporter" === orderType ? 'Confirmé pour retrait.' : 'Confirmé.';
+              case "ondelivery":
+                return "En route.";
+              case "delivered":
+                return "Livré.";
+              case "cancelled":
                 return 'Annulé.';
               default:
-                return _391906(450);
+                return "État inconnu.";
             }
-          }(_3937618[_3304620(817)].status, _3937618[_3304620(817)][_3304620(704)]) + '\x0a' + (_3635958 ? _3304620(352) + _3937618.orderId + _3304620(597) : _3304620(828)) + _3304620(708) + (_3304620(514) === _3937618[_3304620(817)].status ? _3304620(836) + getStatusVariant(_3937618[_3304620(817)][_3304620(677)]) + '-subtle\x20text-danger\x20rounded\x20opacity-75\x22>Votre\x20commande\x20est\x20en\x20cours\x20de\x20confirmation.\x20Les\x20commandes\x20passées\x20pendant\x20les\x20heures\x20ouvrables\x20sont\x20confirmées\x20en\x20quelques\x20secondes.</div>' : '') + '\x0a' + ('confirmed' === _3937618[_3304620(817)][_3304620(677)] ? '<div\x20class=\x22p-2\x20mb-2\x20bg-' + getStatusVariant(_3937618.OrderData[_3304620(677)]) + _3304620(800) + function(_2893479) {
+          }(orderData.OrderData.status, orderData.OrderData.type) + '
+' + (canRepeatOrder ? "<button class="btn btn-sm btn-primary repeat-order-btn" onclick="repeatOrder(" + orderData.orderId + ")">Répéter la commande</button>" : "") + "</h5>" + ("pending" === orderData.OrderData.status ? "<div class="alert alert-" + getStatusVariant(orderData.OrderData.status) + '-subtle text-danger rounded opacity-75">Votre commande est en cours de confirmation. Les commandes passées pendant les heures ouvrables sont confirmées en quelques secondes.</div>' : '') + '
+' + ('confirmed' === orderData.OrderData.status ? '<div class="p-2 mb-2 bg-' + getStatusVariant(orderData.OrderData.status) + "-subtle"><strong>" + function(deliveryType) {
 
-            return 'emporter' === _2893479 ? _11784915(430) : _11784915(377);
-          }(_3937618[_3304620(817)][_3304620(704)]) + '</div>' : '') + '\x0a' + (_3304620(792) === _3937618.OrderData[_3304620(677)] ? _3304620(836) + getStatusVariant(_3937618.OrderData[_3304620(677)]) + _3304620(552) : '') + '\x0a' + (_3304620(486) === _3937618[_3304620(817)][_3304620(677)] ? _3304620(836) + getStatusVariant(_3937618.OrderData[_3304620(677)]) + _3304620(429) : '') + '\x0a<p\x20class=\x27card-title\x20text-end\x27>Date\x20de\x20commande:\x20' + _3937618[_3304620(817)].date + _3304620(544) + (_3304620(601) === _3937618[_3304620(817)][_3304620(704)] ? _3304620(655) : _3304620(572)) + _3304620(780) + (_3937618[_3304620(817)]['requestedFor'] ? _3304620(642) + _3937618[_3304620(817)][_3304620(778)] + _3304620(769) : '') + '\x0a' + _3582845 + '\x0a' + (_3304620(354) === _3937618.OrderData[_3304620(704)] ? '<p\x20class=\x27card-subtitle\x20text-end\x20text-muted\x27>Frais\x20de\x20livraison:\x202.00\x20CHF</p>' : '') + _3304620(392) + _3937618[_3304620(817)].price + '\x20CHF</p>\x0a' + ('emporter' === _3937618[_3304620(817)][_3304620(704)] && _3304620(434) !== _3937618[_3304620(817)][_3304620(677)] ? _3304620(640) : '') + '\x0a</div>\x0a', _4821971;
+            return 'emporter' === deliveryType ? "pour retrait" : "pour livraison";
+          }(orderData.OrderData.type) + '</div>' : '') + '
+' + ("ondelivery" === orderData.OrderData.status ? "<div class="alert alert-" + getStatusVariant(orderData.OrderData.status) + "-subtle">En route.</div>" : '') + '
+' + ("cancelled" === orderData.OrderData.status ? "<div class="alert alert-" + getStatusVariant(orderData.OrderData.status) + "-subtle">Livré.</div>" : '') + '
+<p class='card-title text-end'>Date de commande: ' + orderData.OrderData.date + "</p>" + ("emporter" === orderData.OrderData.type ? "<p class="card-subtitle text-end text-muted">Heure de retrait demandée: " : "") + "</p>" + (orderData.OrderData.requestedFor ? "<p class="card-subtitle text-end text-muted">Heure de livraison demandée: " + orderData.OrderData.requestedFor + "</p>" : '') + '
+' + orderItemsHtml + '
+' + ("livraison" === orderData.OrderData.type ? '<p class='card-subtitle text-end text-muted'>Frais de livraison: 2.00 CHF</p>' : '') + "<p class="card-text text-end"><strong>Total: " + orderData.OrderData.price + ' CHF</p>
+' + ('emporter' === orderData.OrderData.type && "delivered" !== orderData.OrderData.status ? "<button class="btn btn-sm btn-warning repeat-order-btn" onclick="repeatOrder(" : '') + '
+</div>
+', orderCard;
         }(orderData);
         orderHistoryElement.appendChild(orderCard);
       }), hasActiveOrders && !orderStatusRefreshIntervalId ? orderStatusRefreshIntervalId = setInterval(refreshOrderHistory, 15000) : !hasActiveOrders && orderStatusRefreshIntervalId && (clearInterval(orderStatusRefreshIntervalId), orderStatusRefreshIntervalId = null), localStorage.setItem("order_stories", JSON.stringify(orderStories)), orderStories;
@@ -139,22 +147,22 @@
       switch (sectionLabel) {
         case 'Tacos':
           extraDetails = "<br><strong>- Viande(s):</strong> <em>" + item.viande.map(meat => {
-            const quantityLabel = meat.quantity && meat.quantity > 1 ? '\x20x' + meat.quantity : '';
+            const quantityLabel = meat.quantity && meat.quantity > 1 ? ' x' + meat.quantity : '';
             return meat.name + quantityLabel;
-          }).join(',\x20') + '\x20</em>\x20<br>-\x20<strong>Garnitures:</strong><em>\x20' + item.garniture.map(garnish => garnish.name).join(',\x20') + '\x20</em>\x20<br>-\x20<strong>Sauces:</strong><em>\x20' + item.sauce.map(sauce => sauce.name).join(',\x20') + " </em>", item.tacosNote && (extraDetails += '<br>-\x20<strong>Remarque:</strong>\x20<em>' + item.tacosNote + "</em>");
+          }).join(', ') + ' </em> <br>- <strong>Garnitures:</strong><em> ' + item.garniture.map(garnish => garnish.name).join(', ') + ' </em> <br>- <strong>Sauces:</strong><em> ' + item.sauce.map(sauce => sauce.name).join(', ') + " </em>", item.tacosNote && (extraDetails += '<br>- <strong>Remarque:</strong> <em>' + item.tacosNote + "</em>");
           break;
         case 'Extras':
           let freeSauceDetails = '';
           if (item.free_sauces && Array.isArray(item.free_sauces) && item.free_sauces.length > 0) {
             const sauceNames = item.free_sauces.filter(sauce => sauce.name).map(sauce => sauce.name);
-            sauceNames.length > 0 && (freeSauceDetails = "<br>- <strong>Sauces offertes:</strong> <em>" + sauceNames.join(',\x20') + "</em>");
+            sauceNames.length > 0 && (freeSauceDetails = "<br>- <strong>Sauces offertes:</strong> <em>" + sauceNames.join(', ') + "</em>");
           } else item.free_sauce && item.free_sauce.name && (freeSauceDetails = "<br>- <strong>Sauce offerte:</strong> <em>" + item.free_sauce.name + "</em>");
           extraDetails = freeSauceDetails;
           break;
         default:
           extraDetails = '';
       }
-      renderedItems += "<li class='list-group-item'>\n  <span class=\"border rounded py-1 px-2\">" + item.quantity + "</span> x " + item.name + '\x20-\x20' + item.price + '\x20CHF\x20' + extraDetails + "\n  </li>";
+      renderedItems += "<li class='list-group-item'>\n  <span class=\"border rounded py-1 px-2\">" + item.quantity + "</span> x " + item.name + ' - ' + item.price + ' CHF ' + extraDetails + "\n  </li>";
     }), renderedItems;
   }
 
@@ -173,7 +181,7 @@
         return 'light-subtle';
     }
   }
-  window.repeatOrder = function(orderId) {
+  window.const repeatOrder = function(orderId) {
     const foundOrder = JSON.parse(localStorage.getItem("order_stories")).find(orderItem => orderItem.orderId == orderId);
     if (!foundOrder) return void alert("Order not found.");
     const csrfToken = getCsrfToken(),
@@ -197,10 +205,10 @@
           modalBody = document.getElementById('successModalBody');
         if ("warning" === restoreResult.status) {
           let warningHtml = '';
-          restoreResult.out_of_stock_items && restoreResult.out_of_stock_items.length > 0 && (warningHtml = '<div\x20class=\x22alert\x20alert-warning\x20text-start\x20mx-auto\x22\x20style=\x22max-width:\x20500px;\x20background-color:\x20#fff3cd;\x20border-left:\x204px\x20solid\x20#ffc107;\x22><ul\x20style=\x22list-style:\x20none;\x20padding-left:\x200;\x20margin-bottom:\x200;\x22>', restoreResult.out_of_stock_items.forEach(function(outOfStockItem) {
+          restoreResult.out_of_stock_items && restoreResult.out_of_stock_items.length > 0 && (warningHtml = '<div class="alert alert-warning text-start mx-auto" style="max-width: 500px; background-color: #fff3cd; border-left: 4px solid #ffc107;"><ul style="list-style: none; padding-left: 0; margin-bottom: 0;">', restoreResult.out_of_stock_items.forEach(function(outOfStockItem) {
 
-            warningHtml += '<li\x20style=\x22padding:\x208px\x200;\x20border-bottom:\x201px\x20solid\x20#ffeaa7;\x22><i\x20class=\x22fa\x20fa-times-circle\x20text-danger\x20me-2\x22></i><strong>' + outOfStockItem + "</strong></li>";
-          }), warningHtml += "</ul></div>"), modalBody.innerHTML = '<div\x20class=\x22text-center\x22\x20style=\x22padding:\x2020px;\x22><div\x20class=\x22d-flex\x20justify-content-center\x20align-items-center\x20mb-4\x22\x20style=\x22height:\x20100px;\x22><div\x20style=\x22width:\x20100px;\x20height:\x20100px;\x20border-radius:\x2050%;\x20background:\x20linear-gradient(135deg,\x20#ffeaa7\x200%,\x20#fdcb6e\x20100%);\x20display:\x20flex;\x20align-items:\x20center;\x20justify-content:\x20center;\x20box-shadow:\x200\x204px\x2015px\x20rgba(253,\x20203,\x20110,\x200.4);\x22><i\x20class=\x22fa\x20fa-exclamation-triangle\x22\x20style=\x22color:\x20#fff;\x20font-size:\x2050px;\x22></i></div></div><h4\x20class=\x22mb-3\x22\x20style=\x22color:\x20#e17055;\x20font-weight:\x20600;\x22>Certains\x20produits\x20ne\x20sont\x20pas\x20disponibles</h4><p\x20class=\x22mb-4\x22\x20style=\x22color:\x20#636e72;\x20font-size:\x2015px;\x22>Les\x20produits\x20suivants\x20ne\x20sont\x20temporairement\x20pas\x20disponibles\x20et\x20n\x27ont\x20pas\x20été\x20ajoutés\x20à\x20votre\x20panier:</p>' + warningHtml + "<div class=\"alert alert-success mx-auto mt-4\" style=\"max-width: 500px; background-color: #d4edda; border-left: 4px solid #28a745;\"><i class=\"fa fa-check-circle text-success me-2\"></i>Les autres produits ont \u00e9t\u00e9 ajout\u00e9s avec succ\u00e8s.</div><button id=\"continueButton\" class=\"btn btn-danger mt-3\" style=\"min-width: 200px; padding: 12px 24px; font-size: 16px; border-radius: 25px; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);\">Continuer vers le panier</button></div>", successModal.show(), document.getElementById("continueButton").addEventListener("click", function() {
+            warningHtml += '<li style="padding: 8px 0; border-bottom: 1px solid #ffeaa7;"><i class="fa fa-times-circle text-danger me-2"></i><strong>' + outOfStockItem + "</strong></li>";
+          }), warningHtml += "</ul></div>"), modalBody.innerHTML = '<div class="text-center" style="padding: 20px;"><div class="d-flex justify-content-center align-items-center mb-4" style="height: 100px;"><div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(253, 203, 110, 0.4);"><i class="fa fa-exclamation-triangle" style="color: #fff; font-size: 50px;"></i></div></div><h4 class="mb-3" style="color: #e17055; font-weight: 600;">Certains produits ne sont pas disponibles</h4><p class="mb-4" style="color: #636e72; font-size: 15px;">Les produits suivants ne sont temporairement pas disponibles et n'ont pas été ajoutés à votre panier:</p>' + warningHtml + "<div class=\"alert alert-success mx-auto mt-4\" style=\"max-width: 500px; background-color: #d4edda; border-left: 4px solid #28a745;\"><i class=\"fa fa-check-circle text-success me-2\"></i>Les autres produits ont \u00e9t\u00e9 ajout\u00e9s avec succ\u00e8s.</div><button id=\"continueButton\" class=\"btn btn-danger mt-3\" style=\"min-width: 200px; padding: 12px 24px; font-size: 16px; border-radius: 25px; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);\">Continuer vers le panier</button></div>", successModal.show(), document.getElementById("continueButton").addEventListener("click", function() {
 
             successModal.hide(), localStorage.setItem("openOrderModal", "true"), window.location.reload();
           });
@@ -209,8 +217,7 @@
           let countdown = 3;
           const countdownElement = document.getElementById('countdown'),
             countdownInterval = setInterval(() => {
-              const _3113142 = _3170210;
-              countdown--, countdownElement[_3113142(440)] = countdown, 0 === countdown && (clearInterval(countdownInterval), successModal.hide(), localStorage[_3113142(641)]('openOrderModal', _3113142(593)), window[_3113142(390)][_3113142(635)]());
+              countdown--, countdownElement.textContent = countdown, 0 === countdown && (clearInterval(countdownInterval), successModal.hide(), localStorage.setItem('openOrderModal', "true"), window.location.reload());
             }, 1000);
         }
       } else alert("Error during repeat order. Please try again later."), repeatButton.disabled = false;
@@ -266,7 +273,7 @@
 
     document.body.addEventListener("click", function(event) {
 
-      event.target["matches"](".increase-quantity") && sendTacoQuantityUpdate('increaseQuantity', event.target.dataset["index"]), event.target["matches"](".decrease-quantity") && sendTacoQuantityUpdate('decreaseQuantity', event.target.dataset["index"]);
+      event.target.matches(".increase-quantity") && sendTacoQuantityUpdate('increaseQuantity', event.target.dataset.index), event.target.matches(".decrease-quantity") && sendTacoQuantityUpdate('decreaseQuantity', event.target.dataset.index);
     });
   });
   var meatCheckboxes, sauceCheckboxes, garnishCheckboxes, tacoQuantityCsrfToken = getCsrfToken();
@@ -277,16 +284,16 @@
     request.open("POST", "ajax/owt.php", true);
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     request.setRequestHeader('X-CSRF-Token', tacoQuantityCsrfToken);
-    request.onload = function() {
+    request.const onload = function() {
 
       if (200 === request.status) {
         refreshTacoListUI();
         const response = JSON.parse(this.responseText);
         if ("success" === response.status) {
-          const quantityInput = document.querySelector("#tacos-" + tacoIndex + '\x20.quantity-input');
+          const quantityInput = document.querySelector("#tacos-" + tacoIndex + ' .quantity-input');
           quantityInput ? (quantityInput.value = response.quantity, refreshCartSummary()) : console.error("Quantity input not found for index: " + tacoIndex);
         } else alert("Error during processing.");
-      } else console.error("Request failed with status " + request.status + ':\x20' + request.statusText);
+      } else console.error("Request failed with status " + request.status + ': ' + request.statusText);
     };
     request.send("action=" + action + '&index=' + tacoIndex);
   }
@@ -353,30 +360,30 @@
     }(3);
   }
 
-  function submitExtraSelection(_6064893, _7293539, _4051149, _4767312, _5688905 = null, _4707586 = '', _4981981 = null) {
+  function submitExtraSelection(extraId, extraName, extraPrice, extraQuantity, freeSauceId = null, freeSauceName = '', freeSauces = null) {
 
-    var _4464762 = getCsrfToken();
-    const _3447079 = {
-      'id': _6064893,
-      'name': _7293539,
-      'price': _4051149,
-      'quantity': _4767312,
-      'free_sauce': _5688905 ? {
-        'id': _5688905,
-        'name': _4707586,
+    var csrfToken = getCsrfToken();
+    const extraData = {
+      'id': extraId,
+      'name': extraName,
+      'price': extraPrice,
+      'quantity': extraQuantity,
+      'free_sauce': freeSauceId ? {
+        'id': freeSauceId,
+        'name': freeSauceName,
         'price': 0
       } : void 0,
-      'free_sauces': _4981981
+      'free_sauces': freeSauces
     };
     fetch("ajax/ues.php", {
       'method': "POST",
       'headers': {
-        'X-CSRF-Token': _4464762
+        'X-CSRF-Token': csrfToken
       },
-      'body': JSON.stringify(_3447079)
-    }).then(_5865212 => _5865212.json()).then(_1470504 => {
+      'body': JSON.stringify(extraData)
+    }).then(response => response.json()).then(result => {
       refreshCartSummary();
-    }).catch(_3821399 => console.error("Error:", _3821399));
+    }).catch(error => console.error("Error:", error));
   }
 
   function refreshCategoryBadges() {
@@ -389,7 +396,7 @@
       }
     }).then(response => {
 
-      if (!response.ok) throw 403 === response.status && console.log('SD\x20REFRESH'), new Error('Network\x20response\x20was\x20not\x20ok');
+      if (!response.ok) throw 403 === response.status && console.log('SD REFRESH'), new Error('Network response was not ok');
       return response.json();
     }).then(categorySummary => {
 
@@ -418,7 +425,7 @@
         if (badge) {
           if (totalQuantity > 0) {
             const productLabel = totalQuantity > 1 ? "produits" : "produit";
-            badge.textContent = totalQuantity + '\x20' + productLabel + " total " + totalPrice + "CHF", badge.style.display = '';
+            badge.textContent = totalQuantity + ' ' + productLabel + " total " + totalPrice + "CHF", badge.style.display = '';
           } else badge.style.display = "none";
         }
       });
@@ -444,60 +451,60 @@
     }).catch(error => console.error("Hata:", error));
   }
 
-  function toggleTacoOptionsBySize(_4767214, _3702857) {
+  function toggleTacoOptionsBySize(tacoSize, prefix) {
 
-    var _4246287 = ["viande_hachee", "escalope_de_poulet", 'merguez', "soudjouk", "falafel_vegetarien", "sans_viande"],
-      _15223349 = ["cordon_bleu", "nuggets", "tenders", "kebab_agneau"],
-      _5340277 = ['cheddar', "gruyere", "frites"];
-    'tacos_BOWL' === _4767214 ? (_4246287.concat(_15223349).forEach(function(_4537280) {
-      const _1259985 = document.querySelector("input[name=\"viande[]\"][value=\"" + _4537280 + '\x22]');
-      _1259985 && !_1259985.checked && (_1259985.disabled = false);
-    }), _4246287.concat(_15223349).forEach(function(_6156411) {
+    var standardMeats = ["viande_hachee", "escalope_de_poulet", 'merguez', "soudjouk", "falafel_vegetarien", "sans_viande"],
+      premiumMeats = ["cordon_bleu", "nuggets", "tenders", "kebab_agneau"],
+      restrictedItems = ['cheddar', "gruyere", "frites"];
+    'tacos_BOWL' === tacoSize ? (standardMeats.concat(premiumMeats).forEach(function(meatType) {
+      const meatInput = document.querySelector("input[name=\"viande[]\"][value=\"" + meatType + '"]');
+      meatInput && !meatInput.checked && (meatInput.disabled = false);
+    }), standardMeats.concat(premiumMeats).forEach(function(meatId) {
 
-      document.getElementById(_3702857 + _6156411 + "_div").style.display = "block";
-    }), _5340277.forEach(function(_2553108) {
+      document.getElementById(prefix + meatId + "_div").style.display = "block";
+    }), restrictedItems.forEach(function(restrictedId) {
 
-      document.getElementById(_3702857 + _2553108 + '_div').style.display = 'none';
-    }), document.getElementById(_3702857 + "frites_note").style.display = "block") : (_4246287.concat(_15223349).forEach(function(_1352330) {
+      document.getElementById(prefix + restrictedId + '_div').style.display = 'none';
+    }), document.getElementById(prefix + "frites_note").style.display = "block") : (standardMeats.concat(premiumMeats).forEach(function(meatSlug) {
 
-      document.getElementById(_3702857 + _1352330 + "_div").style.display = "block";
-    }), _5340277.forEach(function(_2991954) {
+      document.getElementById(prefix + meatSlug + "_div").style.display = "block";
+    }), restrictedItems.forEach(function(restrictedSlug) {
 
-      document.getElementById(_3702857 + _2991954 + "_div").style.display = "block";
-    }), document.getElementById(_3702857 + "frites_note").style.display = 'none');
+      document.getElementById(prefix + restrictedSlug + "_div").style.display = "block";
+    }), document.getElementById(prefix + "frites_note").style.display = 'none');
   }
 
   function resetTacoForm() {
 
-    document.getElementById('tacosForm')["reset"](), [...meatCheckboxes, ...sauceCheckboxes, ...garnishCheckboxes].forEach(_4740026 => {
+    document.getElementById('tacosForm')["reset"](), [...meatCheckboxes, ...sauceCheckboxes, ...garnishCheckboxes].forEach(checkbox => {
 
-      _4740026.checked = false, _4740026.disabled = false;
+      checkbox.checked = false, checkbox.disabled = false;
     });
   }
 
   function refreshTacoListUI() {
 
-    0 === $("#products-list")["children"]().length ? ($('#product-messages').html("<p class=\"fst-italic\">Veuillez commencer par choisir la taille de vos tacos.</p>"), $("div:contains(\"Tacos dans votre panier\")").remove()) : $("#product-messages").html('<div\x20class=\x22bg-danger\x20rounded\x20text-light\x20p-2\x22\x20role=\x22alert\x22><i\x20class=\x22fa-solid\x20fa-chevron-down\x22></i>\x20Tacos\x20dans\x20votre\x20panier</div>'), $("#products-list .card").each(function(_1415202) {
+    0 === $("#products-list")["children"]().length ? ($('#product-messages').html("<p class=\"fst-italic\">Veuillez commencer par choisir la taille de vos tacos.</p>"), $("div:contains(\"Tacos dans votre panier\")").remove()) : $("#product-messages").html('<div class="bg-danger rounded text-light p-2" role="alert"><i class="fa-solid fa-chevron-down"></i> Tacos dans votre panier</div>'), $("#products-list .card").each(function(index) {
 
-      $(this).attr('id', 'tacos-' + _1415202), $(this).attr("data-index", _1415202), $(this).find(".delete-tacos").attr("data-index", _1415202);
+      $(this).attr('id', 'tacos-' + index), $(this).attr("data-index", index), $(this).find(".delete-tacos").attr("data-index", index);
     });
   }
 
   function loadExistingTacos() {
 
-    var _2331192 = getCsrfToken();
+    var csrfToken = getCsrfToken();
     $.ajax({
       'type': "POST",
       'url': "ajax/owt.php",
       'headers': {
-        'X-CSRF-Token': _2331192
+        'X-CSRF-Token': csrfToken
       },
       'data': {
         'loadProducts': true
       },
-      'success': function(_4091896) {
+      'success': function(html) {
 
-        $("#products-list").html(_4091896), refreshTacoListUI(), refreshCartSummary();
+        $("#products-list").html(html), refreshTacoListUI(), refreshCartSummary();
       },
       'error': function() {
 
@@ -507,379 +514,380 @@
   }
   document.addEventListener("DOMContentLoaded", function() {
 
-    document.getElementById("orderAccordion").addEventListener("click", function(_2228644) {
-      const _13656588 = _2228644.target.closest('.edit-tacos');
-      if (_13656588) {
-        _2228644.preventDefault();
-        const _4104918 = _13656588.getAttribute('data-index'),
-          _2690183 = getCsrfToken();
-        document.getElementById('editIndex').value = _4104918, fetch("ajax/gtd.php", {
+    document.getElementById("orderAccordion").addEventListener("click", function(event) {
+      const editButton = event.target.closest('.edit-tacos');
+      if (editButton) {
+        event.preventDefault();
+        const tacoIndex = editButton.getAttribute('data-index'),
+          csrfToken = getCsrfToken();
+        document.getElementById('editIndex').value = tacoIndex, fetch("ajax/gtd.php", {
           'method': "POST",
           'headers': {
-            'X-CSRF-Token': _2690183,
+            'X-CSRF-Token': csrfToken,
             'Content-Type': 'application/x-www-form-urlencoded'
           },
-          'body': "index=" + _4104918
-        }).then(_4806479 => {
+          'body': "index=" + tacoIndex
+        }).then(response => {
 
-          if (!_4806479.ok) throw 403 === _4806479.status && console.log("GTD REFRESH"), new Error("GTD Network response was not ok");
-          return _4806479.json();
-        }).then(_3319025 => {
+          if (!response.ok) throw 403 === response.status && console.log("GTD REFRESH"), new Error("GTD Network response was not ok");
+          return response.json();
+        }).then(data => {
 
-          if ("success" === _3319025.status) {
+          if ("success" === data.status) {
             const {
-              taille: _1545740,
-              viande: _15861891,
-              garniture: _5913165,
-              sauce: _1212562,
-              tacosNote: _4801310
-            } = _3319025.data;
-            console.log('Loaded\x20tacos\x20data:', _3319025.data), console.log("Viande data:", _15861891), document.getElementById("editSelectProduct").value = _1545740, document.getElementById("editTaille").value = _1545740, document.getElementById("editTacosNote").value = _4801310, document.querySelectorAll("#tacosEditForm input[type=\"checkbox\"]").forEach(_5456612 => {
+              taille: tacoSize,
+              viande: meats,
+              garniture: garnitures,
+              sauce: sauces,
+              tacosNote: tacosNote
+            } = data.data;
+            console.log('Loaded tacos data:', data.data), console.log("Viande data:", meats), document.getElementById("editSelectProduct").value = tacoSize, document.getElementById("editTaille").value = tacoSize, document.getElementById("editTacosNote").value = tacosNote, document.querySelectorAll("#tacosEditForm input[type=\"checkbox\"]").forEach(checkbox => {
 
-                _5456612.checked = false;
+                checkbox.checked = false;
               }),
-              function(_5390561, _2919463, _13646940, _4151770) {
+              function(meats, garnitures, sauces, tacoSize) {
 
-                document.querySelectorAll("#tacosEditForm input[type=\"checkbox\"]").forEach(_5053201 => {
+                document.querySelectorAll("#tacosEditForm input[type=\"checkbox\"]").forEach(checkbox => {
 
-                  _5053201.checked = false, _5053201.disabled = false;
-                }), document.querySelectorAll("#tacosEditForm .meat-quantity-control").forEach(_2223868 => {
+                  checkbox.checked = false, checkbox.disabled = false;
+                }), document.querySelectorAll("#tacosEditForm .meat-quantity-control").forEach(quantityControl => {
 
-                  _2223868.classList.add("d-none");
-                  const _4208834 = _2223868.querySelector('.meat-quantity-input');
-                  _4208834 && (_4208834.value = 1, _4208834.disabled = true);
+                  quantityControl.classList.add("d-none");
+                  const quantityInput = quantityControl.querySelector('.meat-quantity-input');
+                  quantityInput && (quantityInput.value = 1, quantityInput.disabled = true);
                 });
-                let _5562037 = 1;
-                switch (_4151770) {
+                let maxMeats = 1;
+                switch (tacoSize) {
                   case "tacos_L":
-                    _5562037 = 1;
+                    maxMeats = 1;
                     break;
                   case "tacos_L_mixte":
                   case "tacos_XL":
-                    _5562037 = 3;
+                    maxMeats = 3;
                     break;
                   case 'tacos_XXL':
-                    _5562037 = 4;
+                    maxMeats = 4;
                     break;
                   case "tacos_GIGA":
-                    _5562037 = 5;
+                    maxMeats = 5;
                 }
-                _5390561.forEach(_15164666 => {
-                  const _2816047 = document.querySelector('#tacosEditForm\x20input[name=\x22viande[]\x22][value=\x22' + _15164666.slug + '\x22]');
-                  if (_2816047 && (_2816047.checked = true, _5562037 > 1)) {
-                    const _1800046 = _2816047.closest(".meat-selection-row");
-                    if (_1800046) {
-                      const _5670229 = _1800046.querySelector(".meat-quantity-control"),
-                        _3707030 = _1800046.querySelector(".meat-quantity-input");
-                      _5670229 && _3707030 && (_5670229.classList.remove("d-none"), _3707030.value = _15164666.quantity || 1, _3707030.disabled = false);
+                meats.forEach(meat => {
+                  const meatCheckbox = document.querySelector('#tacosEditForm input[name="viande[]"][value="' + meat.slug + '"]');
+                  if (meatCheckbox && (meatCheckbox.checked = true, maxMeats > 1)) {
+                    const meatRow = meatCheckbox.closest(".meat-selection-row");
+                    if (meatRow) {
+                      const quantityControl = meatRow.querySelector(".meat-quantity-control"),
+                        quantityInput = meatRow.querySelector(".meat-quantity-input");
+                      quantityControl && quantityInput && (quantityControl.classList.remove("d-none"), quantityInput.value = meat.quantity || 1, quantityInput.disabled = false);
                     }
                   }
-                }), _2919463.forEach(_1190898 => {
-                  const _4829836 = document.querySelector("#tacosEditForm input[name=\"garniture[]\"][value=\"" + _1190898.slug + '\x22]');
-                  _4829836 && (_4829836.checked = true);
-                }), _13646940.forEach(_5105213 => {
-                  const _3093328 = document.querySelector('#tacosEditForm\x20input[name=\x22sauce[]\x22][value=\x22' + _5105213.slug + '\x22]');
-                  _3093328 && (_3093328.checked = true);
-                }), applyEditSelectionLimits(_4151770);
-              }(_15861891, _5913165, _1212562, _1545740), new bootstrap[("Modal")](document.getElementById("tacosEditModal")).show();
-          } else console.error("Failed to fetch tacos details:", _3319025.message), console.log("Connection error. Please refresh the page.");
-        }).catch(_4531010 => console.error('Error:', _4531010));
+                }), garnitures.forEach(garniture => {
+                  const garnitureCheckbox = document.querySelector("#tacosEditForm input[name=\"garniture[]\"][value=\"" + garniture.slug + '"]');
+                  garnitureCheckbox && (garnitureCheckbox.checked = true);
+                }), sauces.forEach(sauce => {
+                  const sauceCheckbox = document.querySelector('#tacosEditForm input[name="sauce[]"][value="' + sauce.slug + '"]');
+                  sauceCheckbox && (sauceCheckbox.checked = true);
+                }), applyEditSelectionLimits(tacoSize);
+              }(meats, garnitures, sauces, tacoSize), new bootstrap[("Modal")](document.getElementById("tacosEditModal")).show();
+          } else console.error("Failed to fetch tacos details:", data.message), console.log("Connection error. Please refresh the page.");
+        }).catch(error => console.error('Error:', error));
       }
     });
   }), document.addEventListener("DOMContentLoaded", function() {
 
-    document.getElementById('tacosEditForm').addEventListener('submit', function(_4128560) {
+    document.getElementById('tacosEditForm').addEventListener('submit', function(event) {
 
-      _4128560.preventDefault();
-      const _2983214 = document.getElementById("editSelectProduct").value,
-        _5810179 = document.querySelectorAll("#tacosEditForm input[name=\"viande[]\"]:checked"),
-        _4279475 = document.querySelectorAll("#tacosEditForm input[name=\"sauce[]\"]:checked"),
-        _1882471 = document.querySelectorAll("#tacosEditForm input[name=\"garniture[]\"]:checked");
-      if (0 === _5810179.length) return alert("Veuillez s\u00e9lectionner au moins une viande ou cocher \"sans viande\"."), false;
-      if (0 === _4279475.length) return alert("Veuillez s\u00e9lectionner au moins une sauce ou cocher \"sans sauce\"."), false;
-      if ("tacos_BOWL" !== _2983214 && 0 === _1882471.length) return alert('Veuillez\x20sélectionner\x20au\x20moins\x20une\x20garniture\x20ou\x20cocher\x20\x22sans\x20garniture\x22.'), false;
-      var _4863964 = new FormData(this);
-      _5810179.forEach(_3210333 => {
-        const _4551296 = _3210333.value,
-          _4701294 = _3210333.closest(".meat-selection-row"),
-          _3597691 = _4701294 ? _4701294.querySelector(".meat-quantity-input") : null,
-          _2343150 = _3597691 && parseInt(_3597691.value, 10) || 1;
-        _4863964.append("meat_quantity[" + _4551296 + ']', _2343150);
+      event.preventDefault();
+      const selectedTacoSize = document.getElementById("editSelectProduct").value,
+        selectedMeats = document.querySelectorAll("#tacosEditForm input[name=\"viande[]\"]:checked"),
+        selectedSauces = document.querySelectorAll("#tacosEditForm input[name=\"sauce[]\"]:checked"),
+        selectedGarnitures = document.querySelectorAll("#tacosEditForm input[name=\"garniture[]\"]:checked");
+      if (0 === selectedMeats.length) return alert("Veuillez s\u00e9lectionner au moins une viande ou cocher \"sans viande\"."), false;
+      if (0 === selectedSauces.length) return alert("Veuillez s\u00e9lectionner au moins une sauce ou cocher \"sans sauce\"."), false;
+      if ("tacos_BOWL" !== selectedTacoSize && 0 === selectedGarnitures.length) return alert('Veuillez sélectionner au moins une garniture ou cocher "sans garniture".'), false;
+      var formData = new FormData(this);
+      selectedMeats.forEach(meatCheckbox => {
+        const meatValue = meatCheckbox.value,
+          meatRow = meatCheckbox.closest(".meat-selection-row"),
+          quantityInput = meatRow ? meatRow.querySelector(".meat-quantity-input") : null,
+          quantity = quantityInput && parseInt(quantityInput.value, 10) || 1;
+        formData.append("meat_quantity[" + meatValue + ']', quantity);
       });
-      var _3765629 = getCsrfToken();
+      var csrfToken = getCsrfToken();
       fetch("ajax/et.php", {
         'method': 'POST',
         'headers': {
-          'X-CSRF-Token': _3765629
+          'X-CSRF-Token': csrfToken
         },
-        'body': _4863964
-      }).then(_5772796 => {
+        'body': formData
+      }).then(response => {
 
-        if (!_5772796.ok) throw new Error("ET Network response was not ok");
-        return _5772796.text();
-      }).then(_3916439 => {
+        if (!response.ok) throw new Error("ET Network response was not ok");
+        return response.text();
+      }).then(html => {
 
         $("#tacosEditModal").modal("hide"), loadExistingTacos(), refreshTacoListUI(), refreshCartSummary();
-      }).catch(_2273549 => console.error("Error:", _2273549));
+      }).catch(error => console.error("Error:", error));
     });
   }), document.addEventListener("DOMContentLoaded", function() {
-    const _13593625 = document.querySelectorAll("input[name=\"extras\"]"),
-      _2341805 = getCsrfToken();
+    const extraCheckboxes = document.querySelectorAll("input[name=\"extras\"]"),
+      csrfToken = getCsrfToken();
     fetch("ajax/gse.php", {
       'method': 'POST',
       'headers': {
-        'X-CSRF-Token': _2341805
+        'X-CSRF-Token': csrfToken
       }
-    }).then(_2622956 => {
+    }).then(response => {
 
-      if (!_2622956.ok) throw 403 === _2622956.status && console.log("GSE REFRESH"), new Error("GSE Network response was not ok");
-      return _2622956.json();
-    }).then(_1681894 => {
+      if (!response.ok) throw 403 === response.status && console.log("GSE REFRESH"), new Error("GSE Network response was not ok");
+      return response.json();
+    }).then(selectedExtras => {
 
-      Object.values(_1681894).forEach(_2534218 => {
-        const _2877287 = document.getElementById(_2534218.id);
-        if (_2877287) {
-          _2877287.checked = true;
-          const _10093852 = _2877287.closest(".form-check").querySelector(".extras-quantity-control");
-          _10093852.classList.remove("d-none"), _10093852.querySelector(".quantity-input").value = _2534218.quantity;
-          const _6184293 = document.getElementById("free_sauce_select_" + _2534218.id);
-          if (_6184293) {
-            if (_6184293.classList.remove('d-none'), _2534218.free_sauces && Array.isArray(_2534218.free_sauces)) _6184293.querySelectorAll('select').forEach((_5218442, _1537479) => {
+      Object.values(selectedExtras).forEach(extra => {
+        const extraCheckbox = document.getElementById(extra.id);
+        if (extraCheckbox) {
+          extraCheckbox.checked = true;
+          const quantityControl = extraCheckbox.closest(".form-check").querySelector(".extras-quantity-control");
+          quantityControl.classList.remove("d-none"), quantityControl.querySelector(".quantity-input").value = extra.quantity;
+          const freeSauceContainer = document.getElementById("free_sauce_select_" + extra.id);
+          if (freeSauceContainer) {
+            if (freeSauceContainer.classList.remove('d-none'), extra.free_sauces && Array.isArray(extra.free_sauces)) freeSauceContainer.querySelectorAll('select').forEach((select, index) => {
 
-              _2534218.free_sauces[_1537479] && _2534218.free_sauces[_1537479].id && (_5218442.value = _2534218.free_sauces[_1537479].id);
+              extra.free_sauces[index] && extra.free_sauces[index].id && (select.value = extra.free_sauces[index].id);
             });
             else {
-              if (_2534218.free_sauce && _2534218.free_sauce.id) {
-                const _5856007 = _6184293.querySelector("select");
-                _5856007 && (_5856007.value = _2534218.free_sauce.id);
+              if (extra.free_sauce && extra.free_sauce.id) {
+                const select = freeSauceContainer.querySelector("select");
+                select && (select.value = extra.free_sauce.id);
               }
             }
           }
         }
       });
-    }).catch(_3482257 => console.error("Error:", _3482257)), (document.querySelectorAll(".free-sauces-container").forEach(_4487055 => {
-      const _6173340 = _4487055.id.replace('free_sauce_select_', ''),
-        _5661975 = document.getElementById(_6173340);
-      _5661975 && _5661975.checked || _4487055.classList.add("d-none");
-    }), _13593625.forEach(_3335983 => {
+    }).catch(error => console.error("Error:", error)), (document.querySelectorAll(".free-sauces-container").forEach(freeSauceContainer => {
+      const extraId = freeSauceContainer.id.replace('free_sauce_select_', ''),
+        extraCheckbox = document.getElementById(extraId);
+      extraCheckbox && extraCheckbox.checked || freeSauceContainer.classList.add("d-none");
+    }), extraCheckboxes.forEach(extraCheckbox => {
 
-      _3335983.addEventListener("change", function() {
-        const _9627935 = this.closest(".form-check").querySelector('.extras-quantity-control'),
-          _2923242 = document.getElementById("free_sauce_select_" + this.id);
-        this.checked ? (_9627935.classList.remove("d-none"), _2923242 && _2923242.classList.remove("d-none")) : (_9627935.classList.add('d-none'), _9627935.querySelector(".quantity-input").value = 1, _2923242 && (_2923242.classList.add("d-none"), _2923242.querySelectorAll("select").forEach(_5032782 => {
+      extraCheckbox.addEventListener("change", function() {
+        const quantityControl = this.closest(".form-check").querySelector('.extras-quantity-control'),
+          freeSauceContainer = document.getElementById("free_sauce_select_" + this.id);
+        this.checked ? (quantityControl.classList.remove("d-none"), freeSauceContainer && freeSauceContainer.classList.remove("d-none")) : (quantityControl.classList.add('d-none'), quantityControl.querySelector(".quantity-input").value = 1, freeSauceContainer && (freeSauceContainer.classList.add("d-none"), freeSauceContainer.querySelectorAll("select").forEach(select => {
 
-          _5032782.value = '';
+          select.value = '';
         })));
-        const _2612948 = this.checked,
-          _4402379 = _2612948 ? parseInt(_9627935.querySelector(".quantity-input").value, 10) : 0,
-          _4184102 = this.id,
-          _16517533 = this.getAttribute("value"),
-          _5714374 = this.closest(".form-check").querySelector(".extras-info").textContent,
-          _3655970 = parseFloat(_5714374.replace("CHF ", '')) || 0.5;
-        ['extra_frites', "extra_nuggets", "extra_falafel", "extra_tenders", 'extra_onion_rings', "extra_pommes_gaufrettes", 'extra_mozarella_sticks', "extra_potatoes", 'extra_gaufrettes'].includes(_4184102) && _2923242 && _2612948 ? submitExtraSelectionWithSauces(_4184102) : submitExtraSelection(_4184102, _16517533, _3655970, _4402379);
+        const isChecked = this.checked,
+          quantity = isChecked ? parseInt(quantityControl.querySelector(".quantity-input").value, 10) : 0,
+          extraId = this.id,
+          extraValue = this.getAttribute("value"),
+          priceText = this.closest(".form-check").querySelector(".extras-info").textContent,
+          price = parseFloat(priceText.replace("CHF ", '')) || 0.5;
+        ['extra_frites', "extra_nuggets", "extra_falafel", "extra_tenders", 'extra_onion_rings', "extra_pommes_gaufrettes", 'extra_mozarella_sticks', "extra_potatoes", 'extra_gaufrettes'].includes(extraId) && freeSauceContainer && isChecked ? submitExtraSelectionWithSauces(extraId) : submitExtraSelection(extraId, extraValue, price, quantity);
       });
-    }), document.querySelectorAll('.free-sauces-container\x20select').forEach(_4102619 => {
-      _4102619.addEventListener('change', handleFreeSauceSelectionChange);
-    }), document.querySelectorAll(".extras-quantity-control .increase, .extras-quantity-control .decrease").forEach(_3818387 => {
+    }), document.querySelectorAll('.free-sauces-container select').forEach(select => {
+      select.addEventListener('change', handleFreeSauceSelectionChange);
+    }), document.querySelectorAll(".extras-quantity-control .increase, .extras-quantity-control .decrease").forEach(button => {
 
-      _3818387.addEventListener("click", function() {
-        const _2394003 = _3818387.closest('.extras-quantity-control').querySelector(".quantity-input");
-        let _3080102 = parseInt(_2394003.value, 10);
-        const _1112221 = _3818387.closest(".form-check").querySelector(".extra-checkbox"),
-          _1401121 = _1112221.id,
-          _5819295 = _1112221.getAttribute("value"),
-          _3701350 = _1112221.closest(".form-check").querySelector('.extras-info').textContent,
-          _1720378 = parseFloat(_3701350.replace("CHF ", '')) || 0.5;
-        _3818387.classList.contains('increase') ? _3080102++ : _3080102 > 1 && _3080102--, _2394003.value = _3080102, ["extra_frites", "extra_nuggets", "extra_falafel", 'extra_tenders', "extra_onion_rings", "extra_pommes_gaufrettes", "extra_mozarella_sticks", "extra_potatoes", "extra_gaufrettes"].includes(_1401121) ? (! function(_6133766, _3215536) {
-          const _5332090 = "localhost" === window.location["hostname"] || "127.0.0.1" === window.location["hostname"];
-          _5332090 && console.log("updateFreeSauceOptions called with:", _6133766, _3215536);
-          const _2201295 = document.getElementById('free_sauce_select_' + _6133766);
-          if (!_2201295) return void(_5332090 && console.log("No container found for:", 'free_sauce_select_' + _6133766));
-          const _5358119 = _2201295.querySelectorAll("select"),
-            _5222815 = [];
-          _5358119.forEach(_3294348 => {
+      button.addEventListener("click", function() {
+        const quantityInput = button.closest('.extras-quantity-control').querySelector(".quantity-input");
+        let quantity = parseInt(quantityInput.value, 10);
+        const extraCheckbox = button.closest(".form-check").querySelector(".extra-checkbox"),
+          extraId = extraCheckbox.id,
+          extraValue = extraCheckbox.getAttribute("value"),
+          priceText = extraCheckbox.closest(".form-check").querySelector('.extras-info').textContent,
+          price = parseFloat(priceText.replace("CHF ", '')) || 0.5;
+        button.classList.contains('increase') ? quantity++ : quantity > 1 && quantity--, quantityInput.value = quantity, ["extra_frites", "extra_nuggets", "extra_falafel", 'extra_tenders', "extra_onion_rings", "extra_pommes_gaufrettes", "extra_mozarella_sticks", "extra_potatoes", "extra_gaufrettes"].includes(extraId) ? (! function(extraId, quantity) {
+          const isDevMode = "localhost" === window.location.hostname || "127.0.0.1" === window.location.hostname;
+          isDevMode && console.log("updateFreeSauceOptions called with:", extraId, quantity);
+          const freeSauceContainer = document.getElementById('free_sauce_select_' + extraId);
+          if (!freeSauceContainer) return void(isDevMode && console.log("No container found for:", 'free_sauce_select_' + extraId));
+          const selects = freeSauceContainer.querySelectorAll("select"),
+            savedSelections = [];
+          selects.forEach(select => {
 
-            _3294348.value && _5222815.push(_3294348.value);
-          }), _5332090 && console.log("Saved selections:", _5222815), (_2201295.innerHTML = '', _5332090 && console.log("Creating", _3215536, 'sauce\x20options'));
-          for (let _5980773 = 1; _5980773 <= _3215536; _5980773++) {
-            const _4724481 = document.createElement("div");
-            _4724481.className = "free-sauce-item d-flex flex-column flex-sm-row align-items-start align-items-sm-center mb-2 mt-1";
-            const _10683138 = _5222815[_5980773 - 1] || '';
-            let _5942225 = "<option value=\"\" disabled>Choisissez votre sauce offerte ici.</option>";
-            window.availableSauces && Array.isArray(window.availableSauces) && (_5942225 = '<option\x20value=\x22\x22\x20disabled\x20' + (_10683138 ? '' : "selected") + ">Choisissez votre sauce offerte ici.</option>", window.availableSauces.forEach(_1075874 => {
-              const _3496827 = _10683138 === _1075874.id ? "selected" : '';
-              _5942225 += "<option value=\"" + _1075874.id + '\x22\x20' + _3496827 + '>' + _1075874.name + '</option>';
-            })), _4724481.innerHTML = "\n      <i class=\"fa-solid fa-angles-up\" style=\"font-size: 22px; margin-right: 8px; color:#dc3545\"></i>\n      <span class=\"text-danger me-2\">" + _5980773 + ".</span>\n      <select class=\"form-control text-danger form-select-sm\" name=\"free_sauce_" + _6133766 + "[]\" data-item-index=\"" + _5980773 + '\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20' + _5942225 + "\n      </select>\n    ", _2201295.appendChild(_4724481);
+            select.value && savedSelections.push(select.value);
+          }), isDevMode && console.log("Saved selections:", savedSelections), (freeSauceContainer.innerHTML = '', isDevMode && console.log("Creating", quantity, 'sauce options'));
+          for (let index = 1; index <= quantity; index++) {
+            const sauceItem = document.createElement("div");
+            sauceItem.className = "free-sauce-item d-flex flex-column flex-sm-row align-items-start align-items-sm-center mb-2 mt-1";
+            const savedValue = savedSelections[index - 1] || '';
+            let optionsHtml = "<option value=\"\" disabled>Choisissez votre sauce offerte ici.</option>";
+            window.availableSauces && Array.isArray(window.availableSauces) && (optionsHtml = '<option value="" disabled ' + (savedValue ? '' : "selected") + ">Choisissez votre sauce offerte ici.</option>", window.availableSauces.forEach(sauce => {
+              const selected = savedValue === sauce.id ? "selected" : '';
+              optionsHtml += "<option value=\"" + sauce.id + '" ' + selected + '>' + sauce.name + '</option>';
+            })), sauceItem.innerHTML = "\n      <i class=\"fa-solid fa-angles-up\" style=\"font-size: 22px; margin-right: 8px; color:#dc3545\"></i>\n      <span class=\"text-danger me-2\">" + index + ".</span>\n      <select class=\"form-control text-danger form-select-sm\" name=\"free_sauce_" + extraId + "[]\" data-item-index=\"" + index + '">
+        ' + optionsHtml + "\n      </select>\n    ", freeSauceContainer.appendChild(sauceItem);
           }
-          _5332090 && console.log("Created", _3215536, "sauce options for", _6133766), ! function(_4247596) {
-            const _2110935 = document.querySelectorAll("#free_sauce_select_" + _4247596 + " select");
-            _2110935.forEach(_2671598 => {
+          isDevMode && console.log("Created", quantity, "sauce options for", extraId), ! function(extraId) {
+            const selects = document.querySelectorAll("#free_sauce_select_" + extraId + " select");
+            selects.forEach(select => {
 
-              _2671598.removeEventListener("change", handleFreeSauceSelectionChange), _2671598.addEventListener("change", handleFreeSauceSelectionChange);
+              select.removeEventListener("change", handleFreeSauceSelectionChange), select.addEventListener("change", handleFreeSauceSelectionChange);
             });
-          }(_6133766);
-        }(_1401121, _3080102), submitExtraSelectionWithSauces(_1401121)) : submitExtraSelection(_1401121, _5819295, _1720378, _3080102);
+          }(extraId);
+        }(extraId, quantity), submitExtraSelectionWithSauces(extraId)) : submitExtraSelection(extraId, extraValue, price, quantity);
       });
-    })), document.querySelectorAll(".free-sauce-checkbox").forEach(_548660 => {
+    })), document.querySelectorAll(".free-sauce-checkbox").forEach(freeSauceCheckbox => {
 
-      _548660.addEventListener("change", function() {
-        const _5440961 = document.getElementById("free_sauce_" + this.id);
-        this.checked ? _5440961.classList.remove("d-none") : _5440961.classList.add("d-none"), _5440961.querySelector('select').addEventListener("change", function() {
+      freeSauceCheckbox.addEventListener("change", function() {
+        const freeSauceSelect = document.getElementById("free_sauce_" + this.id);
+        this.checked ? freeSauceSelect.classList.remove("d-none") : freeSauceSelect.classList.add("d-none"), freeSauceSelect.querySelector('select').addEventListener("change", function() {
 
           submitExtraSelection(this.value, this.options[this.selectedIndex].text, 0, 1);
         });
       });
     });
   }), document.addEventListener('DOMContentLoaded', function() {
-    const _5232365 = document.querySelectorAll("input[name=\"boissons\"]");
+    const drinkCheckboxes = document.querySelectorAll("input[name=\"boissons\"]");
 
-    function submitDrinkSelection(_9329247, _1330422, _5393734, _2876931) {
+    function submitDrinkSelection(drinkId, drinkName, drinkPrice, drinkQuantity) {
 
-      var _3860621 = getCsrfToken();
-      const _2525962 = {
-        'id': _9329247,
-        'name': _1330422,
-        'price': _5393734,
-        'quantity': _2876931
+      var csrfToken = getCsrfToken();
+      const drinkData = {
+        'id': drinkId,
+        'name': drinkName,
+        'price': drinkPrice,
+        'quantity': drinkQuantity
       };
       fetch('ajax/ubs.php', {
         'method': 'POST',
         'headers': {
-          'X-CSRF-Token': _3860621
+          'X-CSRF-Token': csrfToken
         },
-        'body': JSON.stringify(_2525962)
-      }).then(_2880450 => _2880450.json()).then(_2337037 => {
+        'body': JSON.stringify(drinkData)
+      }).then(response => response.json()).then(result => {
         refreshCartSummary();
-      }).catch(_4223432 => console.error("Error:", _4223432));
+      }).catch(error => console.error("Error:", error));
     }
-    const _2039061 = getCsrfToken();
+    const csrfToken = getCsrfToken();
     fetch("ajax/gsb.php", {
       'method': "POST",
       'headers': {
-        'X-CSRF-Token': _2039061
+        'X-CSRF-Token': csrfToken
       }
-    }).then(_3344223 => {
+    }).then(response => {
 
-      if (!_3344223.ok) throw 403 === _3344223.status && console.log('GSB\x20REFRESH'), new Error('GSB\x20Network\x20response\x20was\x20not\x20ok');
-      return _3344223.json();
-    }).then(_5133915 => {
+      if (!response.ok) throw 403 === response.status && console.log('GSB REFRESH'), new Error('GSB Network response was not ok');
+      return response.json();
+    }).then(selectedDrinks => {
 
-      Object.values(_5133915).forEach(_5839348 => {
-        const _3004714 = document.getElementById(_5839348.id);
-        if (_3004714) {
-          _3004714.checked = true;
-          const _2187122 = _3004714.closest(".form-check").querySelector('.boisson-quantity-control');
-          _2187122.classList.remove("d-none"), _2187122.querySelector(".quantity-input").value = _5839348.quantity;
+      Object.values(selectedDrinks).forEach(drink => {
+        const drinkCheckbox = document.getElementById(drink.id);
+        if (drinkCheckbox) {
+          drinkCheckbox.checked = true;
+          const quantityControl = drinkCheckbox.closest(".form-check").querySelector('.boisson-quantity-control');
+          quantityControl.classList.remove("d-none"), quantityControl.querySelector(".quantity-input").value = drink.quantity;
         }
       });
-    }).catch(_4498822 => console.error("Error:", _4498822)), _5232365.forEach(_1967006 => {
+    }).catch(error => console.error("Error:", error)), drinkCheckboxes.forEach(drinkCheckbox => {
 
-      _1967006.addEventListener('change', function() {
-        const _4383964 = this.closest(".form-check").querySelector('.boisson-quantity-control');
-        this.checked ? _4383964.classList.remove("d-none") : (_4383964.classList.add("d-none"), _4383964.querySelector('.quantity-input').value = 1);
-        const _2321475 = this.checked ? parseInt(_4383964.querySelector(".quantity-input").value, 10) : 0,
-          _4421765 = this.id,
-          _2193412 = this.getAttribute('value'),
-          _4845164 = this.closest('.form-check').querySelector(".boissons-info").textContent;
-        submitDrinkSelection(_4421765, _2193412, parseFloat(_4845164.replace("CHF ", '')) || 0.5, _2321475);
+      drinkCheckbox.addEventListener('change', function() {
+        const quantityControl = this.closest(".form-check").querySelector('.boisson-quantity-control');
+        this.checked ? quantityControl.classList.remove("d-none") : (quantityControl.classList.add("d-none"), quantityControl.querySelector('.quantity-input').value = 1);
+        const quantity = this.checked ? parseInt(quantityControl.querySelector(".quantity-input").value, 10) : 0,
+          drinkId = this.id,
+          drinkValue = this.getAttribute('value'),
+          priceText = this.closest('.form-check').querySelector(".boissons-info").textContent;
+        submitDrinkSelection(drinkId, drinkValue, parseFloat(priceText.replace("CHF ", '')) || 0.5, quantity);
       });
-    }), document.querySelectorAll('.boisson-quantity-control\x20.increase,\x20.boisson-quantity-control\x20.decrease').forEach(_3154546 => {
+    }), document.querySelectorAll('.boisson-quantity-control .increase, .boisson-quantity-control .decrease').forEach(button => {
 
-      _3154546.addEventListener("click", function() {
-        const _14562462 = this.closest('.boisson-quantity-control').querySelector(".quantity-input");
-        let _3026104 = parseInt(_14562462.value, 10);
-        _3026104 += this.classList.contains("increase") ? 1 : _3026104 > 1 ? -1 : 0, _14562462.value = _3026104;
-        const _2132757 = this.closest(".boisson-quantity-control").getAttribute("data-boisson-id"),
-          _3881611 = document.getElementById(_2132757),
-          _3302025 = _3881611.getAttribute("value"),
-          _2261264 = _3881611.closest(".form-check").querySelector(".boissons-info").textContent;
-        submitDrinkSelection(_2132757, _3302025, parseFloat(_2261264.replace("CHF ", '')) || 0.5, _3026104);
+      button.addEventListener("click", function() {
+        const quantityInput = this.closest('.boisson-quantity-control').querySelector(".quantity-input");
+        let quantity = parseInt(quantityInput.value, 10);
+        quantity += this.classList.contains("increase") ? 1 : quantity > 1 ? -1 : 0, quantityInput.value = quantity;
+        const drinkId = this.closest(".boisson-quantity-control").getAttribute("data-boisson-id"),
+          drinkCheckbox = document.getElementById(drinkId),
+          drinkValue = drinkCheckbox.getAttribute("value"),
+          priceText = drinkCheckbox.closest(".form-check").querySelector(".boissons-info").textContent;
+        submitDrinkSelection(drinkId, drinkValue, parseFloat(priceText.replace("CHF ", '')) || 0.5, quantity);
       });
     });
   }), document.addEventListener('DOMContentLoaded', function() {
-    const _4740241 = document.querySelectorAll("input[name=\"desserts\"]");
+    const dessertCheckboxes = document.querySelectorAll("input[name=\"desserts\"]");
 
-    function submitDessertSelection(_4877569, _5983730, _4498168, _1848116) {
+    function submitDessertSelection(dessertId, dessertName, dessertPrice, dessertQuantity) {
 
-      var _4452466 = getCsrfToken();
-      const _15895237 = {
-        'id': _4877569,
-        'name': _5983730,
-        'price': _4498168,
-        'quantity': _1848116
+      var csrfToken = getCsrfToken();
+      const dessertData = {
+        'id': dessertId,
+        'name': dessertName,
+        'price': dessertPrice,
+        'quantity': dessertQuantity
       };
       fetch("ajax/uds.php", {
         'method': "POST",
         'headers': {
-          'X-CSRF-Token': _4452466
+          'X-CSRF-Token': csrfToken
         },
-        'body': JSON.stringify(_15895237)
-      }).then(_5954986 => _5954986.json()).then(_3801760 => {
+        'body': JSON.stringify(dessertData)
+      }).then(response => response.json()).then(result => {
         refreshCartSummary();
-      }).catch(_1248463 => console.error("Error:", _1248463));
+      }).catch(error => console.error("Error:", error));
     }
-    const _1152261 = getCsrfToken();
+    const csrfToken = getCsrfToken();
     fetch("ajax/gsd.php", {
       'method': "POST",
       'headers': {
-        'X-CSRF-Token': _1152261
+        'X-CSRF-Token': csrfToken
       }
-    }).then(_4132809 => {
+    }).then(response => {
 
-      if (!_4132809.ok) throw 403 === _4132809.status && console.log('GSD\x20REFRESH'), new Error("GSD Network response was not ok");
-      return _4132809.json();
-    }).then(_1049997 => {
+      if (!response.ok) throw 403 === response.status && console.log('GSD REFRESH'), new Error("GSD Network response was not ok");
+      return response.json();
+    }).then(selectedDesserts => {
 
-      Object.values(_1049997).forEach(_3777478 => {
-        const _5620687 = document.getElementById(_3777478.id);
-        if (_5620687) {
-          _5620687.checked = true;
-          const _4614310 = _5620687.closest('.form-check').querySelector(".dessert-quantity-control");
-          _4614310.classList.remove('d-none'), _4614310.querySelector('.quantity-input').value = _3777478.quantity;
+      Object.values(selectedDesserts).forEach(dessert => {
+        const dessertCheckbox = document.getElementById(dessert.id);
+        if (dessertCheckbox) {
+          dessertCheckbox.checked = true;
+          const quantityControl = dessertCheckbox.closest('.form-check').querySelector(".dessert-quantity-control");
+          quantityControl.classList.remove('d-none'), quantityControl.querySelector('.quantity-input').value = dessert.quantity;
         }
       });
-    }).catch(_3547958 => console.error('Error:', _3547958)), _4740241.forEach(_1504629 => {
+    }).catch(error => console.error('Error:', error)), dessertCheckboxes.forEach(dessertCheckbox => {
 
-      _1504629.addEventListener("change", function() {
-        const _4540472 = this.closest(".form-check").querySelector(".dessert-quantity-control");
-        this.checked ? _4540472.classList.remove("d-none") : (_4540472.classList.add("d-none"), _4540472.querySelector(".quantity-input").value = 1);
-        const _1771294 = this.checked ? parseInt(_4540472.querySelector('.quantity-input').value, 10) : 0,
-          _4421943 = this.id,
-          _1927188 = this.getAttribute('value'),
-          _2441373 = this.closest('.form-check').querySelector(".desserts-info").textContent;
-        submitDessertSelection(_4421943, _1927188, parseFloat(_2441373.replace('CHF\x20', '')) || 0.5, _1771294);
+      dessertCheckbox.addEventListener("change", function() {
+        const quantityControl = this.closest(".form-check").querySelector(".dessert-quantity-control");
+        this.checked ? quantityControl.classList.remove("d-none") : (quantityControl.classList.add("d-none"), quantityControl.querySelector(".quantity-input").value = 1);
+        const quantity = this.checked ? parseInt(quantityControl.querySelector('.quantity-input').value, 10) : 0,
+          dessertId = this.id,
+          dessertValue = this.getAttribute('value'),
+          priceText = this.closest('.form-check').querySelector(".desserts-info").textContent;
+        submitDessertSelection(dessertId, dessertValue, parseFloat(priceText.replace('CHF ', '')) || 0.5, quantity);
       });
-    }), document.querySelectorAll(".dessert-quantity-control .increase, .dessert-quantity-control .decrease").forEach(_2994398 => {
+    }), document.querySelectorAll(".dessert-quantity-control .increase, .dessert-quantity-control .decrease").forEach(button => {
 
-      _2994398.addEventListener("click", function() {
-        const _6186605 = this.closest(".dessert-quantity-control").querySelector(".quantity-input");
-        let _4345274 = parseInt(_6186605.value, 10);
-        _4345274 += this.classList.contains('increase') ? 1 : _4345274 > 1 ? -1 : 0, _6186605.value = _4345274;
-        const _2994107 = this.closest(".dessert-quantity-control").getAttribute("data-dessert-id"),
-          _3118142 = document.getElementById(_2994107),
-          _2490159 = _3118142.getAttribute("value"),
-          _2501207 = _3118142.closest(".form-check").querySelector(".desserts-info").textContent;
-        submitDessertSelection(_2994107, _2490159, parseFloat(_2501207.replace('CHF\x20', '')) || 0.5, _4345274);
+      button.addEventListener("click", function() {
+        const quantityInput = this.closest(".dessert-quantity-control").querySelector(".quantity-input");
+        let quantity = parseInt(quantityInput.value, 10);
+        quantity += this.classList.contains('increase') ? 1 : quantity > 1 ? -1 : 0, quantityInput.value = quantity;
+        const dessertId = this.closest(".dessert-quantity-control").getAttribute("data-dessert-id"),
+          dessertCheckbox = document.getElementById(dessertId),
+          dessertValue = dessertCheckbox.getAttribute("value"),
+          priceText = dessertCheckbox.closest(".form-check").querySelector(".desserts-info").textContent;
+        submitDessertSelection(dessertId, dessertValue, parseFloat(priceText.replace('CHF ', '')) || 0.5, quantity);
       });
     });
   }), document.addEventListener('DOMContentLoaded', refreshCategoryBadges), document.addEventListener("DOMContentLoaded", refreshCartSummary), document.addEventListener("DOMContentLoaded", function() {
 
-    document.getElementById("orderModal").addEventListener("show.bs.modal", function(_1763247) {
+    document.getElementById("orderModal").addEventListener("show.bs.modal", function(event) {
 
-      var _4745250 = getCsrfToken();
+      var csrfToken = getCsrfToken();
       fetch("ajax/os.php", {
         'method': 'POST',
         'headers': {
           'Content-Type': "application/x-www-form-urlencoded"
         },
-        'body': "csrf_token=" + encodeURIComponent(_4745250)
-      }).then(_1694643 => {
+        'body': "csrf_token=" + encodeURIComponent(csrfToken)
+      }).then(response => {
 
-        if (!_1694643.ok) throw 403 === _1694643.status && console.log("OS REFRESH"), new Error("Network response was not ok");
-        return _1694643.text();
-      }).then(_1211815 => {
-        document.querySelector('#orderModal\x20.order-summary').innerHTML = _1211815;
-      }).catch(_3926110 => console.error('Error\x20loading\x20the\x20order\x20summary:', _3926110));
+        if (!response.ok) throw 403 === response.status && console.log("OS REFRESH"), new Error("Network response was not ok");
+        return response.text();
+      }).then(html => {
+        document.querySelector('#orderModal .order-summary').innerHTML = html;
+      }).catch(error => console.error('Error loading the order summary:', error));
     });
   }), document.getElementById("selectProduct").addEventListener('change', function() {
 
@@ -897,34 +905,34 @@
       }, 500);
     });
   }), document.addEventListener("DOMContentLoaded", function() {
-    const _6928111 = document.getElementById("selectProduct");
+    const selectProduct = document.getElementById("selectProduct");
 
-    function setInputsDisabled(_6700950, _3200351 = true) {
+    function setInputsDisabled(inputs, disabled = true) {
 
-      _6700950.forEach(_8548585 => {
+      inputs.forEach(input => {
 
-        _8548585.disabled = _3200351, _3200351 && (_8548585.checked = false);
+        input.disabled = disabled, disabled && (input.checked = false);
       });
     }
 
-    function enforceMeatSelectionLimit(_2254693) {
+    function enforceMeatSelectionLimit(meatLimit) {
 
-      let _1475473 = [...meatCheckboxes].filter(_2574001 => _2574001.checked).length;
-      meatCheckboxes.forEach(_5999727 => {
-        _5999727.addEventListener('change', () => {
+      let selectedMeatsCount = [...meatCheckboxes].filter(checkbox => checkbox.checked).length;
+      meatCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
 
-          _1475473 = [...meatCheckboxes].filter(_3017667 => _3017667.checked).length, _1475473 >= _2254693 ? setInputsDisabled([...meatCheckboxes].filter(_5995457 => !_5995457.checked), true) : setInputsDisabled(meatCheckboxes, false);
+          selectedMeatsCount = [...meatCheckboxes].filter(checkbox => checkbox.checked).length, selectedMeatsCount >= meatLimit ? setInputsDisabled([...meatCheckboxes].filter(checkbox => !checkbox.checked), true) : setInputsDisabled(meatCheckboxes, false);
         });
       });
     }
-    meatCheckboxes = document.querySelectorAll("input[name=\"viande[]\"]"), sauceCheckboxes = document.querySelectorAll("input[name=\"sauce[]\"]"), garnishCheckboxes = document.querySelectorAll("input[name=\"garniture[]\"]"), _6928111.addEventListener('change', () => {
+    meatCheckboxes = document.querySelectorAll("input[name=\"viande[]\"]"), sauceCheckboxes = document.querySelectorAll("input[name=\"sauce[]\"]"), garnishCheckboxes = document.querySelectorAll("input[name=\"garniture[]\"]"), selectProduct.addEventListener('change', () => {
 
-      [...meatCheckboxes, ...sauceCheckboxes, ...garnishCheckboxes].forEach(_11668014 => {
+      [...meatCheckboxes, ...sauceCheckboxes, ...garnishCheckboxes].forEach(checkbox => {
 
-        _11668014.checked = false;
+        checkbox.checked = false;
       });
-      const _1666559 = _6928111.value;
-      switch (setInputsDisabled(meatCheckboxes, false), setInputsDisabled(sauceCheckboxes, false), setInputsDisabled(garnishCheckboxes, false), _1666559) {
+      const tacoSize = selectProduct.value;
+      switch (setInputsDisabled(meatCheckboxes, false), setInputsDisabled(sauceCheckboxes, false), setInputsDisabled(garnishCheckboxes, false), tacoSize) {
         case 'tacos_L':
           enforceMeatSelectionLimit(1);
           break;
@@ -944,22 +952,22 @@
         default:
           setInputsDisabled(meatCheckboxes, true), setInputsDisabled(sauceCheckboxes, true), setInputsDisabled(garnishCheckboxes, true);
       }
-      sauceCheckboxes.forEach(_2121723 => {
+      sauceCheckboxes.forEach(checkbox => {
 
-        _2121723.addEventListener("change", () => {
+        checkbox.addEventListener("change", () => {
 
-          [...sauceCheckboxes].filter(_3960230 => _3960230.checked).length >= 3 ? setInputsDisabled([...sauceCheckboxes].filter(_6200860 => !_6200860.checked), true) : setInputsDisabled(sauceCheckboxes, false);
+          [...sauceCheckboxes].filter(checkbox => checkbox.checked).length >= 3 ? setInputsDisabled([...sauceCheckboxes].filter(checkbox => !checkbox.checked), true) : setInputsDisabled(sauceCheckboxes, false);
         });
       });
-    }), (document.querySelectorAll(".add-tacos-button").forEach(_6022972 => {
+    }), (document.querySelectorAll(".add-tacos-button").forEach(button => {
 
-      _6022972.addEventListener("click", function(_4384275) {
+      button.addEventListener("click", function(event) {
 
-        _4384275.preventDefault(), !async function(_3420952) {
+        event.preventDefault(), !async function(tacoType) {
 
           new bootstrap[("Modal")](document.getElementById("tacosAddModal"), {
             'keyboard': false
-          }).show(), document.getElementById("selectProduct").value = _3420952, _6928111.dispatchEvent(new Event('change', {
+          }).show(), document.getElementById("selectProduct").value = tacoType, selectProduct.dispatchEvent(new Event('change', {
             'bubbles': true,
             'cancelable': true
           })), await fetchStockAvailability(), applyStockAvailability();
@@ -967,269 +975,269 @@
       });
     }), setInputsDisabled(meatCheckboxes), setInputsDisabled(sauceCheckboxes), setInputsDisabled(garnishCheckboxes), $("#tacosAddModal").on("hidden.bs.modal", function() {
 
-      resetTacoForm(), _6928111.value = 'null', setInputsDisabled(meatCheckboxes, true), setInputsDisabled(sauceCheckboxes, true), setInputsDisabled(garnishCheckboxes, true);
+      resetTacoForm(), selectProduct.value = 'null', setInputsDisabled(meatCheckboxes, true), setInputsDisabled(sauceCheckboxes, true), setInputsDisabled(garnishCheckboxes, true);
     }));
-  }), $('#tacosForm').submit(function(_6125221) {
+  }), $('#tacosForm').submit(function(event) {
 
-    _6125221.preventDefault();
-    const _2854133 = document.getElementById("selectProduct").value,
-      _3013056 = document.querySelectorAll("input[name=\"viande[]\"]:checked"),
-      _4415895 = document.querySelectorAll("input[name=\"sauce[]\"]:checked"),
-      _3001469 = document.querySelectorAll("input[name=\"garniture[]\"]:checked");
-    document.querySelector("input[name=\"viande[]\"][value=\"sans\"]:checked"), document.querySelector('input[name=\x22sauce[]\x22][value=\x22sans\x22]:checked'), document.querySelector("input[name=\"garniture[]\"][value=\"sans\"]:checked");
-    if (0 === _3013056.length) return alert("Veuillez s\u00e9lectionner au moins une viande ou cocher \"sans viande\"."), false;
-    if (0 === _4415895.length) return alert("Veuillez s\u00e9lectionner au moins une sauce ou cocher \"sans sauce\"."), false;
-    if ("tacos_BOWL" !== _2854133 && 0 === _3001469.length) return alert('Veuillez\x20sélectionner\x20au\x20moins\x20une\x20garniture\x20ou\x20cocher\x20\x22sans\x20garniture\x22.'), false;
-    var _2276648 = getCsrfToken();
-    const _8643420 = {};
-    _3013056.forEach(_3465613 => {
-      const _2628951 = _3465613.value,
-        _1503096 = _3465613.closest(".meat-selection-row"),
-        _4203143 = _1503096 ? _1503096.querySelector(".meat-quantity-input") : null,
-        _1752037 = _4203143 && parseInt(_4203143.value, 10) || 1;
-      _8643420[_2628951] = _1752037;
+    event.preventDefault();
+    const selectedTacoSize = document.getElementById("selectProduct").value,
+      selectedMeats = document.querySelectorAll("input[name=\"viande[]\"]:checked"),
+      selectedSauces = document.querySelectorAll("input[name=\"sauce[]\"]:checked"),
+      selectedGarnitures = document.querySelectorAll("input[name=\"garniture[]\"]:checked");
+    document.querySelector("input[name=\"viande[]\"][value=\"sans\"]:checked"), document.querySelector('input[name="sauce[]"][value="sans"]:checked'), document.querySelector("input[name=\"garniture[]\"][value=\"sans\"]:checked");
+    if (0 === selectedMeats.length) return alert("Veuillez s\u00e9lectionner au moins une viande ou cocher \"sans viande\"."), false;
+    if (0 === selectedSauces.length) return alert("Veuillez s\u00e9lectionner au moins une sauce ou cocher \"sans sauce\"."), false;
+    if ("tacos_BOWL" !== selectedTacoSize && 0 === selectedGarnitures.length) return alert('Veuillez sélectionner au moins une garniture ou cocher "sans garniture".'), false;
+    var csrfToken = getCsrfToken();
+    const meatQuantities = {};
+    selectedMeats.forEach(meatCheckbox => {
+      const meatValue = meatCheckbox.value,
+        meatRow = meatCheckbox.closest(".meat-selection-row"),
+        quantityInput = meatRow ? meatRow.querySelector(".meat-quantity-input") : null,
+        quantity = quantityInput && parseInt(quantityInput.value, 10) || 1;
+      meatQuantities[meatValue] = quantity;
     });
-    let _14895121 = $(this).serialize();
-    Object.keys(_8643420).forEach(_2944964 => {
+    let serializedData = $(this).serialize();
+    Object.keys(meatQuantities).forEach(meatValue => {
 
-      _14895121 += "&meat_quantity[" + _2944964 + ']=' + _8643420[_2944964];
+      serializedData += "&meat_quantity[" + meatValue + ']=' + meatQuantities[meatValue];
     }), $.ajax({
       'type': 'POST',
       'url': "ajax/owt.php",
       'headers': {
-        'X-CSRF-Token': _2276648
+        'X-CSRF-Token': csrfToken
       },
-      'data': _14895121,
-      'success': function(_3801159) {
+      'data': serializedData,
+      'success': function(html) {
 
-        $("#products-list").append(_3801159), $("#product-messages").empty(), loadExistingTacos(), refreshTacoListUI(), refreshCartSummary();
+        $("#products-list").append(html), $("#product-messages").empty(), loadExistingTacos(), refreshTacoListUI(), refreshCartSummary();
       },
       'error': function() {
-        alert('Error\x20on\x20submit.\x20Please\x20try\x20again.');
+        alert('Error on submit. Please try again.');
       }
     }), $("#tacosAddModal").modal('hide'), resetTacoForm();
-  }), $(document).on("click", ".delete-tacos", function(_3227763) {
+  }), $(document).on("click", ".delete-tacos", function(event) {
 
-    _3227763.preventDefault();
-    var _2009102 = $(this).attr('data-index');
+    event.preventDefault();
+    var tacoIndex = $(this).attr('data-index');
     if (confirm("\u00cates-vous s\u00fbr de vouloir supprimer ce produit\u00a0?")) {
-      var _4842622 = getCsrfToken();
+      var csrfToken = getCsrfToken();
       $.ajax({
         'url': "ajax/dt.php",
         'headers': {
-          'X-CSRF-Token': _4842622
+          'X-CSRF-Token': csrfToken
         },
         'type': "POST",
         'data': {
-          'index': _2009102
+          'index': tacoIndex
         },
-        'success': function(_2152082) {
+        'success': function(result) {
 
-          $('#tacos-' + _2009102).remove(), refreshTacoListUI(), refreshCartSummary();
+          $('#tacos-' + tacoIndex).remove(), refreshTacoListUI(), refreshCartSummary();
         },
         'error': function() {
-          alert('Error\x20on\x20delete.\x20Please\x20try\x20again.');
+          alert('Error on delete. Please try again.');
         }
       });
     }
   }), $(document).ready(function() {
     loadExistingTacos();
-  }), document.getElementById("orderForm").addEventListener("submit", function(_4042053) {
+  }), document.getElementById("orderForm").addEventListener("submit", function(event) {
 
-    _4042053.preventDefault();
-    const _5183569 = document.getElementById('finalizeButton'),
-      _4255311 = _5183569 ? _5183569.innerHTML : 'Finaliser\x20la\x20commande';
+    event.preventDefault();
+    const finalizeButton = document.getElementById('finalizeButton'),
+      originalButtonText = finalizeButton ? finalizeButton.innerHTML : 'Finaliser la commande';
     if (document.getElementById("phone").value !== document.getElementById("confirmPhone").value) return void alert("Les num\u00e9ros de t\u00e9l\u00e9phone ne correspondent pas, veuillez v\u00e9rifier !");
-    _5183569 && (_5183569.disabled = true, _5183569.innerHTML = "<span class=\"spinner-border spinner-border-sm me-2\"></span>Traitement en cours...", _5183569.classList.add("disabled"));
-    const _3339720 = Date.now() + '_' + Math.random()['toString'](36)['substr'](2, 9),
-      _3219489 = getCsrfToken();
-    var _6079496 = new FormData(this);
-    _6079496.append("transaction_id", _3339720), fetch("ajax/RocknRoll.php", {
+    finalizeButton && (finalizeButton.disabled = true, finalizeButton.innerHTML = "<span class=\"spinner-border spinner-border-sm me-2\"></span>Traitement en cours...", finalizeButton.classList.add("disabled"));
+    const transactionId = Date.now() + '_' + Math.random()['toString'](36)['substr'](2, 9),
+      csrfToken = getCsrfToken();
+    var formData = new FormData(this);
+    formData.append("transaction_id", transactionId), fetch("ajax/RocknRoll.php", {
       'method': "POST",
       'headers': {
-        'X-CSRF-Token': _3219489
+        'X-CSRF-Token': csrfToken
       },
-      'body': _6079496
-    }).then(_6028208 => {
+      'body': formData
+    }).then(response => {
 
-      if (!_6028208.ok) {
-        if (409 === _6028208.status) return _6028208.json().then(_5906034 => {
+      if (!response.ok) {
+        if (409 === response.status) return response.json().then(data => {
           throw new Error('DUPLICATE_ORDER');
         });
-        if (403 === _6028208.status) return _6028208.text().then(_3394689 => {
+        if (403 === response.status) return response.text().then(text => {
 
-          if (_3394689.includes('1\x20Order\x20per\x20minute') || _3394689.includes("Maximum")) throw new Error("RATE_LIMIT");
+          if (text.includes('1 Order per minute') || text.includes("Maximum")) throw new Error("RATE_LIMIT");
           throw new Error("FORBIDDEN");
         });
-        throw new Error('RocknRoll\x20Network\x20response\x20was\x20not\x20ok');
+        throw new Error('RocknRoll Network response was not ok');
       }
-      return _6028208.json();
-    }).then(_2647563 => {
+      return response.json();
+    }).then(orderResult => {
 
-      if (!_2647563) throw console.error("Unexpected response structure:", _2647563), new Error("Error during order processing");
+      if (!orderResult) throw console.error("Unexpected response structure:", orderResult), new Error("Error during order processing");
       {
-        _5183569 && (_5183569.classList.remove("btn-danger"), _5183569.classList.add("btn-success"), _5183569.innerHTML = "<i class=\"fas fa-check me-2\"></i>Commande confirm\u00e9e!"), localStorage.removeItem("accordionState"), document.querySelectorAll(".collapse.show").forEach(_3536995 => {
+        finalizeButton && (finalizeButton.classList.remove("btn-danger"), finalizeButton.classList.add("btn-success"), finalizeButton.innerHTML = "<i class=\"fas fa-check me-2\"></i>Commande confirm\u00e9e!"), localStorage.removeItem("accordionState"), document.querySelectorAll(".collapse.show").forEach(collapseElement => {
 
-          new bootstrap[("Collapse")](_3536995, {
+          new bootstrap[("Collapse")](collapseElement, {
             'toggle': false
           }).hide();
         });
-        var _1330354 = localStorage.getItem('order_stories');
-        (_1330354 = _1330354 ? JSON.parse(_1330354) : [])['push'](_2647563), localStorage.setItem('order_stories', JSON.stringify(_1330354));
-        let _3447885 = '';
-        "livraison" === new URLSearchParams(window.location.search)["get"]("content") ? _3447885 = '<div\x20class=\x22d-flex\x20justify-content-center\x20align-items-center\x22\x20style=\x22height:\x20100px;\x22><i\x20class=\x27fa\x20fa-check-circle\x27\x20style=\x27color:\x20green;\x20font-size:\x20100px;\x27></i></div><br\x20/>Votre\x20commande\x20a\x20été\x20reçue\x20et\x20sera\x20préparée.<br>Restez\x20joignable\x20s\x27il\x20vous\x20plaît.<br>Celui-ci\x20sera\x20mis\x20à\x20jour\x20lorsque\x20votre\x20commande\x20sera\x20en\x20route.' : "emporter" === new URLSearchParams(window.location.search)["get"]("content") && (_3447885 = "<div class=\"d-flex justify-content-center align-items-center\" style=\"height: 100px;\"><i class='fa fa-check-circle' style='color: green; font-size: 100px; margin-right: 15px;'></i>Votre commande a \u00e9t\u00e9 re\u00e7ue et sera pr\u00e9par\u00e9e.</div>"), $("#orderModal").on("hidden.bs.modal", function() {
+        var orderStories = localStorage.getItem('order_stories');
+        (orderStories = orderStories ? JSON.parse(orderStories) : [])['push'](orderResult), localStorage.setItem('order_stories', JSON.stringify(orderStories));
+        let successMessage = '';
+        "livraison" === new URLSearchParams(window.location.search)["get"]("content") ? successMessage = '<div class="d-flex justify-content-center align-items-center" style="height: 100px;"><i class='fa fa-check-circle' style='color: green; font-size: 100px;'></i></div><br />Votre commande a été reçue et sera préparée.<br>Restez joignable s'il vous plaît.<br>Celui-ci sera mis à jour lorsque votre commande sera en route.' : "emporter" === new URLSearchParams(window.location.search)["get"]("content") && (successMessage = "<div class=\"d-flex justify-content-center align-items-center\" style=\"height: 100px;\"><i class='fa fa-check-circle' style='color: green; font-size: 100px; margin-right: 15px;'></i>Votre commande a \u00e9t\u00e9 re\u00e7ue et sera pr\u00e9par\u00e9e.</div>"), $("#orderModal").on("hidden.bs.modal", function() {
 
-          $('#successModalBody').html(_3447885), $("#successModal").modal("show");
+          $('#successModalBody').html(successMessage), $("#successModal").modal("show");
         }).modal("hide"), $('#successModal').on("hidden.bs.modal", function() {
 
           window.location.reload();
         }), gtag("event", 'purchase', {
-          'transaction_id': _2647563.orderId,
+          'transaction_id': orderResult.orderId,
           'affiliation': "Website",
-          'value': _2647563.OrderData.price,
+          'value': orderResult.OrderData.price,
           'currency': "CHF"
         });
       }
-    }).catch(_4629265 => {
+    }).catch(error => {
 
-      "undefined" != typeof isDevMode && isDevMode && (console.error("Error type:", _4629265.name), console.error('Error\x20message:', _4629265.message), console.error('Error\x20stack:', _4629265.stack)), _5183569 && ("DUPLICATE_ORDER" === _4629265.message ? (_5183569.classList.remove("btn-danger"), _5183569.classList.add('btn-info'), _5183569.innerHTML = "<i class=\"fas fa-info-circle me-2\"></i>Cette commande a d\u00e9j\u00e0 \u00e9t\u00e9 trait\u00e9e", setTimeout(() => {
+      "undefined" != typeof isDevMode && isDevMode && (console.error("Error type:", error.name), console.error('Error message:', error.message), console.error('Error stack:', error.stack)), finalizeButton && ("DUPLICATE_ORDER" === error.message ? (finalizeButton.classList.remove("btn-danger"), finalizeButton.classList.add('btn-info'), finalizeButton.innerHTML = "<i class=\"fas fa-info-circle me-2\"></i>Cette commande a d\u00e9j\u00e0 \u00e9t\u00e9 trait\u00e9e", setTimeout(() => {
 
-        _5183569.disabled = false, _5183569.classList.remove('btn-info', "disabled"), _5183569.classList.add("btn-danger"), _5183569.innerHTML = _4255311;
-      }, 3000)) : "RATE_LIMIT" === _4629265.message ? (_5183569.classList.remove('btn-danger'), _5183569.classList.add("btn-warning"), _5183569.innerHTML = '<i\x20class=\x22fas\x20fa-exclamation-triangle\x20me-2\x22></i>Veuillez\x20patienter\x201\x20minute', setTimeout(() => {
+        finalizeButton.disabled = false, finalizeButton.classList.remove('btn-info', "disabled"), finalizeButton.classList.add("btn-danger"), finalizeButton.innerHTML = originalButtonText;
+      }, 3000)) : "RATE_LIMIT" === error.message ? (finalizeButton.classList.remove('btn-danger'), finalizeButton.classList.add("btn-warning"), finalizeButton.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Veuillez patienter 1 minute', setTimeout(() => {
 
-        _5183569.disabled = false, _5183569.classList.remove('btn-warning', "disabled"), _5183569.classList.add("btn-danger"), _5183569.innerHTML = _4255311;
-      }, 5000)) : _4629265.message.includes("Network") ? (_5183569.classList.add("btn-danger"), _5183569.innerHTML = "<i class=\"fas fa-wifi me-2\"></i>Erreur de connexion", setTimeout(() => {
+        finalizeButton.disabled = false, finalizeButton.classList.remove('btn-warning', "disabled"), finalizeButton.classList.add("btn-danger"), finalizeButton.innerHTML = originalButtonText;
+      }, 5000)) : error.message.includes("Network") ? (finalizeButton.classList.add("btn-danger"), finalizeButton.innerHTML = "<i class=\"fas fa-wifi me-2\"></i>Erreur de connexion", setTimeout(() => {
 
-        _5183569.disabled = false, _5183569.classList.remove("disabled"), _5183569.innerHTML = _4255311;
-      }, 3000)) : (_5183569.classList.add('btn-danger'), _5183569.innerHTML = "<i class=\"fas fa-times me-2\"></i>Erreur - Veuillez r\u00e9essayer", setTimeout(() => {
+        finalizeButton.disabled = false, finalizeButton.classList.remove("disabled"), finalizeButton.innerHTML = originalButtonText;
+      }, 3000)) : (finalizeButton.classList.add('btn-danger'), finalizeButton.innerHTML = "<i class=\"fas fa-times me-2\"></i>Erreur - Veuillez r\u00e9essayer", setTimeout(() => {
 
-        _5183569.disabled = false, _5183569.classList.remove('disabled'), _5183569.innerHTML = _4255311;
-      }, 3000))), "RATE_LIMIT" === _4629265.message ? alert("Vous avez d\u00e9j\u00e0 pass\u00e9 une commande r\u00e9cemment. Veuillez patienter 1 minute avant de commander \u00e0 nouveau.") : "FORBIDDEN" === _4629265.message ? alert("Acc\u00e8s refus\u00e9. Veuillez r\u00e9essayer.") : _4629265.message.includes("Network") ? alert("Probl\u00e8me de connexion. V\u00e9rifiez votre connexion internet et r\u00e9essayez.") : alert("Une erreur est survenue lors de la soumission du formulaire. Veuillez r\u00e9essayer.");
+        finalizeButton.disabled = false, finalizeButton.classList.remove('disabled'), finalizeButton.innerHTML = originalButtonText;
+      }, 3000))), "RATE_LIMIT" === error.message ? alert("Vous avez d\u00e9j\u00e0 pass\u00e9 une commande r\u00e9cemment. Veuillez patienter 1 minute avant de commander \u00e0 nouveau.") : "FORBIDDEN" === error.message ? alert("Acc\u00e8s refus\u00e9. Veuillez r\u00e9essayer.") : error.message.includes("Network") ? alert("Probl\u00e8me de connexion. V\u00e9rifiez votre connexion internet et r\u00e9essayez.") : alert("Une erreur est survenue lors de la soumission du formulaire. Veuillez r\u00e9essayer.");
     });
   }), document.addEventListener("DOMContentLoaded", function() {
-    const _2130111 = document.getElementById("addToHomeText"),
-      _1244769 = document.getElementById("bannerLogo"),
-      _6530307 = navigator.userAgent["toLowerCase"]();
+    const addToHomeText = document.getElementById("addToHomeText"),
+      bannerLogo = document.getElementById("bannerLogo"),
+      userAgent = navigator.userAgent.toLowerCase();
 
-    function updateAddToHomePrompt(_5983123, _2376747) {
-      _2130111.textContent = _5983123, _1244769.src = _2376747;
+    function updateAddToHomePrompt(text, imageSrc) {
+      addToHomeText.textContent = text, bannerLogo.src = imageSrc;
     }
-    /iphone|ipad/ .test(_6530307) ? updateAddToHomePrompt("Appuyez sur l\u2019ic\u00f4ne de partage (en bas au centre) et s\u00e9lectionnez \u00ab Ajouter \u00e0 l\u2019\u00e9cran d\u2019accueil \u00bb.", './images/ios-share.png'): /android/ .test(_6530307) && updateAddToHomePrompt("Dans le menu du navigateur (en haut \u00e0 droite), s\u00e9lectionnez \u00ab Ajouter \u00e0 l\u2019\u00e9cran d\u2019accueil \u00bb.", "./images/android-share.png");
+    /iphone|ipad/ .test(userAgent) ? updateAddToHomePrompt("Appuyez sur l\u2019ic\u00f4ne de partage (en bas au centre) et s\u00e9lectionnez \u00ab Ajouter \u00e0 l\u2019\u00e9cran d\u2019accueil \u00bb.", './images/ios-share.png'): /android/ .test(userAgent) && updateAddToHomePrompt("Dans le menu du navigateur (en haut \u00e0 droite), s\u00e9lectionnez \u00ab Ajouter \u00e0 l\u2019\u00e9cran d\u2019accueil \u00bb.", "./images/android-share.png");
   });
   let maxMeatPortions = 1;
 
-  function handleFreeSauceSelectionChange(_4556735) {
-    const _5461540 = _4556735.target.closest(".free-sauces-container");
-    _5461540 && submitExtraSelectionWithSauces(_5461540.id.replace("free_sauce_select_", ''));
+  function handleFreeSauceSelectionChange(event) {
+    const freeSauceContainer = event.target.closest(".free-sauces-container");
+    freeSauceContainer && submitExtraSelectionWithSauces(freeSauceContainer.id.replace("free_sauce_select_", ''));
   }
 
-  function submitExtraSelectionWithSauces(_4818973) {
-    const _6969877 = document.getElementById(_4818973),
-      _4219443 = _6969877.closest('.form-check').querySelector(".quantity-input"),
-      _5350605 = parseInt(_4219443.value, 10),
-      _2834943 = _6969877.getAttribute('value'),
-      _3640555 = _6969877.closest('.form-check').querySelector(".extras-info").textContent,
-      _4132495 = parseFloat(_3640555.replace("CHF ", '')) || 0.5,
-      _5903691 = document.querySelectorAll("#free_sauce_select_" + _4818973 + " select"),
-      _3834157 = [];
-    _5903691.forEach(_5593578 => {
+  function submitExtraSelectionWithSauces(extraId) {
+    const extraCheckbox = document.getElementById(extraId),
+      quantityInput = extraCheckbox.closest('.form-check').querySelector(".quantity-input"),
+      quantity = parseInt(quantityInput.value, 10),
+      extraValue = extraCheckbox.getAttribute('value'),
+      priceText = extraCheckbox.closest('.form-check').querySelector(".extras-info").textContent,
+      price = parseFloat(priceText.replace("CHF ", '')) || 0.5,
+      sauceSelects = document.querySelectorAll("#free_sauce_select_" + extraId + " select"),
+      selectedSauces = [];
+    sauceSelects.forEach(select => {
 
-      if (_5593578.value) {
-        const _6013764 = _5593578.options[_5593578.selectedIndex].text;
-        _3834157.push({
-          'id': _5593578.value,
-          'name': _6013764,
+      if (select.value) {
+        const sauceName = select.options[select.selectedIndex].text;
+        selectedSauces.push({
+          'id': select.value,
+          'name': sauceName,
           'price': 0
         });
       }
-    }), submitExtraSelection(_4818973, _2834943, _4132495, _5350605, null, null, _3834157);
+    }), submitExtraSelection(extraId, extraValue, price, quantity, null, null, selectedSauces);
   }
   document.addEventListener("DOMContentLoaded", function() {
-    const _4591531 = document.getElementById("selectProduct"),
-      _4507035 = document.querySelectorAll("input[name=\"viande[]\"]"),
-      _1342095 = document.querySelectorAll("input[name=\"sauce[]\"]"),
-      _4462310 = document.querySelectorAll("input[name=\"garniture[]\"]");
+    const selectProduct = document.getElementById("selectProduct"),
+      meatCheckboxes = document.querySelectorAll("input[name=\"viande[]\"]"),
+      sauceCheckboxes = document.querySelectorAll("input[name=\"sauce[]\"]"),
+      garnitureCheckboxes = document.querySelectorAll("input[name=\"garniture[]\"]");
 
     function enforceMeatQuantityLimits() {
-      const _3328778 = [..._4507035].filter(_2337475 => _2337475.checked);
-      let _3792886 = 0;
-      1 === maxMeatPortions ? _3792886 = _3328778.length : _3328778.forEach(_5386943 => {
-        const _4794482 = _5386943.closest(".meat-selection-row");
-        if (_4794482) {
-          const _6212539 = _4794482.querySelector(".meat-quantity-input"),
-            _2524386 = parseInt(_6212539?.value || 1);
-          _3792886 += _2524386;
+      const checkedMeats = [...meatCheckboxes].filter(checkbox => checkbox.checked);
+      let totalMeatPortions = 0;
+      1 === maxMeatPortions ? totalMeatPortions = checkedMeats.length : checkedMeats.forEach(meatCheckbox => {
+        const meatRow = meatCheckbox.closest(".meat-selection-row");
+        if (meatRow) {
+          const quantityInput = meatRow.querySelector(".meat-quantity-input"),
+            quantity = parseInt(quantityInput?.value || 1);
+          totalMeatPortions += quantity;
         }
-      }), _4507035.forEach(_4698393 => {
+      }), meatCheckboxes.forEach(meatCheckbox => {
 
-        _4698393.checked || (_4698393.disabled = _3792886 >= maxMeatPortions);
-      }), _3328778.forEach(_1265063 => {
-        const _1621223 = _1265063.closest(".meat-selection-row");
-        if (_1621223) {
-          const _3063417 = _1621223.querySelector(".meat-quantity-input");
-          if (_3063417) {
-            const _2208944 = parseInt(_3063417.value),
-              _3497315 = maxMeatPortions - _3792886 + _2208944;
-            _3063417.max = Math.min(_3497315, 5), _2208944 > _3063417.max && (_3063417.value = _3063417.max);
+        meatCheckbox.checked || (meatCheckbox.disabled = totalMeatPortions >= maxMeatPortions);
+      }), checkedMeats.forEach(meatCheckbox => {
+        const meatRow = meatCheckbox.closest(".meat-selection-row");
+        if (meatRow) {
+          const quantityInput = meatRow.querySelector(".meat-quantity-input");
+          if (quantityInput) {
+            const currentQuantity = parseInt(quantityInput.value),
+              maxAllowed = maxMeatPortions - totalMeatPortions + currentQuantity;
+            quantityInput.max = Math.min(maxAllowed, 5), currentQuantity > quantityInput.max && (quantityInput.value = quantityInput.max);
           }
         }
       });
     }
-    _4507035.forEach(_1302631 => {
+    meatCheckboxes.forEach(meatCheckbox => {
 
-      _1302631.addEventListener("change", function() {
-        const _5662295 = this.closest('.meat-selection-row');
-        if (_5662295) {
-          const _5128772 = _5662295.querySelector(".meat-quantity-control");
-          if (_5128772) {
-            if (this.checked && maxMeatPortions > 1) _5128772.classList.remove('d-none'), enforceMeatQuantityLimits();
+      meatCheckbox.addEventListener("change", function() {
+        const meatRow = this.closest('.meat-selection-row');
+        if (meatRow) {
+          const quantityControl = meatRow.querySelector(".meat-quantity-control");
+          if (quantityControl) {
+            if (this.checked && maxMeatPortions > 1) quantityControl.classList.remove('d-none'), enforceMeatQuantityLimits();
             else {
-              _5128772.classList.add("d-none");
-              const _8400322 = _5128772.querySelector(".meat-quantity-input");
-              _8400322 && (_8400322.value = 1);
+              quantityControl.classList.add("d-none");
+              const quantityInput = quantityControl.querySelector(".meat-quantity-input");
+              quantityInput && (quantityInput.value = 1);
             }
           }
         }
         enforceMeatQuantityLimits();
       });
-    }), document.querySelectorAll(".increase-meat").forEach(_3103067 => {
+    }), document.querySelectorAll(".increase-meat").forEach(increaseButton => {
 
-      _3103067.addEventListener('click', function() {
-        const _1917109 = this.parentElement.querySelector(".meat-quantity-input");
-        if (_1917109) {
-          const _3186115 = parseInt(_1917109.value) || 1;
-          _3186115 < (parseInt(_1917109.max) || maxMeatPortions) && (_1917109.value = _3186115 + 1, enforceMeatQuantityLimits());
+      increaseButton.addEventListener('click', function() {
+        const quantityInput = this.parentElement.querySelector(".meat-quantity-input");
+        if (quantityInput) {
+          const quantity = parseInt(quantityInput.value) || 1;
+          quantity < (parseInt(quantityInput.max) || maxMeatPortions) && (quantityInput.value = quantity + 1, enforceMeatQuantityLimits());
         }
       });
-    }), document.querySelectorAll(".decrease-meat").forEach(_1393664 => {
+    }), document.querySelectorAll(".decrease-meat").forEach(decreaseButton => {
 
-      _1393664.addEventListener("click", function() {
-        const _8996724 = this.parentElement.querySelector(".meat-quantity-input");
-        if (_8996724) {
-          const _14188882 = parseInt(_8996724.value) || 1;
-          _14188882 > 1 && (_8996724.value = _14188882 - 1, enforceMeatQuantityLimits());
+      decreaseButton.addEventListener("click", function() {
+        const quantityInput = this.parentElement.querySelector(".meat-quantity-input");
+        if (quantityInput) {
+          const quantity = parseInt(quantityInput.value) || 1;
+          quantity > 1 && (quantityInput.value = quantity - 1, enforceMeatQuantityLimits());
         }
       });
-    }), _1342095.forEach(_2996197 => {
+    }), sauceCheckboxes.forEach(sauceCheckbox => {
 
-      _2996197.addEventListener("change", function() {
+      sauceCheckbox.addEventListener("change", function() {
 
-        [..._1342095].filter(_4357644 => _4357644.checked).length >= 3 ? [..._1342095].filter(_4046888 => !_4046888.checked).forEach(_2844035 => _2844035.disabled = true) : _1342095.forEach(_3501110 => {
+        [...sauceCheckboxes].filter(checkbox => checkbox.checked).length >= 3 ? [...sauceCheckboxes].filter(checkbox => !checkbox.checked).forEach(checkbox => checkbox.disabled = true) : sauceCheckboxes.forEach(checkbox => {
 
-          _3501110.checked || (_3501110.disabled = false);
+          checkbox.checked || (checkbox.disabled = false);
         });
       });
-    }), _4591531 && (_4591531.addEventListener('change', function() {
-      const _4028114 = this.value;
-      switch ([..._4507035, ..._1342095, ..._4462310].forEach(_2039249 => {
+    }), selectProduct && (selectProduct.addEventListener('change', function() {
+      const tacoSize = this.value;
+      switch ([...meatCheckboxes, ...sauceCheckboxes, ...garnitureCheckboxes].forEach(checkbox => {
 
-          _2039249.checked = false, _2039249.disabled = false;
-        }), document.querySelectorAll(".meat-quantity-control").forEach(_1630997 => {
+          checkbox.checked = false, checkbox.disabled = false;
+        }), document.querySelectorAll(".meat-quantity-control").forEach(quantityControl => {
 
-          _1630997.classList.add("d-none");
-          const _4667796 = _1630997.querySelector('.meat-quantity-input');
-          _4667796 && (_4667796.value = 1);
-        }), _4028114) {
+          quantityControl.classList.add("d-none");
+          const quantityInput = quantityControl.querySelector('.meat-quantity-input');
+          quantityInput && (quantityInput.value = 1);
+        }), tacoSize) {
         case "tacos_L":
           maxMeatPortions = 1;
           break;
@@ -1247,65 +1255,65 @@
           maxMeatPortions = 5;
           break;
         default:
-          return maxMeatPortions = 0, void[..._4507035, ..._1342095, ..._4462310].forEach(_5102302 => _5102302.disabled = true);
-      } [..._4507035, ..._1342095, ..._4462310].forEach(_1573194 => _1573194.disabled = false);
-    }), [..._4507035, ..._1342095, ..._4462310].forEach(_3348401 => _3348401.disabled = true)), $("#tacosAddModal").on("hidden.bs.modal", function() {
+          return maxMeatPortions = 0, void[...meatCheckboxes, ...sauceCheckboxes, ...garnitureCheckboxes].forEach(checkbox => checkbox.disabled = true);
+      } [...meatCheckboxes, ...sauceCheckboxes, ...garnitureCheckboxes].forEach(checkbox => checkbox.disabled = false);
+    }), [...meatCheckboxes, ...sauceCheckboxes, ...garnitureCheckboxes].forEach(checkbox => checkbox.disabled = true)), $("#tacosAddModal").on("hidden.bs.modal", function() {
 
-      _4591531 && (_4591531.value = "null", [..._4507035, ..._1342095, ..._4462310].forEach(_3238841 => {
+      selectProduct && (selectProduct.value = "null", [...meatCheckboxes, ...sauceCheckboxes, ...garnitureCheckboxes].forEach(checkbox => {
 
-        _3238841.checked = false, _3238841.disabled = true;
-      }), document.querySelectorAll(".meat-quantity-control").forEach(_2881479 => {
+        checkbox.checked = false, checkbox.disabled = true;
+      }), document.querySelectorAll(".meat-quantity-control").forEach(quantityControl => {
 
-        _2881479.classList.add("d-none");
-        const _13842231 = _2881479.querySelector('.meat-quantity-input');
-        _13842231 && (_13842231.value = 1);
+        quantityControl.classList.add("d-none");
+        const quantityInput = quantityControl.querySelector('.meat-quantity-input');
+        quantityInput && (quantityInput.value = 1);
       }), maxMeatPortions = 0);
     });
   }), document.addEventListener("DOMContentLoaded", function() {
 
-    document.querySelectorAll("#tacosEditForm input[name=\"viande[]\"]").forEach(_4322318 => {
+    document.querySelectorAll("#tacosEditForm input[name=\"viande[]\"]").forEach(meatCheckbox => {
 
-      _4322318.addEventListener("change", function() {
-        const _2980856 = this.closest(".meat-selection-row");
-        if (_2980856) {
-          const _4958554 = _2980856.querySelector('.meat-quantity-control');
-          if (_4958554) {
-            let _4088754 = 1;
+      meatCheckbox.addEventListener("change", function() {
+        const meatRow = this.closest(".meat-selection-row");
+        if (meatRow) {
+          const quantityControl = meatRow.querySelector('.meat-quantity-control');
+          if (quantityControl) {
+            let maxMeats = 1;
             switch (document.getElementById("editSelectProduct").value) {
               case "tacos_L":
-                _4088754 = 1;
+                maxMeats = 1;
                 break;
               case "tacos_L_mixte":
               case "tacos_XL":
-                _4088754 = 3;
+                maxMeats = 3;
                 break;
               case "tacos_XXL":
-                _4088754 = 4;
+                maxMeats = 4;
                 break;
               case "tacos_GIGA":
-                _4088754 = 5;
+                maxMeats = 5;
             }
-            const _3582460 = _4958554.querySelector('.meat-quantity-input');
-            this.checked && _4088754 > 1 ? (_4958554.classList.remove("d-none"), _3582460 && (_3582460.disabled = false)) : (_4958554.classList.add("d-none"), _3582460 && (_3582460.value = 1, _3582460.disabled = true));
+            const quantityInput = quantityControl.querySelector('.meat-quantity-input');
+            this.checked && maxMeats > 1 ? (quantityControl.classList.remove("d-none"), quantityInput && (quantityInput.disabled = false)) : (quantityControl.classList.add("d-none"), quantityInput && (quantityInput.value = 1, quantityInput.disabled = true));
           }
         }
       });
-    }), document.querySelectorAll("#tacosEditForm .increase-meat").forEach(_5165765 => {
+    }), document.querySelectorAll("#tacosEditForm .increase-meat").forEach(increaseButton => {
 
-      _5165765.addEventListener("click", function() {
-        const _3726235 = this.parentElement.querySelector(".meat-quantity-input");
-        if (_3726235) {
-          const _1146455 = parseInt(_3726235.value) || 1;
-          _1146455 < (parseInt(_3726235.max) || 5) && (_3726235.value = _1146455 + 1);
+      increaseButton.addEventListener("click", function() {
+        const quantityInput = this.parentElement.querySelector(".meat-quantity-input");
+        if (quantityInput) {
+          const quantity = parseInt(quantityInput.value) || 1;
+          quantity < (parseInt(quantityInput.max) || 5) && (quantityInput.value = quantity + 1);
         }
       });
-    }), document.querySelectorAll("#tacosEditForm .decrease-meat").forEach(_4302412 => {
+    }), document.querySelectorAll("#tacosEditForm .decrease-meat").forEach(decreaseButton => {
 
-      _4302412.addEventListener("click", function() {
-        const _4282008 = this.parentElement.querySelector(".meat-quantity-input");
-        if (_4282008) {
-          const _4494431 = parseInt(_4282008.value) || 1;
-          _4494431 > 1 && (_4282008.value = _4494431 - 1);
+      decreaseButton.addEventListener("click", function() {
+        const quantityInput = this.parentElement.querySelector(".meat-quantity-input");
+        if (quantityInput) {
+          const quantity = parseInt(quantityInput.value) || 1;
+          quantity > 1 && (quantityInput.value = quantity - 1);
         }
       });
     });
@@ -1313,198 +1321,198 @@
 
     try {
       if (!window.location.search.includes("content=livraison")) return;
-      const _4092632 = document.querySelector('select[name=\x22requestedFor\x22]'),
-        _4515715 = document.getElementById("deliveryDemandWarning"),
-        _3056176 = document.getElementById("demandMessage");
-      if (_4092632 && _4515715 && _3056176) {
-        let _4407521 = false;
-        _4092632.addEventListener("change", function() {
-          const _7423318 = this.value;
-          _7423318 && '' !== _7423318 ? updateDeliveryDemandBanner(_7423318) : _4515715.classList.add('d-none');
-        }), _4092632.value && '' !== _4092632.value && updateDeliveryDemandBanner(_4092632.value);
-        const _6105121 = document.querySelector("#orderModal");
-        _6105121 && _6105121.addEventListener('shown.bs.modal', function() {
-          _4407521 || (!(function() {
-            const _6029459 = document.querySelector("select[name=\"requestedFor\"]");
-            if (!_6029459) return;
-            const _1416472 = document.querySelector("input[name=\"csrf_token\"]")?.value || '';
+      const timeSelect = document.querySelector('select[name="requestedFor"]'),
+        warningBanner = document.getElementById("deliveryDemandWarning"),
+        warningMessage = document.getElementById("demandMessage");
+      if (timeSelect && warningBanner && warningMessage) {
+        let hasInitialized = false;
+        timeSelect.addEventListener("change", function() {
+          const selectedTime = this.value;
+          selectedTime && '' !== selectedTime ? updateDeliveryDemandBanner(selectedTime) : warningBanner.classList.add('d-none');
+        }), timeSelect.value && '' !== timeSelect.value && updateDeliveryDemandBanner(timeSelect.value);
+        const orderModal = document.querySelector("#orderModal");
+        orderModal && orderModal.addEventListener('shown.bs.modal', function() {
+          hasInitialized || (!(function() {
+            const timeSelect = document.querySelector("select[name=\"requestedFor\"]");
+            if (!timeSelect) return;
+            const csrfToken = document.querySelector("input[name=\"csrf_token\"]")?.value || '';
             fetch('ajax/check_delivery_demand.php', {
               'method': "POST",
               'headers': {
                 'Content-Type': "application/json",
-                'X-CSRF-TOKEN': _1416472
+                'X-CSRF-TOKEN': csrfToken
               },
               'body': JSON.stringify({
                 'check_all': true
               })
-            }).then(_1955099 => _1955099.json()).then(_1126833 => {
+            }).then(response => response.json()).then(data => {
 
-              'success' === _1126833.status && _1126833.time_slots && _6029459.querySelectorAll("option[value]:not([value=\"\"])").forEach(_4148974 => {
-                const _5315192 = _4148974.value,
-                  _15213341 = [_5315192, _5315192 + ":00"];
-                let _7728503 = false;
-                for (const _7388221 of _15213341)
-                  if (_1126833.time_slots[_7388221] && _1126833.time_slots[_7388221]["is_high_demand"]) {
-                    _7728503 = true;
+              'success' === data.status && data.time_slots && timeSelect.querySelectorAll("option[value]:not([value=\"\"])").forEach(option => {
+                const timeValue = option.value,
+                  timeVariants = [timeValue, timeValue + ":00"];
+                let isHighDemand = false;
+                for (const timeVariant of timeVariants)
+                  if (data.time_slots[timeVariant] && data.time_slots[timeVariant]["is_high_demand"]) {
+                    isHighDemand = true;
                     break;
-                  } if (_7728503 && !_4148974.textContent.includes("Forte affluence")) {
-                  const _1279817 = _4148974.textContent;
-                  _4148974.textContent = _1279817 + " (Forte affluence)", _4148974.style.color = '#dc3545', _4148974.classList.add('high-demand');
+                  } if (isHighDemand && !option.textContent.includes("Forte affluence")) {
+                  const originalText = option.textContent;
+                  option.textContent = originalText + " (Forte affluence)", option.style.color = '#dc3545', option.classList.add('high-demand');
                 }
               });
-            }).catch(_4856414 => {
+            }).catch(error => {
 
-              console.error("Error checking all time slots:", _4856414);
+              console.error("Error checking all time slots:", error);
             });
-          }()), _4407521 = true);
+          }()), hasInitialized = true);
         });
       }
 
-      function updateDeliveryDemandBanner(_11161623) {
-        const _5698237 = document.querySelector("input[name=\"csrf_token\"]")?.value || '';
+      function updateDeliveryDemandBanner(selectedTime) {
+        const csrfToken = document.querySelector("input[name=\"csrf_token\"]")?.value || '';
         fetch("ajax/check_delivery_demand.php", {
           'method': "POST",
           'headers': {
             'Content-Type': "application/json",
-            'X-CSRF-TOKEN': _5698237
+            'X-CSRF-TOKEN': csrfToken
           },
           'body': JSON.stringify({
-            'time': _11161623
+            'time': selectedTime
           })
-        }).then(function(_4781190) {
+        }).then(function(response) {
 
-          return _4781190.json();
-        }).then(function(_4907603) {
+          return response.json();
+        }).then(function(data) {
 
-          "success" === _4907603.status ? _4907603.is_high_demand ? (_3056176.textContent = _4907603.message, _4515715.classList.remove("d-none")) : _4515715.classList.add("d-none") : console.error("Delivery demand check error:", _4907603.message);
-        }).catch(function(_7640707) {
+          "success" === data.status ? data.is_high_demand ? (warningMessage.textContent = data.message, warningBanner.classList.remove("d-none")) : warningBanner.classList.add("d-none") : console.error("Delivery demand check error:", data.message);
+        }).catch(function(error) {
 
-          console.error("Error:", _7640707);
+          console.error("Error:", error);
         });
       }
-    } catch (_5934625) {
-      console.error("Delivery demand initialization error:", _5934625);
+    } catch (error) {
+      console.error("Delivery demand initialization error:", error);
     }
   });
-  let _6203567 = null,
-    _2045528 = 0;
-  const _5675222 = 30000;
+  let stockCache = null,
+    cacheTimestamp = 0;
+  const CACHE_DURATION = 30000;
   async function fetchStockAvailability() {
-    const _4756369 = Date.now();
-    if (_6203567 && _4756369 - _2045528 < _5675222) return _6203567;
+    const currentTime = Date.now();
+    if (stockCache && currentTime - cacheTimestamp < CACHE_DURATION) return stockCache;
     try {
-      const _8699378 = await fetch("/office/stock_management.php?type=all");
-      if (!_8699378.ok) throw new Error("Stock status fetch failed");
-      const _2526135 = await _8699378.json();
-      return _6203567 = _2526135, _2045528 = _4756369, _2526135;
-    } catch (_1404761) {
-      return console.error('Stock\x20status\x20fetch\x20error:', _1404761), null;
+      const response = await fetch("/office/stock_management.php?type=all");
+      if (!response.ok) throw new Error("Stock status fetch failed");
+      const stockData = await response.json();
+      return stockCache = stockData, cacheTimestamp = currentTime, stockData;
+    } catch (error) {
+      return console.error('Stock status fetch error:', error), null;
     }
   }
 
-  function isStockAvailable(_12058058, _3748186) {
+  function isStockAvailable(category, itemId) {
 
-    if (!_6203567 || !_6203567[_12058058]) return true;
-    const _1570084 = _6203567[_12058058][_3748186];
-    return !_1570084 || _1570084.in_stock;
+    if (!stockCache || !stockCache[category]) return true;
+    const stockItem = stockCache[category][itemId];
+    return !stockItem || stockItem.in_stock;
   }
 
   function applyStockAvailability() {
 
-    _6203567 && (document.querySelectorAll("input[name=\"viande\"], input[name=\"viande[]\"]").forEach(_5197195 => {
-      const _5875919 = isStockAvailable("viandes", _5197195.value),
-        _3888577 = _5197195.closest("label") || _5197195.parentElement,
-        _14760805 = _5197195.closest(".meat-selection-row") || _5197195.closest('.form-check');
-      if (_5875919) {
-        if (_5197195.disabled = false, _14760805 && (_14760805.style["opacity"] = '1', _14760805.style["pointerEvents"] = "auto"), _3888577) {
-          const _11812765 = _3888577.querySelector(".out-of-stock-text");
-          _11812765 && _11812765.remove();
+    stockCache && (document.querySelectorAll("input[name=\"viande\"], input[name=\"viande[]\"]").forEach(meatInput => {
+      const isAvailable = isStockAvailable("viandes", meatInput.value),
+        labelElement = meatInput.closest("label") || meatInput.parentElement,
+        containerElement = meatInput.closest(".meat-selection-row") || meatInput.closest('.form-check');
+      if (isAvailable) {
+        if (meatInput.disabled = false, containerElement && (containerElement.style.opacity = '1', containerElement.style.pointerEvents = "auto"), labelElement) {
+          const outOfStockText = labelElement.querySelector(".out-of-stock-text");
+          outOfStockText && outOfStockText.remove();
         }
       } else {
-        if (_5197195.disabled = true, _5197195.checked = false, _14760805 && (_14760805.style["opacity"] = "0.5", _14760805.style["pointerEvents"] = 'none'), _3888577) {
-          if (!_3888577.querySelector(".out-of-stock-text")) {
-            const _5858141 = document.createElement("span");
-            _5858141.className = 'out-of-stock-text\x20text-danger\x20ms-2\x20fw-bold', _5858141.textContent = " (Temporairement \u00e9puis\u00e9)", _3888577.appendChild(_5858141);
+        if (meatInput.disabled = true, meatInput.checked = false, containerElement && (containerElement.style.opacity = "0.5", containerElement.style.pointerEvents = 'none'), labelElement) {
+          if (!labelElement.querySelector(".out-of-stock-text")) {
+            const outOfStockSpan = document.createElement("span");
+            outOfStockSpan.className = 'out-of-stock-text text-danger ms-2 fw-bold', outOfStockSpan.textContent = " (Temporairement \u00e9puis\u00e9)", labelElement.appendChild(outOfStockSpan);
           }
         }
       }
-    }), document.querySelectorAll("input[name^=\"garniture\"]").forEach(_3092769 => {
-      const _12512801 = isStockAvailable('garnitures', _3092769.value),
-        _6237059 = _3092769.closest("label") || _3092769.parentElement.querySelector("label");
-      if (_12512801) {
-        if (_3092769.disabled = false, _6237059) {
-          const _2665508 = _6237059.querySelector(".out-of-stock-text");
-          _2665508 && _2665508.remove();
+    }), document.querySelectorAll("input[name^=\"garniture\"]").forEach(garnitureInput => {
+      const isAvailable = isStockAvailable('garnitures', garnitureInput.value),
+        labelElement = garnitureInput.closest("label") || garnitureInput.parentElement.querySelector("label");
+      if (isAvailable) {
+        if (garnitureInput.disabled = false, labelElement) {
+          const outOfStockText = labelElement.querySelector(".out-of-stock-text");
+          outOfStockText && outOfStockText.remove();
         }
       } else {
-        if (_3092769.disabled = true, _6237059) {
-          if (!_6237059.querySelector(".out-of-stock-text")) {
-            const _3414219 = document.createElement("span");
-            _3414219.className = "out-of-stock-text text-danger ms-2", _3414219.textContent = "(Temporairement \u00e9puis\u00e9)", _6237059.appendChild(_3414219);
+        if (garnitureInput.disabled = true, labelElement) {
+          if (!labelElement.querySelector(".out-of-stock-text")) {
+            const outOfStockSpan = document.createElement("span");
+            outOfStockSpan.className = "out-of-stock-text text-danger ms-2", outOfStockSpan.textContent = "(Temporairement \u00e9puis\u00e9)", labelElement.appendChild(outOfStockSpan);
           }
         }
       }
-    }), document.querySelectorAll("input[name^=\"sauce\"]").forEach(_1977076 => {
-      const _12322112 = isStockAvailable("sauces", _1977076.value),
-        _3180877 = _1977076.closest("label") || _1977076.parentElement.querySelector("label");
-      if (_12322112) {
-        if (_1977076.disabled = false, _3180877) {
-          const _768285 = _3180877.querySelector(".out-of-stock-text");
-          _768285 && _768285.remove();
+    }), document.querySelectorAll("input[name^=\"sauce\"]").forEach(sauceInput => {
+      const isAvailable = isStockAvailable("sauces", sauceInput.value),
+        labelElement = sauceInput.closest("label") || sauceInput.parentElement.querySelector("label");
+      if (isAvailable) {
+        if (sauceInput.disabled = false, labelElement) {
+          const outOfStockText = labelElement.querySelector(".out-of-stock-text");
+          outOfStockText && outOfStockText.remove();
         }
       } else {
-        if (_1977076.disabled = true, _3180877) {
-          if (!_3180877.querySelector(".out-of-stock-text")) {
-            const _2654346 = document.createElement("span");
-            _2654346.className = 'out-of-stock-text\x20text-danger\x20ms-2', _2654346.textContent = "(Temporairement \u00e9puis\u00e9)", _3180877.appendChild(_2654346);
+        if (sauceInput.disabled = true, labelElement) {
+          if (!labelElement.querySelector(".out-of-stock-text")) {
+            const outOfStockSpan = document.createElement("span");
+            outOfStockSpan.className = 'out-of-stock-text text-danger ms-2', outOfStockSpan.textContent = "(Temporairement \u00e9puis\u00e9)", labelElement.appendChild(outOfStockSpan);
           }
         }
       }
-    }), document.querySelectorAll('input[name=\x22dessert\x22]').forEach(_5466237 => {
-      const _1129490 = isStockAvailable("desserts", _5466237.value),
-        _3978110 = _5466237.closest("label") || _5466237.parentElement.querySelector("label");
-      if (_1129490) {
-        if (_5466237.disabled = false, _3978110) {
-          const _5689327 = _3978110.querySelector(".out-of-stock-text");
-          _5689327 && _5689327.remove();
+    }), document.querySelectorAll('input[name="dessert"]').forEach(dessertInput => {
+      const isAvailable = isStockAvailable("desserts", dessertInput.value),
+        labelElement = dessertInput.closest("label") || dessertInput.parentElement.querySelector("label");
+      if (isAvailable) {
+        if (dessertInput.disabled = false, labelElement) {
+          const outOfStockText = labelElement.querySelector(".out-of-stock-text");
+          outOfStockText && outOfStockText.remove();
         }
       } else {
-        if (_5466237.disabled = true, _3978110) {
-          if (!_3978110.querySelector('.out-of-stock-text')) {
-            const _1662062 = document.createElement('span');
-            _1662062.className = "out-of-stock-text text-danger ms-2", _1662062.textContent = "(Temporairement \u00e9puis\u00e9)", _3978110.appendChild(_1662062);
+        if (dessertInput.disabled = true, labelElement) {
+          if (!labelElement.querySelector('.out-of-stock-text')) {
+            const outOfStockSpan = document.createElement('span');
+            outOfStockSpan.className = "out-of-stock-text text-danger ms-2", outOfStockSpan.textContent = "(Temporairement \u00e9puis\u00e9)", labelElement.appendChild(outOfStockSpan);
           }
         }
       }
-    }), document.querySelectorAll("input[name=\"boisson\"]").forEach(_5002235 => {
-      const _1160196 = isStockAvailable("boissons", _5002235.value),
-        _2300368 = _5002235.closest("label") || _5002235.parentElement.querySelector("label");
-      if (_1160196) {
-        if (_5002235.disabled = false, _2300368) {
-          const _5681983 = _2300368.querySelector(".out-of-stock-text");
-          _5681983 && _5681983.remove();
+    }), document.querySelectorAll("input[name=\"boisson\"]").forEach(drinkInput => {
+      const isAvailable = isStockAvailable("boissons", drinkInput.value),
+        labelElement = drinkInput.closest("label") || drinkInput.parentElement.querySelector("label");
+      if (isAvailable) {
+        if (drinkInput.disabled = false, labelElement) {
+          const outOfStockText = labelElement.querySelector(".out-of-stock-text");
+          outOfStockText && outOfStockText.remove();
         }
       } else {
-        if (_5002235.disabled = true, _2300368) {
-          if (!_2300368.querySelector('.out-of-stock-text')) {
-            const _3385397 = document.createElement('span');
-            _3385397.className = 'out-of-stock-text\x20text-danger\x20ms-2', _3385397.textContent = "(Temporairement \u00e9puis\u00e9)", _2300368.appendChild(_3385397);
+        if (drinkInput.disabled = true, labelElement) {
+          if (!labelElement.querySelector('.out-of-stock-text')) {
+            const outOfStockSpan = document.createElement('span');
+            outOfStockSpan.className = 'out-of-stock-text text-danger ms-2', outOfStockSpan.textContent = "(Temporairement \u00e9puis\u00e9)", labelElement.appendChild(outOfStockSpan);
           }
         }
       }
-    }), document.querySelectorAll("input[name=\"extra[]\"]").forEach(_10505989 => {
-      const _4795566 = isStockAvailable("extras", _10505989.value),
-        _1537637 = _10505989.closest("label") || _10505989.parentElement.querySelector("label");
-      if (_4795566) {
-        if (_10505989.disabled = false, _1537637) {
-          const _5929593 = _1537637.querySelector('.out-of-stock-text');
-          _5929593 && _5929593.remove();
+    }), document.querySelectorAll("input[name=\"extra[]\"]").forEach(extraInput => {
+      const isAvailable = isStockAvailable("extras", extraInput.value),
+        labelElement = extraInput.closest("label") || extraInput.parentElement.querySelector("label");
+      if (isAvailable) {
+        if (extraInput.disabled = false, labelElement) {
+          const outOfStockText = labelElement.querySelector('.out-of-stock-text');
+          outOfStockText && outOfStockText.remove();
         }
       } else {
-        if (_10505989.disabled = true, _1537637) {
-          if (!_1537637.querySelector(".out-of-stock-text")) {
-            const _16583551 = document.createElement("span");
-            _16583551.className = "out-of-stock-text text-danger ms-2", _16583551.textContent = '(Temporairement\x20épuisé)', _1537637.appendChild(_16583551);
+        if (extraInput.disabled = true, labelElement) {
+          if (!labelElement.querySelector(".out-of-stock-text")) {
+            const outOfStockSpan = document.createElement("span");
+            outOfStockSpan.className = "out-of-stock-text text-danger ms-2", outOfStockSpan.textContent = '(Temporairement épuisé)', labelElement.appendChild(outOfStockSpan);
           }
         }
       }
@@ -1512,137 +1520,135 @@
   }
   document.addEventListener('DOMContentLoaded', async function() {
     await fetchStockAvailability(), applyStockAvailability();
-  }), document.querySelectorAll('.modal').forEach(_4083458 => {
+  }), document.querySelectorAll('.modal').forEach(modal => {
 
-    _4083458.addEventListener("shown.bs.modal", async function() {
+    modal.addEventListener("shown.bs.modal", async function() {
       await fetchStockAvailability(), applyStockAvailability();
     });
   }), (function() {
-    const _538022 = document.getElementById("address"),
-      _4534685 = document.getElementById("autocompleteDropdown");
-    if (!_538022 || !_4534685) return;
-    let _3772549, _3653971 = -1,
-      _4407269 = [];
+    const addressInput = document.getElementById("address"),
+      autocompleteDropdown = document.getElementById("autocompleteDropdown");
+    if (!addressInput || !autocompleteDropdown) return;
+    let debounceTimer, activeIndex = -1,
+      suggestions = [];
 
     function getPostalCodeFromSummary() {
-      const _1899987 = document.querySelector('.col-4.mt-5.border.rounded\x20.text-center.mt-1.small');
-      if (_1899987 && 'N/A' !== _1899987.textContent.trim()) {
-        const _2539118 = _1899987.textContent.trim().match(/^(\d{4})/);
-        return _2539118 ? _2539118[1] : null;
+      const postalCodeElement = document.querySelector('.col-4.mt-5.border.rounded .text-center.mt-1.small');
+      if (postalCodeElement && 'N/A' !== postalCodeElement.textContent.trim()) {
+        const postalCodeMatch = postalCodeElement.textContent.trim().match(/^(\d{4})/);
+        return postalCodeMatch ? postalCodeMatch[1] : null;
       }
       return null;
     }
 
-    function setActiveAutocompleteItem(_2528888) {
+    function setActiveAutocompleteItem(index) {
 
-      _4534685.querySelectorAll(".autocomplete-item").forEach((_4030418, _13965057) => {
+      autocompleteDropdown.querySelectorAll(".autocomplete-item").forEach((item, itemIndex) => {
 
-        _4030418.classList["toggle"]("active", _13965057 === _2528888);
-      }), _3653971 = _2528888;
+        item.classList.toggle("active", itemIndex === index);
+      }), activeIndex = index;
     }
 
-    function selectAutocompleteSuggestion(_5960606) {
-      const _2334339 = _5960606.address?.road || _5960606.address?.pedestrian || '',
-        _11764406 = _5960606.address?.house_number || '',
-        _1603517 = _538022.value.trim().split(/\s+/),
-        _6091245 = _1603517[_1603517.length - 1],
-        _7322574 = /^\d+$/ .test(_6091245);
-      _538022.value = _11764406 ? _2334339 + '\x20' + _11764406 : _7322574 ? _2334339 + '\x20' + _6091245 : _2334339, _4534685.classList.remove("show"), setTimeout(() => {
+    function selectAutocompleteSuggestion(suggestion) {
+      const streetName = suggestion.address?.road || suggestion.address?.pedestrian || '',
+        houseNumber = suggestion.address?.house_number || '',
+        addressParts = addressInput.value.trim().split(/\s+/),
+        lastPart = addressParts[addressParts.length - 1],
+        isNumeric = /^\d+$/ .test(lastPart);
+      addressInput.value = houseNumber ? streetName + ' ' + houseNumber : isNumeric ? streetName + ' ' + lastPart : streetName, autocompleteDropdown.classList.remove("show"), setTimeout(() => {
 
-        _538022.focus();
-        const _3833729 = _538022.value.length;
-        _538022.setSelectionRange(_3833729, _3833729);
+        addressInput.focus();
+        const selectionEnd = addressInput.value.length;
+        addressInput.setSelectionRange(selectionEnd, selectionEnd);
       }, 100);
     }
-    _538022.addEventListener("input", function() {
-      clearTimeout(_3772549), _3772549 = setTimeout(async () => {
-        const _3271003 = _538022.value.trim(),
-          _4516721 = getPostalCodeFromSummary();
-        if (_3271003.length < 3) return void _4534685.classList.remove("show");
-        if (!_4516721) return void _4534685.classList.remove("show");
-        const _3979091 = await async function(_2416321, _4385409) {
-          const _9989818 = _1388808;
-          if (!_4385409 || _2416321[_9989818(823)] < 3) return [];
-          const _1401742 = function(_3706067) {
-              const _2055809 = _9989818,
-                _2363565 = [{
+    addressInput.addEventListener("input", function() {
+      clearTimeout(debounceTimer), debounceTimer = setTimeout(async () => {
+        const inputValue = addressInput.value.trim(),
+          postalCode = getPostalCodeFromSummary();
+        if (inputValue.length < 3) return void autocompleteDropdown.classList.remove("show");
+        if (!postalCode) return void autocompleteDropdown.classList.remove("show");
+        const results = await async function(street, postalCode) {
+          if (!postalCode || street.length < 3) return [];
+          const const normalizedStreet = function(street) {
+              const replacements = [{
                   'pattern': /\bchem\.\s*/gi,
-                  'replacement': _2055809(470)
+                  'replacement': lookup(470)
                 }, {
                   'pattern': /\bch\.\s*/gi,
-                  'replacement': _2055809(470)
+                  'replacement': lookup(470)
                 }, {
                   'pattern': /\bav\.\s*/gi,
-                  'replacement': _2055809(459)
+                  'replacement': lookup(459)
                 }, {
                   'pattern': /\bbd\s+/gi,
-                  'replacement': 'Boulevard\x20'
+                  'replacement': 'Boulevard '
                 }, {
                   'pattern': /\bpl\.\s*/gi,
-                  'replacement': _2055809(629)
+                  'replacement': lookup(629)
                 }, {
                   'pattern': /\brte\s+/gi,
-                  'replacement': _2055809(353)
+                  'replacement': lookup(353)
                 }, {
                   'pattern': /\br\.\s*/gi,
-                  'replacement': 'Rue\x20'
+                  'replacement': 'Rue '
                 }];
-              let _2817176 = _3706067;
+              let normalized = street;
               for (const {
-                  pattern: _8493057,
-                  replacement: _2720651
+                  pattern: pattern,
+                  replacement: replacement
                 }
-                of _2363565) _2817176 = _2817176[_2055809(589)](_8493057, _2720651);
-              return _2817176;
-            }(_2416321),
-            _1394117 = _9989818(831) + new URLSearchParams({
-              'street': _1401742,
-              'postalcode': _4385409,
-              'country': _9989818(360),
+                of replacements) normalized = normalized[lookup(589)](pattern, replacement);
+              return normalized;
+            }(street),
+            apiUrl = "https://nominatim.openstreetmap.org/search?" + new URLSearchParams({
+              'street': normalizedStreet,
+              'postalcode': postalCode,
+              'country': "Switzerland",
               'format': 'json',
               'addressdetails': '1',
               'limit': '10',
-              'layer': _9989818(737)
-            })[_9989818(565)]();
+              'layer': "address"
+            })["toString"]();
           try {
-            const _4563294 = await fetch(_1394117, {
+            const response = await fetch(apiUrl, {
               'headers': {
-                'User-Agent': _9989818(613)
+                'User-Agent': "Mozilla/5.0"
               }
             });
-            return await _4563294[_9989818(656)]();
-          } catch (_3951932) {
-            return console[_9989818(694)]('Nominatim\x20error:', _3951932), [];
+            return await response.json();
+          } catch (error) {
+            return console.error('Nominatim error:', error), [];
           }
-        }(_3271003, _4516721);
-        ! function(_4351184) {
-          const _3934711 = getPostalCodeFromSummary(),
-            _4157589 = new Map();
-          _4351184.forEach(_1601089 => {
-            const _5859867 = _1601089.address?.road || _1601089.address?.pedestrian || '',
-              _5526654 = _1601089.address?.postcode || '';
-            _5859867 && !_4157589.has(_5859867) && (_1601089._isExactMatch = _5526654 === _3934711, _4157589.set(_5859867, _1601089));
-          }), _4407269 = Array.from(_4157589.values()).sort((_6003580, _2454905) => _6003580._isExactMatch && !_2454905._isExactMatch ? -1 : !_6003580._isExactMatch && _2454905._isExactMatch ? 1 : 0), _3653971 = -1, 0 !== _4407269.length ? (_4534685.innerHTML = '', _4407269.forEach((_4475441, _2039606) => {
-            const _4813994 = document.createElement('div');
-            _4813994.className = "autocomplete-item", _4813994.dataset.index = _2039606;
-            const _5082911 = _4475441.address?.road || '',
-              _3107158 = _4475441.address?.house_number || '',
-              _5029560 = _3107158 ? _5082911 + '\x20' + _3107158 : _5082911;
-            _4813994.innerHTML = "\n        <div class=\"street\">" + _5029560 + "</div>\n      ", _4813994.addEventListener("touchstart", _12076131 => {
-              _12076131.preventDefault(), selectAutocompleteSuggestion(_4475441);
-            }), _4813994.addEventListener("click", _4884713 => {
+        }(inputValue, postalCode);
+        ! function(results) {
+          const currentPostalCode = getPostalCodeFromSummary(),
+            uniqueAddresses = new Map();
+          results.forEach(result => {
+            const streetName = result.address?.road || result.address?.pedestrian || '',
+              resultPostalCode = result.address?.postcode || '';
+            streetName && !uniqueAddresses.has(streetName) && (result._isExactMatch = resultPostalCode === currentPostalCode, uniqueAddresses.set(streetName, result));
+          }), suggestions = Array.from(uniqueAddresses.values()).sort((resultA, resultB) => resultA._isExactMatch && !resultB._isExactMatch ? -1 : !resultA._isExactMatch && resultB._isExactMatch ? 1 : 0), activeIndex = -1, 0 !== suggestions.length ? (autocompleteDropdown.innerHTML = '', suggestions.forEach((suggestion, index) => {
+            const itemElement = document.createElement('div');
+            itemElement.className = "autocomplete-item", itemElement.dataset.index = index;
+            const streetName = suggestion.address?.road || '',
+              houseNumber = suggestion.address?.house_number || '',
+              fullAddress = houseNumber ? streetName + ' ' + houseNumber : streetName;
+            itemElement.innerHTML = "\n        <div class=\"street\">" + fullAddress + "</div>\n      ", itemElement.addEventListener("touchstart", event => {
+              event.preventDefault(), selectAutocompleteSuggestion(suggestion);
+            }), itemElement.addEventListener("click", event => {
 
-              _4884713.preventDefault(), selectAutocompleteSuggestion(_4475441);
-            }), _4813994.addEventListener("mouseenter", () => setActiveAutocompleteItem(_2039606)), _4534685.appendChild(_4813994);
-          }), _4534685.classList.add('show')) : _4534685.classList.remove("show");
-        }(_3979091);
+              event.preventDefault(), selectAutocompleteSuggestion(suggestion);
+            }), itemElement.addEventListener("mouseenter", () => setActiveAutocompleteItem(index)), autocompleteDropdown.appendChild(itemElement);
+          }), autocompleteDropdown.classList.add('show')) : autocompleteDropdown.classList.remove("show");
+        }(results);
       }, 300);
-    }), _538022.addEventListener("keydown", _1953012 => {
-      const _5451072 = _4534685.querySelectorAll(".autocomplete-item");
-      "ArrowDown" === _1953012.key ? (_1953012.preventDefault(), _3653971 = Math.min(_3653971 + 1, _5451072.length - 1), setActiveAutocompleteItem(_3653971)) : "ArrowUp" === _1953012.key ? (_1953012.preventDefault(), _3653971 = Math.max(_3653971 - 1, 0), setActiveAutocompleteItem(_3653971)) : 'Enter' === _1953012.key ? _3653971 >= 0 && _4407269[_3653971] && (_1953012.preventDefault(), selectAutocompleteSuggestion(_4407269[_3653971])) : "Escape" === _1953012.key && _4534685.classList.remove("show");
-    }), document.addEventListener("click", _3984313 => {
+    }), addressInput.addEventListener("keydown", event => {
+      const items = autocompleteDropdown.querySelectorAll(".autocomplete-item");
+      "ArrowDown" === event.key ? (event.preventDefault(), activeIndex = Math.min(activeIndex + 1, items.length - 1), setActiveAutocompleteItem(activeIndex)) : "ArrowUp" === event.key ? (event.preventDefault(), activeIndex = Math.max(activeIndex - 1, 0), setActiveAutocompleteItem(activeIndex)) : 'Enter' === event.key ? activeIndex >= 0 && suggestions[activeIndex] && (event.preventDefault(), selectAutocompleteSuggestion(suggestions[activeIndex])) : "Escape" === event.key && autocompleteDropdown.classList.remove("show");
+    }), document.addEventListener("click", event => {
 
-      _4534685.contains(_3984313.target) || _3984313.target === _538022 || _4534685.classList.remove("show");
+      autocompleteDropdown.contains(event.target) || event.target === addressInput || autocompleteDropdown.classList.remove("show");
     });
   }());
 })()));
