@@ -18,15 +18,22 @@ export class UserOrderRepository {
   private readonly prisma = inject(PrismaService);
 
   /**
-   * Get user order by groupOrderId and username
+   * Get user order by groupOrderId and userId
    */
-  async getUserOrder(groupOrderId: string, username: string): Promise<UserOrder | null> {
+  async getUserOrder(groupOrderId: string, userId: string): Promise<UserOrder | null> {
     try {
       const userOrder = await this.prisma.client.userOrder.findUnique({
         where: {
-          groupOrderId_username: {
+          groupOrderId_userId: {
             groupOrderId,
-            username,
+            userId,
+          },
+        },
+        include: {
+          user: {
+            select: {
+              username: true,
+            },
           },
         },
       });
@@ -37,7 +44,7 @@ export class UserOrderRepository {
 
       return this.mapToUserOrder(userOrder);
     } catch (error) {
-      logger.error('Failed to get user order', { groupOrderId, username, error });
+      logger.error('Failed to get user order', { groupOrderId, userId, error });
       return null;
     }
   }
@@ -49,6 +56,13 @@ export class UserOrderRepository {
     try {
       const userOrders = await this.prisma.client.userOrder.findMany({
         where: { groupOrderId },
+        include: {
+          user: {
+            select: {
+              username: true,
+            },
+          },
+        },
         orderBy: { createdAt: 'asc' },
       });
 
@@ -64,21 +78,21 @@ export class UserOrderRepository {
    */
   async upsertUserOrder(
     groupOrderId: string,
-    username: string,
+    userId: string,
     items: UserOrderItems,
     status: UserOrderStatus = UserOrderStatus.DRAFT
   ): Promise<UserOrder> {
     try {
       const userOrder = await this.prisma.client.userOrder.upsert({
         where: {
-          groupOrderId_username: {
+          groupOrderId_userId: {
             groupOrderId,
-            username,
+            userId,
           },
         },
         create: {
           groupOrderId,
-          username,
+          userId,
           items: JSON.stringify(items),
           status,
         },
@@ -87,12 +101,19 @@ export class UserOrderRepository {
           status,
           updatedAt: new Date(),
         },
+        include: {
+          user: {
+            select: {
+              username: true,
+            },
+          },
+        },
       });
 
-      logger.debug('User order upserted', { groupOrderId, username });
+      logger.debug('User order upserted', { groupOrderId, userId });
       return this.mapToUserOrder(userOrder);
     } catch (error) {
-      logger.error('Failed to upsert user order', { groupOrderId, username, error });
+      logger.error('Failed to upsert user order', { groupOrderId, userId, error });
       throw error;
     }
   }
@@ -188,16 +209,20 @@ export class UserOrderRepository {
   private mapToUserOrder(userOrder: {
     id: string;
     groupOrderId: string;
-    username: string;
+    userId: string;
     status: string;
     items: string;
     createdAt: Date;
     updatedAt: Date;
+    user?: {
+      username: string;
+    };
   }): UserOrder {
     return {
       id: userOrder.id,
       groupOrderId: userOrder.groupOrderId,
-      username: userOrder.username,
+      userId: userOrder.userId,
+      username: userOrder.user?.username,
       status: userOrder.status as UserOrderStatus,
       items: JSON.parse(userOrder.items) as UserOrderItems,
       createdAt: userOrder.createdAt,

@@ -42,10 +42,29 @@ model TacoMapping {
   @@map("taco_mappings")
 }
 
+model User {
+  id            String   @id @default(uuid())
+  username      String   @unique
+  email         String   @unique
+  passwordHash  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+
+  // Relations
+  orders        Order[]       @relation("UserOrders")
+  groupOrders   GroupOrder[]  @relation("GroupOrderLeader")
+  userOrders    UserOrder[]   @relation("UserUserOrders")
+
+  @@index([username])
+  @@index([email])
+  @@map("users")
+}
+
 model Order {
   id            String   @id @default(uuid())
   orderId       String   @unique
   cartId        String
+  userId        String?  // Link to user if authenticated
   customerName  String
   customerPhone String
   orderType     String   // 'livraison' or 'emporter'
@@ -59,9 +78,11 @@ model Order {
   
   // Relations
   cart          Cart     @relation(fields: [cartId], references: [cartId])
+  user          User?    @relation("UserOrders", fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([cartId])
   @@index([orderId])
+  @@index([userId])
   @@index([createdAt])
   @@map("orders")
 }
@@ -70,7 +91,7 @@ model GroupOrder {
   id          String   @id @default(uuid())
   groupOrderId String @unique
   name        String?
-  leader      String   // Username of the group leader
+  leaderId    String   // User ID of the group leader
   startDate   DateTime
   endDate     DateTime
   status      String   @default("open") // open, closed, submitted, completed
@@ -78,9 +99,10 @@ model GroupOrder {
   updatedAt   DateTime @default(now()) @updatedAt
 
   // Relations
+  leader      User     @relation("GroupOrderLeader", fields: [leaderId], references: [id], onDelete: Cascade)
   userOrders  UserOrder[]
 
-  @@index([leader])
+  @@index([leaderId])
   @@index([startDate, endDate])
   @@index([status])
   @@map("group_orders")
@@ -89,7 +111,7 @@ model GroupOrder {
 model UserOrder {
   id            String   @id @default(uuid())
   groupOrderId  String
-  username      String
+  userId        String   // User ID instead of username
   status        String   @default("draft") // draft, submitted
   items         String   // JSON string containing tacos, extras, drinks, desserts
   createdAt     DateTime @default(now())
@@ -97,10 +119,11 @@ model UserOrder {
 
   // Relations
   groupOrder    GroupOrder @relation(fields: [groupOrderId], references: [groupOrderId], onDelete: Cascade)
+  user          User       @relation("UserUserOrders", fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([groupOrderId, username])
+  @@unique([groupOrderId, userId])
   @@index([groupOrderId])
-  @@index([username])
+  @@index([userId])
   @@index([status])
   @@map("user_orders")
 }

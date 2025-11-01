@@ -36,10 +36,15 @@ export class OrderService {
   /**
    * Create and submit a new order for a session
    */
-  async createOrder(sessionId: string, request: CreateOrderRequest): Promise<Order> {
+  async createOrder(
+    sessionId: string,
+    request: CreateOrderRequest,
+    userId?: string
+  ): Promise<Order> {
     await this.validateCart(sessionId);
     logger.debug('Creating order', {
       sessionId,
+      userId,
       customerName: request.customer.name,
       orderType: request.delivery.type,
     });
@@ -66,8 +71,42 @@ export class OrderService {
       formData
     );
 
+    // Save order to database with userId if provided
+    if (userId) {
+      try {
+        const { PrismaService } = await import('../database/prisma.service');
+        const prismaService = inject(PrismaService);
+        const prisma = prismaService;
+        await prisma.client.order.upsert({
+          where: { orderId: response.orderId },
+          create: {
+            orderId: response.orderId,
+            cartId: sessionId,
+            userId,
+            customerName: request.customer.name,
+            customerPhone: request.customer.phone,
+            orderType: request.delivery.type,
+            address: deliveryAddress || null,
+            requestedFor: request.delivery.requestedFor,
+            status: response.OrderData.status,
+            price: response.OrderData.price,
+            orderData: JSON.stringify(response.OrderData),
+          },
+          update: {
+            status: response.OrderData.status,
+            price: response.OrderData.price,
+            orderData: JSON.stringify(response.OrderData),
+          },
+        });
+      } catch (error) {
+        logger.error('Failed to save order to database', { orderId: response.orderId, error });
+        // Don't fail the order creation if DB save fails
+      }
+    }
+
     logger.info('Order created successfully', {
       sessionId,
+      userId,
       orderId: response.orderId,
       price: response.OrderData.price,
     });

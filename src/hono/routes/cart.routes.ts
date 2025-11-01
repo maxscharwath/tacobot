@@ -12,11 +12,15 @@ import { OrderService } from '../../services/order.service';
 import { UpdateTacoRequest } from '../../types';
 import { inject } from '../../utils/inject';
 import { zodValidator } from '../middleware/zod-validator';
+import { optionalAuthMiddleware } from '../middleware/auth';
 
 // Helper type for validated request body from Zod schema
 type RequestFor<T extends z.ZodTypeAny> = z.infer<T>;
 
 const app = new Hono();
+
+// Optional auth for cart routes (to link orders to users when authenticated)
+app.use('*', optionalAuthMiddleware);
 
 /**
  * Create new cart with session
@@ -159,8 +163,9 @@ app.post('/carts/:cartId/desserts', zodValidator(schemas.addDessert), async (c) 
 app.post('/carts/:cartId/orders', zodValidator(schemas.createOrder), async (c) => {
   const cartId = c.req.param('cartId');
   const body: RequestFor<typeof schemas.createOrder> = c.get('validatedBody');
+  const userId = c.get('userId'); // Optional - from auth middleware
   const orderService = inject(OrderService);
-  const order = await orderService.createOrder(cartId, body);
+  const order = await orderService.createOrder(cartId, body, userId);
 
   return c.json(order, 201);
 });

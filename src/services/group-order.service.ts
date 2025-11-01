@@ -36,7 +36,7 @@ export class GroupOrderService {
    * Create a new group order
    */
   async createGroupOrder(
-    leader: string,
+    leaderId: string,
     request: CreateGroupOrderRequest
   ): Promise<GroupOrder> {
     const startDate = new Date(request.startDate);
@@ -59,14 +59,14 @@ export class GroupOrderService {
 
     const groupOrder = await this.groupOrderRepository.createGroupOrder(groupOrderId, {
       name: request.name,
-      leader,
+      leaderId,
       startDate,
       endDate,
     });
 
     logger.info('Group order created', {
       groupOrderId,
-      leader,
+      leaderId,
       startDate: request.startDate,
       endDate: request.endDate,
     });
@@ -103,9 +103,9 @@ export class GroupOrderService {
   /**
    * Check if user is the leader of a group order
    */
-  async checkIsLeader(groupOrderId: string, username: string): Promise<boolean> {
+  async checkIsLeader(groupOrderId: string, userId: string): Promise<boolean> {
     const groupOrder = await this.getGroupOrder(groupOrderId);
-    return groupOrder.leader === username;
+    return groupOrder.leader === userId;
   }
 
   /**
@@ -113,11 +113,11 @@ export class GroupOrderService {
    */
   async updateGroupOrder(
     groupOrderId: string,
-    username: string,
+    userId: string,
     updates: Partial<Pick<GroupOrder, 'name' | 'startDate' | 'endDate'>>
   ): Promise<GroupOrder> {
     // Verify user is the leader
-    const isLeader = await this.checkIsLeader(groupOrderId, username);
+    const isLeader = await this.checkIsLeader(groupOrderId, userId);
     if (!isLeader) {
       throw new ValidationError('Only the group order leader can update the group order');
     }
@@ -146,8 +146,8 @@ export class GroupOrderService {
    * Submit group order (only leader can do this)
    * This marks the group order as submitted - actual submission happens in a separate step
    */
-  async submitGroupOrder(groupOrderId: string, username: string): Promise<GroupOrder> {
-    const isLeader = await this.checkIsLeader(groupOrderId, username);
+  async submitGroupOrder(groupOrderId: string, userId: string): Promise<GroupOrder> {
+    const isLeader = await this.checkIsLeader(groupOrderId, userId);
     if (!isLeader) {
       throw new ValidationError('Only the group order leader can submit the group order');
     }
@@ -195,11 +195,11 @@ export class GroupOrderService {
    */
   async submitGroupOrderToBackend(
     groupOrderId: string,
-    username: string,
+    userId: string,
     request: SubmitGroupOrderRequest
   ): Promise<{ orderId: string; cartId: string }> {
     // Verify user is the leader
-    const isLeader = await this.checkIsLeader(groupOrderId, username);
+    const isLeader = await this.checkIsLeader(groupOrderId, userId);
     if (!isLeader) {
       throw new ValidationError('Only the group order leader can submit the group order');
     }

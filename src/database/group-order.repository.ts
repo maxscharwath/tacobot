@@ -44,7 +44,7 @@ export class GroupOrderRepository {
     groupOrderId: string,
     data: {
       name?: string;
-      leader: string;
+      leaderId: string;
       startDate: Date;
       endDate: Date;
     }
@@ -54,7 +54,7 @@ export class GroupOrderRepository {
         data: {
           groupOrderId,
           name: data.name,
-          leader: data.leader,
+          leaderId: data.leaderId,
           startDate: data.startDate,
           endDate: data.endDate,
           status: GroupOrderStatus.OPEN,
@@ -133,7 +133,7 @@ export class GroupOrderRepository {
     id: string;
     groupOrderId: string;
     name: string | null;
-    leader: string;
+    leaderId: string;
     startDate: Date;
     endDate: Date;
     status: string;
@@ -144,7 +144,7 @@ export class GroupOrderRepository {
       id: groupOrder.id,
       groupOrderId: groupOrder.groupOrderId,
       name: groupOrder.name || undefined,
-      leader: groupOrder.leader,
+      leader: groupOrder.leaderId, // For now, keep leader as string (will be userId)
       startDate: groupOrder.startDate,
       endDate: groupOrder.endDate,
       status: groupOrder.status as GroupOrderStatus,

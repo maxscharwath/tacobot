@@ -10,7 +10,7 @@ import { GroupOrderService } from '../../services/group-order.service';
 import { UserOrderService } from '../../services/user-order.service';
 import { inject } from '../../utils/inject';
 import { zodValidator } from '../middleware/zod-validator';
-import { usernameHeader } from '../middleware/username-header';
+import { authMiddleware } from '../middleware/auth';
 import { schemas } from '../middleware/validation';
 
 // Helper type for validated request body from Zod schema
@@ -41,18 +41,18 @@ const groupOrderSchemas = {
   submitGroupOrder: schemas.createOrder,
 };
 
-// Apply username header middleware to all routes
-app.use('*', usernameHeader);
+// Apply auth middleware to all routes (requires bearer token)
+app.use('*', authMiddleware);
 
 /**
  * Create new group order
  */
 app.post('/', zodValidator(groupOrderSchemas.createGroupOrder), async (c) => {
-  const username = c.get('username');
+  const userId = c.get('userId');
   const body: RequestFor<typeof groupOrderSchemas.createGroupOrder> = c.get('validatedBody');
   const groupOrderService = inject(GroupOrderService);
 
-  const groupOrder = await groupOrderService.createGroupOrder(username, body);
+  const groupOrder = await groupOrderService.createGroupOrder(userId, body);
 
   return c.json(groupOrder, 201);
 });
@@ -89,11 +89,11 @@ app.put(
   zodValidator(groupOrderSchemas.updateGroupOrder),
   async (c) => {
     const groupOrderId = c.req.param('groupOrderId');
-    const username = c.get('username');
+    const userId = c.get('userId');
     const body: RequestFor<typeof groupOrderSchemas.updateGroupOrder> = c.get('validatedBody');
     const groupOrderService = inject(GroupOrderService);
 
-    const groupOrder = await groupOrderService.updateGroupOrder(groupOrderId, username, body);
+    const groupOrder = await groupOrderService.updateGroupOrder(groupOrderId, userId, body);
 
     return c.json(groupOrder);
   }
@@ -105,10 +105,10 @@ app.put(
  */
 app.post('/:groupOrderId/submit', async (c) => {
   const groupOrderId = c.req.param('groupOrderId');
-  const username = c.get('username');
+  const userId = c.get('userId');
   const groupOrderService = inject(GroupOrderService);
 
-  const groupOrder = await groupOrderService.submitGroupOrder(groupOrderId, username);
+  const groupOrder = await groupOrderService.submitGroupOrder(groupOrderId, userId);
 
   return c.json(groupOrder);
 });
@@ -122,13 +122,13 @@ app.post(
   zodValidator(groupOrderSchemas.submitGroupOrder),
   async (c) => {
     const groupOrderId = c.req.param('groupOrderId');
-    const username = c.get('username');
+    const userId = c.get('userId');
     const body: RequestFor<typeof groupOrderSchemas.submitGroupOrder> = c.get('validatedBody');
     const groupOrderService = inject(GroupOrderService);
 
     const result = await groupOrderService.submitGroupOrderToBackend(
       groupOrderId,
-      username,
+      userId,
       body
     );
 
@@ -141,10 +141,10 @@ app.post(
  */
 app.get('/:groupOrderId/orders/my', async (c) => {
   const groupOrderId = c.req.param('groupOrderId');
-  const username = c.get('username');
+  const userId = c.get('userId');
   const userOrderService = inject(UserOrderService);
 
-  const userOrder = await userOrderService.getUserOrder(groupOrderId, username);
+  const userOrder = await userOrderService.getUserOrder(groupOrderId, userId);
 
   return c.json(userOrder);
 });
@@ -157,11 +157,11 @@ app.put(
   zodValidator(groupOrderSchemas.updateUserOrder),
   async (c) => {
     const groupOrderId = c.req.param('groupOrderId');
-    const username = c.get('username');
+    const userId = c.get('userId');
     const body: RequestFor<typeof groupOrderSchemas.updateUserOrder> = c.get('validatedBody');
     const userOrderService = inject(UserOrderService);
 
-    const userOrder = await userOrderService.upsertUserOrder(groupOrderId, username, body);
+    const userOrder = await userOrderService.upsertUserOrder(groupOrderId, userId, body);
 
     return c.json(userOrder);
   }
@@ -172,10 +172,10 @@ app.put(
  */
 app.post('/:groupOrderId/orders/my/submit', async (c) => {
   const groupOrderId = c.req.param('groupOrderId');
-  const username = c.get('username');
+  const userId = c.get('userId');
   const userOrderService = inject(UserOrderService);
 
-  const userOrder = await userOrderService.submitUserOrder(groupOrderId, username);
+  const userOrder = await userOrderService.submitUserOrder(groupOrderId, userId);
 
   return c.json(userOrder);
 });
@@ -185,10 +185,10 @@ app.post('/:groupOrderId/orders/my/submit', async (c) => {
  */
 app.delete('/:groupOrderId/orders/my', async (c) => {
   const groupOrderId = c.req.param('groupOrderId');
-  const username = c.get('username');
+  const userId = c.get('userId');
   const userOrderService = inject(UserOrderService);
 
-  await userOrderService.deleteUserOrder(groupOrderId, username, username);
+  await userOrderService.deleteUserOrder(groupOrderId, userId, userId);
 
   return c.body(null, 204);
 });
@@ -208,13 +208,13 @@ app.get('/:groupOrderId/orders', async (c) => {
 /**
  * Delete a user order (leader only)
  */
-app.delete('/:groupOrderId/orders/:username', async (c) => {
+app.delete('/:groupOrderId/orders/:userId', async (c) => {
   const groupOrderId = c.req.param('groupOrderId');
-  const targetUsername = c.req.param('username');
-  const deleterUsername = c.get('username');
+  const targetUserId = c.req.param('userId');
+  const deleterUserId = c.get('userId');
   const userOrderService = inject(UserOrderService);
 
-  await userOrderService.deleteUserOrder(groupOrderId, targetUsername, deleterUsername);
+  await userOrderService.deleteUserOrder(groupOrderId, targetUserId, deleterUserId);
 
   return c.body(null, 204);
 });

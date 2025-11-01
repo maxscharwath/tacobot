@@ -127,7 +127,7 @@ export class UserOrderService {
    */
   async upsertUserOrder(
     groupOrderId: string,
-    username: string,
+    userId: string,
     request: UpdateUserOrderRequest
   ): Promise<UserOrder> {
     // Verify group order exists and is open
@@ -159,14 +159,14 @@ export class UserOrderService {
     // Save user order
     const userOrder = await this.userOrderRepository.upsertUserOrder(
       groupOrderId,
-      username,
+      userId,
       itemsWithIds,
       UserOrderStatus.DRAFT
     );
 
     logger.info('User order upserted', {
       groupOrderId,
-      username,
+      userId,
       itemCounts: {
         tacos: itemsWithIds.tacos.length,
         extras: itemsWithIds.extras.length,
@@ -181,11 +181,11 @@ export class UserOrderService {
   /**
    * Get user order
    */
-  async getUserOrder(groupOrderId: string, username: string): Promise<UserOrder> {
-    const userOrder = await this.userOrderRepository.getUserOrder(groupOrderId, username);
+  async getUserOrder(groupOrderId: string, userId: string): Promise<UserOrder> {
+    const userOrder = await this.userOrderRepository.getUserOrder(groupOrderId, userId);
     if (!userOrder) {
       throw new NotFoundError(
-        `User order not found for user ${username} in group order ${groupOrderId}`
+        `User order not found for user ${userId} in group order ${groupOrderId}`
       );
     }
     return userOrder;
@@ -194,9 +194,9 @@ export class UserOrderService {
   /**
    * Submit user order (mark as submitted)
    */
-  async submitUserOrder(groupOrderId: string, username: string): Promise<UserOrder> {
+  async submitUserOrder(groupOrderId: string, userId: string): Promise<UserOrder> {
     // Get existing order
-    const userOrder = await this.getUserOrder(groupOrderId, username);
+    const userOrder = await this.getUserOrder(groupOrderId, userId);
 
     // Verify group order is still open
     const groupOrder = await this.groupOrderRepository.getGroupOrder(groupOrderId);
@@ -227,7 +227,7 @@ export class UserOrderService {
     // Update status
     return await this.userOrderRepository.updateUserOrderStatus(
       groupOrderId,
-      username,
+      userId,
       UserOrderStatus.SUBMITTED
     );
   }
@@ -237,8 +237,8 @@ export class UserOrderService {
    */
   async deleteUserOrder(
     groupOrderId: string,
-    username: string,
-    deleterUsername: string
+    userId: string,
+    deleterUserId: string
   ): Promise<void> {
     // Check if user is deleting their own order or if deleter is the leader
     const groupOrder = await this.groupOrderRepository.getGroupOrder(groupOrderId);
@@ -246,18 +246,18 @@ export class UserOrderService {
       throw new NotFoundError(`Group order not found: ${groupOrderId}`);
     }
 
-    const isLeader = groupOrder.leader === deleterUsername;
-    const isOwnOrder = username === deleterUsername;
+    const isLeader = groupOrder.leader === deleterUserId;
+    const isOwnOrder = userId === deleterUserId;
 
     if (!isLeader && !isOwnOrder) {
       throw new ValidationError('You can only delete your own order or be the leader');
     }
 
     // Verify order exists
-    const userOrder = await this.userOrderRepository.getUserOrder(groupOrderId, username);
+    const userOrder = await this.userOrderRepository.getUserOrder(groupOrderId, userId);
     if (!userOrder) {
       throw new NotFoundError(
-        `User order not found for user ${username} in group order ${groupOrderId}`
+        `User order not found for user ${userId} in group order ${groupOrderId}`
       );
     }
 
@@ -268,12 +268,12 @@ export class UserOrderService {
       );
     }
 
-    await this.userOrderRepository.deleteUserOrder(groupOrderId, username);
+    await this.userOrderRepository.deleteUserOrder(groupOrderId, userId);
 
     logger.info('User order deleted', {
       groupOrderId,
-      username,
-      deletedBy: deleterUsername,
+      userId,
+      deletedBy: deleterUserId,
     });
   }
 

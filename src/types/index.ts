@@ -379,7 +379,8 @@ export interface UserOrderItems {
 export interface UserOrder {
   id: string;
   groupOrderId: string;
-  username: string;
+  userId: string;
+  username?: string; // Optional for backward compatibility
   status: UserOrderStatus;
   items: UserOrderItems;
   createdAt: Date;
@@ -393,7 +394,7 @@ export interface GroupOrder {
   id: string;
   groupOrderId: string;
   name?: string;
-  leader: string;
+  leader: string; // User ID (kept as string for compatibility, but represents userId)
   startDate: Date;
   endDate: Date;
   status: GroupOrderStatus;

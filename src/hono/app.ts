@@ -8,10 +8,12 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { debugRoutes } from '../utils/route-debugger';
 import { errorHandler } from './middleware/error-handler';
+import { authRoutes } from './routes/auth.routes';
 import { cartRoutes } from './routes/cart.routes';
 import { groupOrderRoutes } from './routes/group-order.routes';
 import { healthRoutes } from './routes/health.routes';
 import { resourceRoutes } from './routes/resource.routes';
+import { userRoutes } from './routes/user.routes';
 
 /**
  * Hono route definitions for debugging
@@ -58,9 +60,11 @@ export function createApp(): Hono {
   app.route('/', healthRoutes);
 
   // API routes
+  app.route('/api/v1/auth', authRoutes);
   app.route('/api/v1', cartRoutes);
   app.route('/api/v1', resourceRoutes);
   app.route('/api/v1/group-orders', groupOrderRoutes);
+  app.route('/api/v1/users', userRoutes);
 
   // 404 handler
   app.notFound((c) => {
