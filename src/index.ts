@@ -6,11 +6,15 @@
 import config from './config';
 import { logger } from './utils/logger';
 import { startHonoApi } from './hono-api';
+import { setupDependencyInjection } from './infrastructure/dependency-injection';
 
 /**
  * Start all services
  */
 async function main(): Promise<void> {
+  // Setup dependency injection for clean architecture
+  setupDependencyInjection();
+
   logger.info('Starting Tacos Ordering API', {
     env: config.env,
     webApiEnabled: config.webApi.enabled,

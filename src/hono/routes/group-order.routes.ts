@@ -7,7 +7,8 @@ import 'reflect-metadata';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { GroupOrderService } from '../../services/group-order.service';
-import { UserOrderService } from '../../services/user-order.service';
+import { GroupOrderMapper } from '../../application/mappers/group-order.mapper';
+import { UserOrderMapper } from '../../application/mappers/user-order.mapper';
 import { inject } from '../../utils/inject';
 import { zodValidator } from '../middleware/zod-validator';
 import { authMiddleware } from '../middleware/auth';
@@ -54,7 +55,7 @@ app.post('/', zodValidator(groupOrderSchemas.createGroupOrder), async (c) => {
 
   const groupOrder = await groupOrderService.createGroupOrder(userId, body);
 
-  return c.json(groupOrder, 201);
+  return c.json(GroupOrderMapper.toResponseDto(groupOrder), 201);
 });
 
 /**
@@ -66,7 +67,7 @@ app.get('/:groupOrderId', async (c) => {
 
   const groupOrder = await groupOrderService.getGroupOrder(groupOrderId);
 
-  return c.json(groupOrder);
+  return c.json(GroupOrderMapper.toResponseDto(groupOrder));
 });
 
 /**
@@ -76,9 +77,9 @@ app.get('/:groupOrderId/details', async (c) => {
   const groupOrderId = c.req.param('groupOrderId');
   const groupOrderService = inject(GroupOrderService);
 
-  const groupOrder = await groupOrderService.getGroupOrderWithUserOrders(groupOrderId);
+  const { groupOrder, userOrders } = await groupOrderService.getGroupOrderWithUserOrders(groupOrderId);
 
-  return c.json(groupOrder);
+  return c.json(GroupOrderMapper.toResponseDtoWithUserOrders(groupOrder, userOrders));
 });
 
 /**
@@ -93,9 +94,9 @@ app.put(
     const body: RequestFor<typeof groupOrderSchemas.updateGroupOrder> = c.get('validatedBody');
     const groupOrderService = inject(GroupOrderService);
 
-    const groupOrder = await groupOrderService.updateGroupOrder(groupOrderId, userId, body);
+  const groupOrder = await groupOrderService.updateGroupOrder(groupOrderId, userId, body);
 
-    return c.json(groupOrder);
+  return c.json(GroupOrderMapper.toResponseDto(groupOrder));
   }
 );
 
@@ -110,7 +111,7 @@ app.post('/:groupOrderId/submit', async (c) => {
 
   const groupOrder = await groupOrderService.submitGroupOrder(groupOrderId, userId);
 
-  return c.json(groupOrder);
+  return c.json(GroupOrderMapper.toResponseDto(groupOrder));
 });
 
 /**
@@ -142,11 +143,11 @@ app.post(
 app.get('/:groupOrderId/orders/my', async (c) => {
   const groupOrderId = c.req.param('groupOrderId');
   const userId = c.get('userId');
-  const userOrderService = inject(UserOrderService);
+  const groupOrderService = inject(GroupOrderService);
 
-  const userOrder = await userOrderService.getUserOrder(groupOrderId, userId);
+  const userOrder = await groupOrderService.getUserOrder(groupOrderId, userId);
 
-  return c.json(userOrder);
+  return c.json(UserOrderMapper.toResponseDto(userOrder));
 });
 
 /**
@@ -159,11 +160,11 @@ app.put(
     const groupOrderId = c.req.param('groupOrderId');
     const userId = c.get('userId');
     const body: RequestFor<typeof groupOrderSchemas.updateUserOrder> = c.get('validatedBody');
-    const userOrderService = inject(UserOrderService);
+    const groupOrderService = inject(GroupOrderService);
 
-    const userOrder = await userOrderService.upsertUserOrder(groupOrderId, userId, body);
+    const userOrder = await groupOrderService.createUserOrder(groupOrderId, userId, body);
 
-    return c.json(userOrder);
+    return c.json(UserOrderMapper.toResponseDto(userOrder));
   }
 );
 
@@ -173,11 +174,11 @@ app.put(
 app.post('/:groupOrderId/orders/my/submit', async (c) => {
   const groupOrderId = c.req.param('groupOrderId');
   const userId = c.get('userId');
-  const userOrderService = inject(UserOrderService);
+  const groupOrderService = inject(GroupOrderService);
 
-  const userOrder = await userOrderService.submitUserOrder(groupOrderId, userId);
+  const userOrder = await groupOrderService.submitUserOrder(groupOrderId, userId);
 
-  return c.json(userOrder);
+  return c.json(UserOrderMapper.toResponseDto(userOrder));
 });
 
 /**
@@ -186,9 +187,9 @@ app.post('/:groupOrderId/orders/my/submit', async (c) => {
 app.delete('/:groupOrderId/orders/my', async (c) => {
   const groupOrderId = c.req.param('groupOrderId');
   const userId = c.get('userId');
-  const userOrderService = inject(UserOrderService);
+  const groupOrderService = inject(GroupOrderService);
 
-  await userOrderService.deleteUserOrder(groupOrderId, userId, userId);
+  await groupOrderService.deleteUserOrder(groupOrderId, userId, userId);
 
   return c.body(null, 204);
 });
@@ -198,11 +199,11 @@ app.delete('/:groupOrderId/orders/my', async (c) => {
  */
 app.get('/:groupOrderId/orders', async (c) => {
   const groupOrderId = c.req.param('groupOrderId');
-  const userOrderService = inject(UserOrderService);
+  const groupOrderService = inject(GroupOrderService);
 
-  const userOrders = await userOrderService.getUserOrdersByGroup(groupOrderId);
+  const { userOrders } = await groupOrderService.getGroupOrderWithUserOrders(groupOrderId);
 
-  return c.json(userOrders);
+  return c.json(userOrders.map((uo) => UserOrderMapper.toResponseDto(uo)));
 });
 
 /**
@@ -212,9 +213,9 @@ app.delete('/:groupOrderId/orders/:userId', async (c) => {
   const groupOrderId = c.req.param('groupOrderId');
   const targetUserId = c.req.param('userId');
   const deleterUserId = c.get('userId');
-  const userOrderService = inject(UserOrderService);
+  const groupOrderService = inject(GroupOrderService);
 
-  await userOrderService.deleteUserOrder(groupOrderId, targetUserId, deleterUserId);
+  await groupOrderService.deleteUserOrder(groupOrderId, targetUserId, deleterUserId);
 
   return c.body(null, 204);
 });

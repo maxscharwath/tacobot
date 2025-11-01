@@ -1,28 +1,35 @@
 /**
- * User service
+ * User service (application service)
+ * Orchestrates use cases for user-related operations
  * @module services/user
  */
 
 import 'reflect-metadata';
 import { injectable } from 'tsyringe';
-import { UserRepository, UserData } from '../database/user.repository';
-import { PrismaService } from '../database/prisma.service';
+import { User } from '../domain/entities/user.entity';
+import { IUserRepository } from '../domain/repositories/user.repository.interface';
 import { NotFoundError } from '../utils/errors';
 import { inject } from '../utils/inject';
-import { logger } from '../utils/logger';
+import { GetUserOrdersHistoryUseCase } from '../application/use-cases/user/get-user-orders-history.use-case';
 
 /**
  * User Service
+ * Application service that orchestrates use cases
  */
 @injectable()
 export class UserService {
-  private readonly userRepository = inject(UserRepository);
-  private readonly prisma = inject(PrismaService);
+  private readonly userRepository: IUserRepository;
+  private readonly getUserOrdersHistoryUseCase: GetUserOrdersHistoryUseCase;
+
+  constructor() {
+    this.userRepository = inject('IUserRepository') as IUserRepository;
+    this.getUserOrdersHistoryUseCase = inject(GetUserOrdersHistoryUseCase);
+  }
 
   /**
    * Get user by ID
    */
-  async getUserById(userId: string): Promise<UserData> {
+  async getUserById(userId: string): Promise<User> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new NotFoundError('User not found');
@@ -33,30 +40,8 @@ export class UserService {
   /**
    * Get user's order history
    */
-  async getUserOrderHistory(userId: string): Promise<Array<{
-    id: string;
-    orderId: string;
-    status: string;
-    price: number | null;
-    orderType: string;
-    requestedFor: string;
-    createdAt: Date;
-  }>> {
-    const orders = await this.prisma.client.order.findMany({
-      where: { userId },
-      select: {
-        id: true,
-        orderId: true,
-        status: true,
-        price: true,
-        orderType: true,
-        requestedFor: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return orders;
+  async getUserOrderHistory(userId: string) {
+    return await this.getUserOrdersHistoryUseCase.execute(userId);
   }
 
   /**
@@ -71,7 +56,11 @@ export class UserService {
     endDate: Date;
     createdAt: Date;
   }>> {
-    const groupOrders = await this.prisma.client.groupOrder.findMany({
+    // This will be moved to a use case
+    const { PrismaService } = await import('../database/prisma.service');
+    const prisma = inject(PrismaService);
+    
+    const groupOrders = await prisma.client.groupOrder.findMany({
       where: { leaderId: userId },
       select: {
         id: true,

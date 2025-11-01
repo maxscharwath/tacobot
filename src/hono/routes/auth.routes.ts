@@ -1,13 +1,14 @@
 /**
  * Authentication routes for Hono
- * Simplified for future Slack integration
+ * Uses clean architecture with use cases
  * @module hono/routes/auth
  */
 
 import 'reflect-metadata';
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { AuthService } from '../../services/auth.service';
+import { CreateUserUseCase } from '../../application/use-cases/auth/create-user.use-case';
+import { UserMapper } from '../../application/mappers/user.mapper';
 import { inject } from '../../utils/inject';
 import { zodValidator } from '../middleware/zod-validator';
 
@@ -29,11 +30,14 @@ const authSchemas = {
  */
 app.post('/create-user', zodValidator(authSchemas.createUser), async (c) => {
   const body: RequestFor<typeof authSchemas.createUser> = c.get('validatedBody');
-  const authService = inject(AuthService);
+  const createUserUseCase = inject(CreateUserUseCase);
 
-  const result = await authService.createOrGetUser(body.username);
+  const result = await createUserUseCase.execute(body.username);
 
-  return c.json(result, 201);
+  return c.json({
+    user: UserMapper.toResponseDto(result.user as any),
+    token: result.token,
+  }, 201);
 });
 
 export const authRoutes = app;

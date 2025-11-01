@@ -7,10 +7,7 @@
 import 'reflect-metadata';
 import { injectable } from 'tsyringe';
 import * as jwt from 'jsonwebtoken';
-import { UserRepository } from '../database/user.repository';
 import { ValidationError } from '../utils/errors';
-import { inject } from '../utils/inject';
-import { logger } from '../utils/logger';
 
 /**
  * JWT payload structure
@@ -23,11 +20,11 @@ export interface JWTPayload {
 
 /**
  * Authentication service
- * Simplified - password/auth will be handled by Slack OAuth later
+ * Handles JWT token generation and verification
+ * User creation/management is handled by use cases
  */
 @injectable()
 export class AuthService {
-  private readonly userRepository = inject(UserRepository);
   private readonly JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
   private readonly JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
@@ -64,43 +61,4 @@ export class AuthService {
     }
   }
 
-  /**
-   * Create or get user by username (temporary until Slack OAuth is implemented)
-   * This will be replaced with Slack OAuth flow later
-   */
-  async createOrGetUser(username: string): Promise<{ user: { id: string; username: string; slackId?: string }; token: string }> {
-    // Validate input
-    if (!username || username.trim().length < 2) {
-      throw new ValidationError('Username must be at least 2 characters long');
-    }
-
-    const trimmedUsername = username.trim();
-
-    // Try to find existing user
-    let user = await this.userRepository.findByUsername(trimmedUsername);
-
-    // If user doesn't exist, create it
-    if (!user) {
-      user = await this.userRepository.create({
-        username: trimmedUsername,
-      });
-      logger.info('User created', { userId: user.id, username: user.username });
-    }
-
-    // Generate token
-    const token = this.generateToken({
-      id: user.id,
-      username: user.username,
-      slackId: user.slackId,
-    });
-
-    return {
-      user: {
-        id: user.id,
-        username: user.username,
-        ...(user.slackId && { slackId: user.slackId }),
-      },
-      token,
-    };
-  }
 }

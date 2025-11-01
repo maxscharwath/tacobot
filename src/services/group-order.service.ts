@@ -1,111 +1,96 @@
 /**
- * Group order service
+ * Group order service (refactored to use clean architecture)
  * @module services/group-order
  */
 
 import 'reflect-metadata';
 import { injectable } from 'tsyringe';
-import { v4 as uuidv4 } from 'uuid';
-import { GroupOrderRepository } from '../database/group-order.repository';
-import { UserOrderRepository } from '../database/user-order.repository';
-import { CartService } from './cart.service';
-import { OrderService } from './order.service';
 import {
-  CreateGroupOrderRequest,
-  GroupOrder,
-  GroupOrderStatus,
-  GroupOrderWithUserOrders,
-  SubmitGroupOrderRequest,
-  UserOrderStatus,
-} from '../types';
-import { NotFoundError, ValidationError } from '../utils/errors';
+  CreateGroupOrderUseCase,
+  GetGroupOrderUseCase,
+  GetGroupOrderWithUserOrdersUseCase,
+} from '../application/use-cases';
+import {
+  CreateUserOrderUseCase,
+  GetUserOrderUseCase,
+  SubmitUserOrderUseCase,
+  DeleteUserOrderUseCase,
+} from '../application/use-cases';
+import { GroupOrder } from '../domain/entities/group-order.entity';
+import { UserOrder } from '../domain/entities/user-order.entity';
+import { IGroupOrderRepository } from '../domain/repositories/group-order.repository.interface';
+import { GroupOrderStatus, SubmitGroupOrderRequest } from '../types';
+import { ValidationError } from '../utils/errors';
 import { inject } from '../utils/inject';
 import { logger } from '../utils/logger';
+import { CartService } from './cart.service';
+import { OrderService } from './order.service';
+import { CreateGroupOrderRequestDto } from '../application/dtos/group-order.dto';
+import { CreateUserOrderRequestDto } from '../application/dtos/user-order.dto';
 
 /**
- * Group Order Service
+ * Group Order Service (Application Service)
+ * Orchestrates use cases for group order operations
  */
 @injectable()
 export class GroupOrderService {
-  private readonly groupOrderRepository = inject(GroupOrderRepository);
-  private readonly userOrderRepository = inject(UserOrderRepository);
-  private readonly cartService = inject(CartService);
-  private readonly orderService = inject(OrderService);
+  // Use cases
+  private readonly createGroupOrderUseCase: CreateGroupOrderUseCase;
+  private readonly getGroupOrderUseCase: GetGroupOrderUseCase;
+  private readonly getGroupOrderWithUserOrdersUseCase: GetGroupOrderWithUserOrdersUseCase;
+  private readonly createUserOrderUseCase: CreateUserOrderUseCase;
+  private readonly getUserOrderUseCase: GetUserOrderUseCase;
+  private readonly submitUserOrderUseCase: SubmitUserOrderUseCase;
+  private readonly deleteUserOrderUseCase: DeleteUserOrderUseCase;
+
+  // Infrastructure services (for backend submission)
+  private readonly groupOrderRepository: IGroupOrderRepository;
+  private readonly cartService: CartService;
+  private readonly orderService: OrderService;
+
+  constructor() {
+    this.createGroupOrderUseCase = inject(CreateGroupOrderUseCase);
+    this.getGroupOrderUseCase = inject(GetGroupOrderUseCase);
+    this.getGroupOrderWithUserOrdersUseCase = inject(GetGroupOrderWithUserOrdersUseCase);
+    this.createUserOrderUseCase = inject(CreateUserOrderUseCase);
+    this.getUserOrderUseCase = inject(GetUserOrderUseCase);
+    this.submitUserOrderUseCase = inject(SubmitUserOrderUseCase);
+    this.deleteUserOrderUseCase = inject(DeleteUserOrderUseCase);
+    this.groupOrderRepository = inject('IGroupOrderRepository') as IGroupOrderRepository;
+    this.cartService = inject(CartService);
+    this.orderService = inject(OrderService);
+  }
 
   /**
    * Create a new group order
    */
-  async createGroupOrder(
-    leaderId: string,
-    request: CreateGroupOrderRequest
-  ): Promise<GroupOrder> {
-    const startDate = new Date(request.startDate);
-    const endDate = new Date(request.endDate);
-
-    // Validate dates
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      throw new ValidationError('Invalid date format. Use ISO date strings.');
-    }
-
-    if (startDate >= endDate) {
-      throw new ValidationError('End date must be after start date');
-    }
-
-    if (startDate < new Date()) {
-      throw new ValidationError('Start date cannot be in the past');
-    }
-
-    const groupOrderId = uuidv4();
-
-    const groupOrder = await this.groupOrderRepository.createGroupOrder(groupOrderId, {
-      name: request.name,
-      leaderId,
-      startDate,
-      endDate,
-    });
-
-    logger.info('Group order created', {
-      groupOrderId,
-      leaderId,
-      startDate: request.startDate,
-      endDate: request.endDate,
-    });
-
-    return groupOrder;
+  async createGroupOrder(leaderId: string, request: CreateGroupOrderRequestDto): Promise<GroupOrder> {
+    return await this.createGroupOrderUseCase.execute(leaderId, request);
   }
 
   /**
    * Get group order by ID
    */
   async getGroupOrder(groupOrderId: string): Promise<GroupOrder> {
-    const groupOrder = await this.groupOrderRepository.getGroupOrder(groupOrderId);
-    if (!groupOrder) {
-      throw new NotFoundError(`Group order not found: ${groupOrderId}`);
-    }
-    return groupOrder;
+    return await this.getGroupOrderUseCase.execute(groupOrderId);
   }
 
   /**
    * Get group order with all user orders
    */
-  async getGroupOrderWithUserOrders(
-    groupOrderId: string
-  ): Promise<GroupOrderWithUserOrders> {
-    const groupOrder = await this.getGroupOrder(groupOrderId);
-    const userOrders = await this.userOrderRepository.getUserOrdersByGroup(groupOrderId);
-
-    return {
-      ...groupOrder,
-      userOrders,
-    };
+  async getGroupOrderWithUserOrders(groupOrderId: string): Promise<{
+    groupOrder: GroupOrder;
+    userOrders: UserOrder[];
+  }> {
+    return await this.getGroupOrderWithUserOrdersUseCase.execute(groupOrderId);
   }
 
   /**
    * Check if user is the leader of a group order
    */
   async checkIsLeader(groupOrderId: string, userId: string): Promise<boolean> {
-    const groupOrder = await this.getGroupOrder(groupOrderId);
-    return groupOrder.leader === userId;
+    const groupOrder = await this.getGroupOrderUseCase.execute(groupOrderId);
+    return groupOrder.isLeader(userId);
   }
 
   /**
@@ -124,10 +109,8 @@ export class GroupOrderService {
 
     // Validate dates if provided
     if (updates.startDate || updates.endDate) {
-      const current = await this.getGroupOrder(groupOrderId);
-      const startDate = updates.startDate
-        ? new Date(updates.startDate)
-        : current.startDate;
+      const current = await this.getGroupOrderUseCase.execute(groupOrderId);
+      const startDate = updates.startDate ? new Date(updates.startDate) : current.startDate;
       const endDate = updates.endDate ? new Date(updates.endDate) : current.endDate;
 
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
@@ -139,12 +122,11 @@ export class GroupOrderService {
       }
     }
 
-    return await this.groupOrderRepository.updateGroupOrder(groupOrderId, updates);
+    return await this.groupOrderRepository.update(groupOrderId, updates);
   }
 
   /**
-   * Submit group order (only leader can do this)
-   * This marks the group order as submitted - actual submission happens in a separate step
+   * Submit group order (mark as submitted - ready for backend submission)
    */
   async submitGroupOrder(groupOrderId: string, userId: string): Promise<GroupOrder> {
     const isLeader = await this.checkIsLeader(groupOrderId, userId);
@@ -152,7 +134,7 @@ export class GroupOrderService {
       throw new ValidationError('Only the group order leader can submit the group order');
     }
 
-    const groupOrder = await this.getGroupOrder(groupOrderId);
+    const groupOrder = await this.getGroupOrderUseCase.execute(groupOrderId);
 
     // Check if group order is still open
     if (groupOrder.status !== GroupOrderStatus.OPEN) {
@@ -162,36 +144,20 @@ export class GroupOrderService {
     }
 
     // Check if we're still within the date range
-    const now = new Date();
-    if (now < groupOrder.startDate || now > groupOrder.endDate) {
+    if (!groupOrder.isOpenForOrders()) {
       throw new ValidationError(
         'Cannot submit group order outside of the allowed date range'
       );
     }
 
     // Update status to submitted
-    return await this.groupOrderRepository.updateGroupOrder(groupOrderId, {
+    return await this.groupOrderRepository.update(groupOrderId, {
       status: GroupOrderStatus.SUBMITTED,
     });
   }
 
   /**
-   * Check if group order is open for new orders
-   */
-  async isOpenForOrders(groupOrderId: string): Promise<boolean> {
-    const groupOrder = await this.getGroupOrder(groupOrderId);
-
-    if (groupOrder.status !== GroupOrderStatus.OPEN) {
-      return false;
-    }
-
-    const now = new Date();
-    return now >= groupOrder.startDate && now <= groupOrder.endDate;
-  }
-
-  /**
    * Submit group order to backend (creates real cart and order)
-   * This consolidates all submitted user orders and creates a single order
    */
   async submitGroupOrderToBackend(
     groupOrderId: string,
@@ -204,20 +170,16 @@ export class GroupOrderService {
       throw new ValidationError('Only the group order leader can submit the group order');
     }
 
-    // Get group order and all user orders
-    const groupOrder = await this.getGroupOrder(groupOrderId);
+    const { groupOrder, userOrders } = await this.getGroupOrderWithUserOrdersUseCase.execute(groupOrderId);
+
     if (groupOrder.status !== GroupOrderStatus.SUBMITTED) {
       throw new ValidationError(
         'Group order must be marked as submitted before submitting to backend'
       );
     }
 
-    const userOrders = await this.userOrderRepository.getUserOrdersByGroup(groupOrderId);
-
     // Filter only submitted orders
-    const submittedOrders = userOrders.filter(
-      (uo) => uo.status === UserOrderStatus.SUBMITTED
-    );
+    const submittedOrders = userOrders.filter((uo) => uo.isSubmitted());
 
     if (submittedOrders.length === 0) {
       throw new ValidationError('No submitted orders to process');
@@ -247,21 +209,19 @@ export class GroupOrderService {
           }
         }
 
-        // Add extras
+        // Add extras, drinks, desserts
         for (const extra of userOrder.items.extras) {
           for (let q = 0; q < extra.quantity; q++) {
             await this.cartService.addExtra(cartId, extra);
           }
         }
 
-        // Add drinks
         for (const drink of userOrder.items.drinks) {
           for (let q = 0; q < drink.quantity; q++) {
             await this.cartService.addDrink(cartId, drink);
           }
         }
 
-        // Add desserts
         for (const dessert of userOrder.items.desserts) {
           for (let q = 0; q < dessert.quantity; q++) {
             await this.cartService.addDessert(cartId, dessert);
@@ -270,10 +230,10 @@ export class GroupOrderService {
       }
 
       // Create the actual order
-      const order = await this.orderService.createOrder(cartId, request);
+      const order = await this.orderService.createOrder(cartId, request, userId);
 
       // Update group order status to completed
-      await this.groupOrderRepository.updateGroupOrder(groupOrderId, {
+      await this.groupOrderRepository.update(groupOrderId, {
         status: GroupOrderStatus.COMPLETED,
       });
 
@@ -293,10 +253,34 @@ export class GroupOrderService {
         cartId,
         error,
       });
-
-      // Update status back to submitted (or keep as submitted) on error
-      // The cart can be cleaned up later if needed
       throw error;
     }
+  }
+
+  /**
+   * User order operations (delegate to use cases)
+   */
+  async createUserOrder(
+    groupOrderId: string,
+    userId: string,
+    request: CreateUserOrderRequestDto
+  ): Promise<UserOrder> {
+    return await this.createUserOrderUseCase.execute(groupOrderId, userId, request);
+  }
+
+  async getUserOrder(groupOrderId: string, userId: string): Promise<UserOrder> {
+    return await this.getUserOrderUseCase.execute(groupOrderId, userId);
+  }
+
+  async submitUserOrder(groupOrderId: string, userId: string): Promise<UserOrder> {
+    return await this.submitUserOrderUseCase.execute(groupOrderId, userId);
+  }
+
+  async deleteUserOrder(
+    groupOrderId: string,
+    userId: string,
+    deleterUserId: string
+  ): Promise<void> {
+    return await this.deleteUserOrderUseCase.execute(groupOrderId, userId, deleterUserId);
   }
 }
