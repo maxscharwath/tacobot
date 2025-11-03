@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Modern TypeScript API wrapper for tacos ordering system with Web API integration",
-  "main": "dist/index.js",
+  "main": "dist/main.js",
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/main.ts",
     "check": "tsc --noEmit --pretty",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
@@ -15,7 +15,6 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "kill-port": "tsx scripts/kill-port.ts",
     "clean": "rm -rf dist"
   },
   "keywords": [

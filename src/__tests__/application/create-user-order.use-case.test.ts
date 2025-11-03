@@ -6,15 +6,15 @@ import { addHours, subMinutes } from 'date-fns';
 import { container } from 'tsyringe';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMockStockAvailability } from '@/__tests__/mocks';
-import type { CreateUserOrderRequestDto } from '@/application/dtos/user-order.dto';
-import { CreateUserOrderUseCase } from '@/application/use-cases/user-orders/create-user-order';
-import { createGroupOrder } from '@/domain/schemas/group-order.schema';
-import { createUserOrderFromDb } from '@/domain/schemas/user-order.schema';
+import { ResourceService } from '@/api/routes/resource.routesservice';
 import { GroupOrderRepository } from '@/infrastructure/repositories/group-order.repository';
-import { UserOrderRepository } from '@/infrastructure/repositories/user-order.repository';
-import { ResourceService } from '@/services/resource.service';
-import { GroupOrderStatus, StockCategory, TacoSize, UserOrderStatus } from '@/types';
-import { deterministicUUID, randomUUID } from '@/utils/uuid-utils';
+import { createGroupOrder } from '@/schemas/group-order.schema';
+import { createUserOrderFromDb } from '@/schemas/user-order.schema';
+import { CreateUserOrderUseCase } from '@/services/user-order/create-user-order.service';
+import { GroupOrderStatus, StockCategory, TacoSize, UserOrderStatus } from '@/shared/types/types';
+import { deterministicUUID, randomUUID } from '@/shared/utils/uuid.utils';
+import type { CreateUserOrderRequestDto } from '@/user-order/dto';
+import { UserOrderRepository } from '@/user-order/infrastructure-repository';
 
 describe('CreateUserOrderUseCase', () => {
   const groupOrderId = randomUUID();

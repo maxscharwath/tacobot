@@ -13,14 +13,14 @@ import {
   createMockTacoMappingRepository,
   createMockTacosApiClient,
 } from '@/__tests__/mocks';
-import { TacosApiClient } from '@/api/client';
-import { SessionApiClient } from '@/api/session-client';
-import { CartRepository } from '@/database/cart.repository';
-import { TacoMappingRepository } from '@/database/taco-mapping.repository';
-import { CartService } from '@/services/cart.service';
-import { ResourceService } from '@/services/resource.service';
-import { TacoSize } from '@/types';
-import { NotFoundError } from '@/utils/errors';
+import { CartRepository } from '@/api/routes/cart.routesrepository';
+import { CartService } from '@/api/routes/cart.routesservice';
+import { TacoMappingRepository } from '@/api/routes/cart.routestaco-mapping.repository';
+import { ResourceService } from '@/api/routes/resource.routesservice';
+import { SessionApiClient } from '@/infrastructure/api/session-api.client';
+import { TacosApiClient } from '@/infrastructure/api/tacos-api.client';
+import { TacoSize } from '@/shared/types/types';
+import { NotFoundError } from '@/shared/utils/errors.utils';
 
 describe('CartService', () => {
   let cartService: CartService;

@@ -1,13 +1,13 @@
 /**
- * User repository (infrastructure layer)
+ * User repository
  * @module infrastructure/repositories/user
  */
 
 import { injectable } from 'tsyringe';
-import { PrismaService } from '@/database/prisma.service';
-import { createUserFromDb, type User, type UserId } from '@/domain/schemas/user.schema';
-import { inject } from '@/utils/inject';
-import { logger } from '@/utils/logger';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
+import { createUserFromDb, type User } from '@/schemas/user.schema';
+import { inject } from '@/shared/utils/inject.utils';
+import { logger } from '@/shared/utils/logger.utils';
 
 /**
  * User repository
@@ -16,23 +16,7 @@ import { logger } from '@/utils/logger';
 export class UserRepository {
   private readonly prisma = inject(PrismaService);
 
-  async create(data: { username: string; slackId?: string }): Promise<User> {
-    try {
-      const dbUser = await this.prisma.client.user.create({
-        data: {
-          username: data.username,
-          slackId: data.slackId,
-        },
-      });
-
-      return createUserFromDb(dbUser);
-    } catch (error) {
-      logger.error('Failed to create user', { username: data.username, error });
-      throw error;
-    }
-  }
-
-  async findById(id: UserId): Promise<User | null> {
+  async findById(id: string): Promise<User | null> {
     try {
       const dbUser = await this.prisma.client.user.findUnique({
         where: { id },
@@ -40,7 +24,7 @@ export class UserRepository {
 
       return dbUser ? createUserFromDb(dbUser) : null;
     } catch (error) {
-      logger.error('Failed to find user by ID', { id, error });
+      logger.error('Failed to find user by id', { id, error });
       return null;
     }
   }
@@ -58,42 +42,19 @@ export class UserRepository {
     }
   }
 
-  async findBySlackId(slackId: string): Promise<User | null> {
+  async create(data: { username: string }): Promise<User> {
     try {
-      const dbUser = await this.prisma.client.user.findFirst({
-        where: { slackId },
+      const dbUser = await this.prisma.client.user.create({
+        data: {
+          username: data.username,
+        },
       });
 
-      return dbUser ? createUserFromDb(dbUser) : null;
-    } catch (error) {
-      logger.error('Failed to find user by Slack ID', { slackId, error });
-      return null;
-    }
-  }
-
-  async updateSlackId(userId: UserId, slackId: string): Promise<User> {
-    try {
-      const dbUser = await this.prisma.client.user.update({
-        where: { id: userId },
-        data: { slackId },
-      });
-
+      logger.debug('User created', { id: dbUser.id });
       return createUserFromDb(dbUser);
     } catch (error) {
-      logger.error('Failed to update Slack ID', { userId, slackId, error });
+      logger.error('Failed to create user', { error });
       throw error;
-    }
-  }
-
-  async exists(id: UserId): Promise<boolean> {
-    try {
-      const count = await this.prisma.client.user.count({
-        where: { id },
-      });
-      return count > 0;
-    } catch (error) {
-      logger.error('Failed to check user existence', { id, error });
-      return false;
     }
   }
 }

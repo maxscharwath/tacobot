@@ -1,19 +1,19 @@
 /**
- * Group order repository (infrastructure layer)
+ * Group order repository
  * @module infrastructure/repositories/group-order
  */
 
 import { injectable } from 'tsyringe';
-import { PrismaService } from '@/database/prisma.service';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
 import {
   createGroupOrderFromDb,
   type GroupOrder,
   type GroupOrderId,
-} from '@/domain/schemas/group-order.schema';
-import type { UserId } from '@/domain/schemas/user.schema';
-import { GroupOrderStatus } from '@/types';
-import { inject } from '@/utils/inject';
-import { logger } from '@/utils/logger';
+} from '@/schemas/group-order.schema';
+import type { UserId } from '@/schemas/user.schema';
+import { GroupOrderStatus } from '@/shared/types/types';
+import { inject } from '@/shared/utils/inject.utils';
+import { logger } from '@/shared/utils/logger.utils';
 
 /**
  * Group order repository

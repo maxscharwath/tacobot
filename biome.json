@@ -72,7 +72,18 @@
         "noNamespace": "error",
         "useArrayLiterals": "error",
         "useAsConstAssertion": "error",
-        "useBlockStatements": "off"
+        "useBlockStatements": "off",
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "zod": {
+                "importNames": ["nativeEnum"],
+                "message": "The 'z.nativeEnum' method is deprecated. Use 'z.enum(Object.values(MyEnum))' or 'z.enum([...])' instead."
+              }
+            }
+          }
+        }
       },
       "suspicious": {
         "noAsyncPromiseExecutor": "error",
@@ -111,6 +122,9 @@
         "noWith": "error",
         "useAwait": "error",
         "useGetterReturn": "error"
+      },
+      "nursery": {
+        "noDeprecatedImports": "error"
       }
     },
     "includes": ["src/**/*.ts"]

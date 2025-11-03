@@ -3,9 +3,9 @@
  */
 
 import { vi } from 'vitest';
-import type { CartMetadata, StockAvailability, Taco } from '@/types';
-import { StockCategory, TacoSize } from '@/types';
-import { deterministicUUID } from '@/utils/uuid-utils';
+import type { CartMetadata, StockAvailability, Taco } from '@/shared/types/types';
+import { StockCategory, TacoSize } from '@/shared/types/types';
+import { deterministicUUID } from '@/shared/utils/uuid.utils';
 
 /**
  * Mock CartRepository

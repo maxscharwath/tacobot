@@ -3,8 +3,8 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { TacoSize } from '@/types';
-import { parseCartSummary, parseTacoCard, parseTacoCards } from '@/utils/html-parser';
+import { TacoSize } from '@/shared/types/types';
+import { parseCartSummary, parseTacoCard, parseTacoCards } from '@/shared/utils/html-parser.utils';
 
 describe('HTML Parser', () => {
   describe('parseTacoCard', () => {

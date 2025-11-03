@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { ErrorCode } from '@/types';
+import { ErrorCode } from '@/shared/types/types';
 import {
   ApiError,
   CsrfError,
@@ -12,7 +12,7 @@ import {
   NotFoundError,
   RateLimitError,
   ValidationError,
-} from '@/utils/errors';
+} from '@/shared/utils/errors.utils';
 
 describe('Error Classes', () => {
   describe('ApiError', () => {

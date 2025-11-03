@@ -1,16 +1,16 @@
 /**
- * User order repository (infrastructure layer)
+ * User order repository
  * @module infrastructure/repositories/user-order
  */
 
 import { injectable } from 'tsyringe';
-import { PrismaService } from '@/database/prisma.service';
-import type { GroupOrderId } from '@/domain/schemas/group-order.schema';
-import type { UserId } from '@/domain/schemas/user.schema';
-import { createUserOrderFromDb, type UserOrder } from '@/domain/schemas/user-order.schema';
-import { UserOrderItems, UserOrderStatus } from '@/types';
-import { inject } from '@/utils/inject';
-import { logger } from '@/utils/logger';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
+import type { GroupOrderId } from '@/schemas/group-order.schema';
+import type { UserId } from '@/schemas/user.schema';
+import { createUserOrderFromDb, type UserOrder } from '@/schemas/user-order.schema';
+import { UserOrderItems, UserOrderStatus } from '@/shared/types/types';
+import { inject } from '@/shared/utils/inject.utils';
+import { logger } from '@/shared/utils/logger.utils';
 
 /**
  * User order repository
@@ -39,7 +39,7 @@ export class UserOrderRepository {
 
       return dbUserOrder ? createUserOrderFromDb(dbUserOrder) : null;
     } catch (error) {
-      logger.error('Failed to get user order', { groupOrderId, userId, error });
+      logger.error('Failed to find user order', { groupOrderId, userId, error });
       return null;
     }
   }
@@ -48,7 +48,6 @@ export class UserOrderRepository {
     try {
       const dbUserOrders = await this.prisma.client.userOrder.findMany({
         where: { groupOrderId },
-        orderBy: { createdAt: 'asc' },
         include: {
           user: {
             select: {
@@ -58,9 +57,9 @@ export class UserOrderRepository {
         },
       });
 
-      return dbUserOrders.map((uo) => createUserOrderFromDb(uo));
+      return dbUserOrders.map(createUserOrderFromDb);
     } catch (error) {
-      logger.error('Failed to get user orders', { groupOrderId, error });
+      logger.error('Failed to find user orders by group', { groupOrderId, error });
       return [];
     }
   }
@@ -69,7 +68,7 @@ export class UserOrderRepository {
     groupOrderId: GroupOrderId;
     userId: UserId;
     items: UserOrderItems;
-    status?: UserOrderStatus;
+    status: UserOrderStatus;
   }): Promise<UserOrder> {
     try {
       const dbUserOrder = await this.prisma.client.userOrder.upsert({
@@ -79,16 +78,16 @@ export class UserOrderRepository {
             userId: data.userId,
           },
         },
+        update: {
+          items: JSON.stringify(data.items),
+          status: data.status,
+          updatedAt: new Date(),
+        },
         create: {
           groupOrderId: data.groupOrderId,
           userId: data.userId,
           items: JSON.stringify(data.items),
-          status: data.status || UserOrderStatus.DRAFT,
-        },
-        update: {
-          items: JSON.stringify(data.items),
-          status: data.status || UserOrderStatus.DRAFT,
-          updatedAt: new Date(),
+          status: data.status,
         },
         include: {
           user: {
@@ -99,14 +98,10 @@ export class UserOrderRepository {
         },
       });
 
-      logger.debug('User order upserted', { groupOrderId: data.groupOrderId, userId: data.userId });
+      logger.debug('User order upserted', { id: dbUserOrder.id });
       return createUserOrderFromDb(dbUserOrder);
     } catch (error) {
-      logger.error('Failed to upsert user order', {
-        groupOrderId: data.groupOrderId,
-        userId: data.userId,
-        error,
-      });
+      logger.error('Failed to upsert user order', { error });
       throw error;
     }
   }
@@ -137,10 +132,10 @@ export class UserOrderRepository {
         },
       });
 
-      logger.debug('User order status updated', { groupOrderId, userId, status });
+      logger.debug('User order status updated', { id: dbUserOrder.id });
       return createUserOrderFromDb(dbUserOrder);
     } catch (error) {
-      logger.error('Failed to update user order status', { groupOrderId, userId, error });
+      logger.error('Failed to update user order status', { error });
       throw error;
     }
   }
@@ -157,37 +152,8 @@ export class UserOrderRepository {
       });
       logger.info('User order deleted', { groupOrderId, userId });
     } catch (error) {
-      logger.error('Failed to delete user order', { groupOrderId, userId, error });
+      logger.error('Failed to delete user order', { error });
       throw error;
-    }
-  }
-
-  async exists(groupOrderId: GroupOrderId, userId: UserId): Promise<boolean> {
-    try {
-      const count = await this.prisma.client.userOrder.count({
-        where: {
-          groupOrderId,
-          userId,
-        },
-      });
-      return count > 0;
-    } catch (error) {
-      logger.error('Failed to check user order existence', { groupOrderId, userId, error });
-      return false;
-    }
-  }
-
-  async getSubmittedCount(groupOrderId: GroupOrderId): Promise<number> {
-    try {
-      return await this.prisma.client.userOrder.count({
-        where: {
-          groupOrderId,
-          status: UserOrderStatus.SUBMITTED,
-        },
-      });
-    } catch (error) {
-      logger.error('Failed to get submitted count', { groupOrderId, error });
-      return 0;
     }
   }
 }
