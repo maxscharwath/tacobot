@@ -12,7 +12,6 @@ const DEFAULT_STATUS_TONES: Record<string, BadgeTone> = {
   open: 'warning',
   active: 'brand',
   draft: 'neutral',
-  expired: 'neutral',
   closed: 'neutral',
 };
 

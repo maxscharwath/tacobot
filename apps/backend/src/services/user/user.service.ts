@@ -7,8 +7,8 @@ import { injectable } from 'tsyringe';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { UserRepository } from '@/infrastructure/repositories/user.repository';
 import {
+  canAcceptOrders,
   createGroupOrderFromDb,
-  getEffectiveGroupOrderStatus,
   type GroupOrderId,
 } from '@/schemas/group-order.schema';
 import type { OrderId } from '@/schemas/order.schema';
@@ -52,6 +52,7 @@ export class UserService {
       id: GroupOrderId;
       name: string | null;
       status: string;
+      canAcceptOrders: boolean;
       startDate: Date;
       endDate: Date;
       createdAt: Date;
@@ -77,7 +78,8 @@ export class UserService {
       return {
         id: go.id as GroupOrderId,
         name: go.name,
-        status: getEffectiveGroupOrderStatus(groupOrder),
+        status: go.status,
+        canAcceptOrders: canAcceptOrders(groupOrder),
         startDate: go.startDate,
         endDate: go.endDate,
         createdAt: go.createdAt,

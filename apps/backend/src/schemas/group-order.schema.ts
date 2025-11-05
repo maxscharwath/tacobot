@@ -97,44 +97,20 @@ export function isGroupOrderLeader(order: GroupOrder, userId: UserId): boolean {
 }
 
 /**
- * Compute the effective status of a group order based on its DB status and date range.
+ * Determine if a group order can accept new user orders.
  * 
  * Rules:
- * - If DB status is SUBMITTED or COMPLETED, return as-is (finalized states)
- * - If DB status is CLOSED, return as-is (manually closed by leader)
- * - If DB status is OPEN:
- *   - If current date is after endDate, return EXPIRED (automatically expired)
- *   - Otherwise, return OPEN
+ * - Status must be OPEN (not closed, submitted, or completed)
+ * - Current date must be within the validity period (startDate to endDate)
  * 
  * @param order - The group order to evaluate
  * @param referenceDate - The date to use for comparison (defaults to now)
- * @returns The effective status considering both DB status and date validity
+ * @returns true if the order can accept new orders, false otherwise
  */
-export function getEffectiveGroupOrderStatus(
-  order: GroupOrder,
-  referenceDate = new Date()
-): GroupOrderStatus {
-  // Finalized states are always returned as-is
-  if (
-    order.status === GroupOrderStatus.SUBMITTED ||
-    order.status === GroupOrderStatus.COMPLETED
-  ) {
-    return order.status;
+export function canAcceptOrders(order: GroupOrder, referenceDate = new Date()): boolean {
+  if (order.status !== GroupOrderStatus.OPEN) {
+    return false;
   }
 
-  // Manually closed orders stay closed
-  if (order.status === GroupOrderStatus.CLOSED) {
-    return order.status;
-  }
-
-  // For OPEN orders, check if they're still within valid date range
-  if (order.status === GroupOrderStatus.OPEN) {
-    if (referenceDate > order.endDate) {
-      return GroupOrderStatus.EXPIRED;
-    }
-    return GroupOrderStatus.OPEN;
-  }
-
-  // Fallback: return the DB status
-  return order.status;
+  return referenceDate >= order.startDate && referenceDate <= order.endDate;
 }

@@ -330,8 +330,8 @@ export function OrderDetailRoute() {
   const currentUserId = session?.userId;
 
   // Check if the group order can accept new orders
-  const canAddOrders = groupOrder.status === 'open';
-  const canSubmit = isLeader && groupOrder.status === 'open';
+  const canAddOrders = groupOrder.canAcceptOrders;
+  const canSubmit = isLeader && groupOrder.canAcceptOrders;
 
   // Calculate total price across all orders
   // Backend stores taco.price as sum of meat prices only (not including base taco size price)
@@ -417,7 +417,7 @@ export function OrderDetailRoute() {
             ) : (
               <Button variant="outline" className="gap-2" size="sm" disabled>
                 <Lock01 size={16} />
-                {groupOrder.status === 'expired' && 'Order period expired'}
+                {groupOrder.status === 'open' && 'Order period expired'}
                 {groupOrder.status === 'closed' && 'Order closed'}
                 {groupOrder.status === 'submitted' && 'Order submitted'}
                 {groupOrder.status === 'completed' && 'Order completed'}
@@ -664,7 +664,7 @@ export function OrderDetailRoute() {
                   description={
                     canAddOrders
                       ? "Create your perfect taco to join this group order."
-                      : groupOrder.status === 'expired'
+                      : groupOrder.status === 'open'
                         ? "The order period has expired."
                         : groupOrder.status === 'closed'
                           ? "This order has been closed."

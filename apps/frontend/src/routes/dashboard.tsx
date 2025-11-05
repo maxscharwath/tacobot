@@ -27,9 +27,7 @@ async function loadDashboard() {
 
   const now = new Date();
   const activeOrders = groupOrders.filter((order) => new Date(order.endDate) > now);
-  const pendingOrders = groupOrders.filter(
-    (order) => order.status === 'open' || order.status === 'closed'
-  );
+  const pendingOrders = groupOrders.filter((order) => order.canAcceptOrders);
   const historyCount = orderHistory.length;
 
   const lowStock = (Object.entries(stock) as [keyof StockResponse, StockItem[]][])

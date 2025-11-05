@@ -314,7 +314,6 @@ export const TACO_SIZE_CONFIG: Record<TacoSize, TacoSizeConfig> = {
 export enum GroupOrderStatus {
   OPEN = 'open',
   CLOSED = 'closed',
-  EXPIRED = 'expired',
   SUBMITTED = 'submitted',
   COMPLETED = 'completed',
 }
