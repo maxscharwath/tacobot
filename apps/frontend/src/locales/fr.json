@@ -56,10 +56,10 @@
     "unexpectedError": "Erreur inattendue. Réessaie."
   },
   "dashboard": {
-    "kitchenPulse": "Pouls cuisine",
+    "kitchenPulse": "Rythme de la cuisine",
     "hero": {
-      "title": "Tous les regards sur la tournée tacos du soir",
-      "subtitle": "Suis fenêtres actives, soumissions et stocks dans un seul poste de commande. Les chiffres se mettent à jour à chaque retour sur le tableau."
+      "title": "Cap sur la tournée tacos de ce soir",
+      "subtitle": "Surveille les fenêtres d'ouverture, les commandes et les alertes de stock depuis un seul tableau. Les données se rafraîchissent dès que tu reviens sur le dashboard."
     },
     "metrics": {
       "activeOrders": "Commandes actives",
@@ -71,10 +71,10 @@
     },
     "recentGroupOrders": {
       "title": "Commandes de groupe récentes",
-      "description": "Garde un œil sur les cycles en cours et à venir.",
+      "description": "Garde un œil sur les cycles en cours et ceux à venir.",
       "manageAll": "Tout gérer",
-      "emptyState": "Pas encore de commande. Ouvre un créneau pour lancer la machine.",
-      "launchFirstCycle": "Lancer le premier cycle",
+      "emptyState": "Pas encore de commande de groupe. Ouvre un créneau pour lancer la machine.",
+      "launchFirstCycle": "Lancer un premier cycle",
       "untitledOrder": "Commande sans nom"
     },
     "latestSubmissions": {
@@ -85,10 +85,10 @@
       "submitted": "Envoyée le {{date}}"
     },
     "lowStockAlerts": {
-      "title": "Stocks bas",
-      "description": "Complète les ingrédients pour garder le croustillant parfait.",
+      "title": "Alertes stock bas",
+      "description": "Garantis les ingrédients pour servir chaque commande.",
       "browseInventory": "Voir l'inventaire",
-      "allInStock": "Tout est en stock. Le grill peut tourner !",
+      "allInStock": "Tout est en stock. Le grill peut chauffer !",
       "outOfStock": "Rupture"
     }
   },
@@ -109,14 +109,14 @@
         "shortId": "ID {{id}}"
       },
       "errors": {
-        "api": "Impossible de terminer la requête ({{message}})."
+        "api": "La requête n'a pas abouti ({{message}})."
       }
     },
     "list": {
       "hero": {
-        "badge": "Pensé pour les ops tacos",
+        "badge": "Pensé pour les opérations tacos",
         "title": "Coordonne chaque livraison en un clin d'œil",
-        "subtitle": "Lance des drops limités, cadence la cuisine et garde les livreurs synchronisés. Tout le suivi est ici.",
+        "subtitle": "Planifie des drops temporaires, cadence la cuisine et garde les livreurs synchronisés depuis cette vue.",
         "metrics": {
           "activeCycles": "Cycles actifs",
           "totalBatches": "Lots au total",
@@ -125,14 +125,14 @@
       },
       "queue": {
         "title": "File des commandes",
-        "subtitle": "Surveille chaque équipe friande de tacos.",
-        "scheduled": "{{count}} planifié",
-        "scheduled_plural": "{{count}} planifiés",
+        "subtitle": "Suis chaque équipe prête à commander.",
+        "scheduled": "{{count}} créneau planifié",
+        "scheduled_plural": "{{count}} créneaux planifiés",
         "empty": "Aucune commande pour l'instant. Ouvre un créneau pour lancer la machine."
       },
       "form": {
         "title": "Ouvrir un nouveau cycle",
-        "subtitle": "Fixe un créneau, baptise le drop et laisse l'équipe commander.",
+        "subtitle": "Définis un créneau, choisis un nom et laisse l'équipe commander.",
         "labels": {
           "timeWindow": "Créneau horaire",
           "opens": "Ouverture",
@@ -150,11 +150,11 @@
         },
         "tip": {
           "title": "Astuce",
-          "body": "Soigne le nom. Tease les sauces pour mettre tout le monde en appétit."
+          "body": "Soigne le nom. Annonce les sauces pour mettre tout le monde en appétit."
         }
       },
       "errors": {
-        "datesRequired": "Les dates de début et fin sont obligatoires.",
+        "datesRequired": "Les dates de début et de fin sont obligatoires.",
         "invalidDates": "Les dates fournies sont invalides.",
         "endBeforeStart": "La fin doit être après le début.",
         "unexpected": "Impossible de créer la commande de groupe."
@@ -166,18 +166,18 @@
       },
       "hero": {
         "title": "Compose ton taco parfait",
-        "subtitle": "Assemble les ingrédients que tu adores."
+        "subtitle": "Assemble les ingrédients dont tu raffoles."
       },
       "sizeSection": {
         "title": "Choisis ta taille",
-        "description": "Sélectionne le format idéal"
+        "description": "Sélectionne le format qui te convient"
       },
       "customizeSection": {
         "title": "Personnalise ton taco",
-        "subtitle": "Choisis viandes, sauces et garnitures",
+        "subtitle": "Choisis tes viandes, sauces et garnitures",
         "meatsLimit": "{{count}}/{{max}} au total",
-        "meatTypesSelected": "{{count}} type",
-        "meatTypesSelected_plural": "{{count}} types"
+        "meatTypesSelected": "{{count}} choix",
+        "meatTypesSelected_plural": "{{count}} choix"
       },
       "extrasSection": {
         "title": "Ajoute des extras",
@@ -193,7 +193,7 @@
       },
       "summary": {
         "title": "Récapitulatif",
-        "subtitle": "Vérifie ta sélection",
+        "subtitle": "Passe en revue ta sélection",
         "tags": {
           "meats": "{{count}} viande",
           "meats_plural": "{{count}} viandes",
@@ -229,28 +229,28 @@
           "empty": "Choisir une taille"
         },
         "meats": {
-          "selectedWithMax": "{{count}} sélectionné (max {{max}})",
-          "selectedWithMax_plural": "{{count}} sélectionnés (max {{max}})",
-          "selected": "{{count}} sélectionné",
-          "selected_plural": "{{count}} sélectionnés",
+          "selectedWithMax": "{{count}} choix (max {{max}})",
+          "selectedWithMax_plural": "{{count}} choix (max {{max}})",
+          "selected": "{{count}} choix",
+          "selected_plural": "{{count}} choix",
           "empty": "Ajouter des viandes"
         },
         "sauces": {
-          "selectedWithMax": "{{count}} sélectionnée (max {{max}})",
-          "selectedWithMax_plural": "{{count}} sélectionnées (max {{max}})",
-          "selected": "{{count}} sélectionnée",
-          "selected_plural": "{{count}} sélectionnées",
+          "selectedWithMax": "{{count}} choix (max {{max}})",
+          "selectedWithMax_plural": "{{count}} choix (max {{max}})",
+          "selected": "{{count}} choix",
+          "selected_plural": "{{count}} choix",
           "empty": "Ajouter des sauces"
         },
         "garnishes": {
-          "selected": "{{count}} sélectionnée",
-          "selected_plural": "{{count}} sélectionnées",
+          "selected": "{{count}} choix",
+          "selected_plural": "{{count}} choix",
           "empty": "Ajouter des garnitures (optionnel)"
         }
       },
       "validation": {
-        "missingMeat": "Sélectionne au moins une viande.",
-        "missingSauce": "Sélectionne au moins une sauce.",
+        "missingMeat": "Ajoute au moins une viande.",
+        "missingSauce": "Ajoute au moins une sauce.",
         "missingGarnish": "Ajoute au moins une garniture.",
         "missingSelection": "Choisis un taco ou des suppléments."
       },
@@ -270,7 +270,7 @@
           "count_plural": "{{count}} commandes"
         },
         "total": {
-          "label": "Total",
+          "label": "Montant total",
           "caption": "Toutes les commandes"
         },
         "actions": {
