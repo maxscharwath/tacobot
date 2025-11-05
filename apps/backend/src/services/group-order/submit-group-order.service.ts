@@ -7,7 +7,7 @@
 import { injectable } from 'tsyringe';
 import { GroupOrderRepository } from '@/infrastructure/repositories/group-order.repository';
 import { UserOrderRepository } from '@/infrastructure/repositories/user-order.repository';
-import type { GroupOrderId } from '@/schemas/group-order.schema';
+import { getEffectiveGroupOrderStatus, type GroupOrderId } from '@/schemas/group-order.schema';
 import { isUserOrderEmpty } from '@/schemas/user-order.schema';
 import { BackendOrderSubmissionService } from '@/services/order/backend-order-submission.service';
 import { ResourceService } from '@/services/resource/resource.service';
@@ -45,9 +45,11 @@ export class SubmitGroupOrderUseCase {
       throw new NotFoundError(`Group order not found: ${groupOrderId}`);
     }
 
-    if (groupOrder.status !== GroupOrderStatus.OPEN) {
+    // Check effective status (considers both DB status and date validity)
+    const effectiveStatus = getEffectiveGroupOrderStatus(groupOrder);
+    if (effectiveStatus !== GroupOrderStatus.OPEN) {
       throw new ValidationError(
-        `Cannot submit group order. Group order status: ${groupOrder.status}`
+        `Cannot submit group order. Group order status: ${effectiveStatus}`
       );
     }
 

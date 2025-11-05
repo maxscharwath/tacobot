@@ -147,7 +147,9 @@ export function OrdersRoute() {
     .filter((order) => new Date(order.endDate) > new Date())
     .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
-  const activeCount = groupOrders.filter((order) => order.status !== 'submitted').length;
+  const activeCount = groupOrders.filter(
+    (order) => order.status === 'open' || order.status === 'closed'
+  ).length;
 
   return (
     <div className="space-y-10">

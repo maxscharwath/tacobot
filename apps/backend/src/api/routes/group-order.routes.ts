@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { jsonContent } from '@/api/schemas/shared.schemas';
 import { UserOrderItemsSchema } from '@/api/schemas/user-order.schemas';
 import { authSecurity, createAuthenticatedRouteApp, requireUserId } from '@/api/utils/route.utils';
-import { GroupOrderIdSchema } from '@/schemas/group-order.schema';
+import { getEffectiveGroupOrderStatus, GroupOrderIdSchema } from '@/schemas/group-order.schema';
 import { CreateGroupOrderUseCase } from '@/services/group-order/create-group-order.service';
 import { GetGroupOrderUseCase } from '@/services/group-order/get-group-order.service';
 import { GetGroupOrderWithUserOrdersUseCase } from '@/services/group-order/get-group-order-with-user-orders.service';
@@ -84,7 +84,7 @@ app.openapi(
         name: groupOrder.name ?? null,
         startDate: groupOrder.startDate.toISOString(),
         endDate: groupOrder.endDate.toISOString(),
-        status: groupOrder.status,
+        status: getEffectiveGroupOrderStatus(groupOrder),
         createdAt: groupOrder.createdAt?.toISOString(),
         updatedAt: groupOrder.updatedAt?.toISOString(),
       },
@@ -123,7 +123,7 @@ app.openapi(
         name: groupOrder.name ?? null,
         startDate: groupOrder.startDate.toISOString(),
         endDate: groupOrder.endDate.toISOString(),
-        status: groupOrder.status,
+        status: getEffectiveGroupOrderStatus(groupOrder),
         createdAt: groupOrder.createdAt?.toISOString(),
         updatedAt: groupOrder.updatedAt?.toISOString(),
       },
@@ -163,7 +163,7 @@ app.openapi(
           name: result.groupOrder.name ?? null,
           startDate: result.groupOrder.startDate.toISOString(),
           endDate: result.groupOrder.endDate.toISOString(),
-          status: result.groupOrder.status,
+          status: getEffectiveGroupOrderStatus(result.groupOrder),
           createdAt: result.groupOrder.createdAt?.toISOString(),
           updatedAt: result.groupOrder.updatedAt?.toISOString(),
         },

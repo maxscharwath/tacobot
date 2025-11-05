@@ -95,3 +95,46 @@ export function canGroupOrderBeModified(order: GroupOrder, referenceDate = new D
 export function isGroupOrderLeader(order: GroupOrder, userId: UserId): boolean {
   return order['leaderId'] === userId;
 }
+
+/**
+ * Compute the effective status of a group order based on its DB status and date range.
+ * 
+ * Rules:
+ * - If DB status is SUBMITTED or COMPLETED, return as-is (finalized states)
+ * - If DB status is CLOSED, return as-is (manually closed by leader)
+ * - If DB status is OPEN:
+ *   - If current date is after endDate, return EXPIRED (automatically expired)
+ *   - Otherwise, return OPEN
+ * 
+ * @param order - The group order to evaluate
+ * @param referenceDate - The date to use for comparison (defaults to now)
+ * @returns The effective status considering both DB status and date validity
+ */
+export function getEffectiveGroupOrderStatus(
+  order: GroupOrder,
+  referenceDate = new Date()
+): GroupOrderStatus {
+  // Finalized states are always returned as-is
+  if (
+    order.status === GroupOrderStatus.SUBMITTED ||
+    order.status === GroupOrderStatus.COMPLETED
+  ) {
+    return order.status;
+  }
+
+  // Manually closed orders stay closed
+  if (order.status === GroupOrderStatus.CLOSED) {
+    return order.status;
+  }
+
+  // For OPEN orders, check if they're still within valid date range
+  if (order.status === GroupOrderStatus.OPEN) {
+    if (referenceDate > order.endDate) {
+      return GroupOrderStatus.EXPIRED;
+    }
+    return GroupOrderStatus.OPEN;
+  }
+
+  // Fallback: return the DB status
+  return order.status;
+}

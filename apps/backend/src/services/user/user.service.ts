@@ -6,7 +6,11 @@
 import { injectable } from 'tsyringe';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { UserRepository } from '@/infrastructure/repositories/user.repository';
-import type { GroupOrderId } from '@/schemas/group-order.schema';
+import {
+  createGroupOrderFromDb,
+  getEffectiveGroupOrderStatus,
+  type GroupOrderId,
+} from '@/schemas/group-order.schema';
 import type { OrderId } from '@/schemas/order.schema';
 import type { User, UserId } from '@/schemas/user.schema';
 import { GetUserOrdersHistoryUseCase } from '@/services/user/get-user-orders-history.service';
@@ -58,21 +62,26 @@ export class UserService {
       select: {
         id: true,
         name: true,
+        leaderId: true,
         status: true,
         startDate: true,
         endDate: true,
         createdAt: true,
+        updatedAt: true,
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    return dbGroupOrders.map((go) => ({
-      id: go.id as GroupOrderId,
-      name: go.name,
-      status: go.status,
-      startDate: go.startDate,
-      endDate: go.endDate,
-      createdAt: go.createdAt,
-    }));
+    return dbGroupOrders.map((go) => {
+      const groupOrder = createGroupOrderFromDb(go);
+      return {
+        id: go.id as GroupOrderId,
+        name: go.name,
+        status: getEffectiveGroupOrderStatus(groupOrder),
+        startDate: go.startDate,
+        endDate: go.endDate,
+        createdAt: go.createdAt,
+      };
+    });
   }
 }
