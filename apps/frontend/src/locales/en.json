@@ -13,7 +13,34 @@
     "delete": "Delete",
     "edit": "Edit",
     "submit": "Submit",
-    "back": "Back"
+    "back": "Back",
+    "outOfStock": "Out of stock",
+    "labels": {
+      "dropName": "Drop name",
+      "timeWindow": "Time window",
+      "opens": "Opens",
+      "closes": "Closes (deadline)",
+      "quantity": "Quantity",
+      "meats": "Meats",
+      "sauces": "Sauces",
+      "garnishes": "Garnishes",
+      "extras": "Extras",
+      "drinks": "Drinks",
+      "desserts": "Desserts"
+    },
+    "placeholders": {
+      "dropName": "Midnight Crunch Run",
+      "specialInstructions": "e.g., No onions, extra spicy, extra sauce on the side..."
+    },
+    "status": {
+      "open": "Open",
+      "pending": "Pending",
+      "submitted": "Submitted",
+      "completed": "Completed",
+      "closed": "Closed",
+      "draft": "Draft",
+      "active": "Active"
+    }
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -73,6 +100,187 @@
       "applicationError": "Application Error",
       "unknownError": "Unknown Error",
       "somethingWrong": "Something went wrong."
+    }
+  },
+  "orders": {
+    "common": {
+      "unnamedDrop": "Unnamed drop",
+      "labels": {
+        "shortId": "ID {{id}}"
+      },
+      "errors": {
+        "api": "We couldn't complete the request ({{message}})."
+      }
+    },
+    "list": {
+      "hero": {
+        "badge": "Crafted for French tacos ops",
+        "title": "Coordinating deliveries, one sizzling wrap at a time",
+        "subtitle": "Launch limited-time drops, orchestrate kitchen prep, and keep riders synced. This surface gives you a pulse on every group order in the queue.",
+        "metrics": {
+          "activeCycles": "Active cycles",
+          "totalBatches": "Total batches",
+          "nextDispatch": "Next dispatch"
+        }
+      },
+      "queue": {
+        "title": "Group order queue",
+        "subtitle": "Peek at every squad hungry for French tacos.",
+        "scheduled": "{{count}} scheduled",
+        "scheduled_plural": "{{count}} scheduled",
+        "empty": "No group orders yet. Drop a new delivery window to kickstart a run."
+      },
+      "form": {
+        "title": "Launch a delivery cycle",
+        "subtitle": "Define a window, hype a name, and watch the crew pile in their tacos.",
+        "labels": {
+          "timeWindow": "Time window",
+          "opens": "Opens",
+          "closes": "Closes (deadline)",
+          "deadlineHint": "Orders must be submitted before this time"
+        },
+        "quickDeadlines": {
+          "morning": "10am",
+          "noon": "12pm",
+          "afternoon": "2pm",
+          "evening": "5pm"
+        },
+        "actions": {
+          "launch": "Launch delivery cycle"
+        },
+        "tip": {
+          "title": "Tip",
+          "body": "Hype the name. Bonus points if you tease the sauce lineup so riders know what’s melting tonight."
+        }
+      },
+      "errors": {
+        "datesRequired": "Start and end date are required.",
+        "invalidDates": "Invalid dates provided.",
+        "endBeforeStart": "End date must be after start date.",
+        "unexpected": "Unable to create group order."
+      }
+    },
+    "create": {
+      "navigation": {
+        "backToOrder": "Back to order"
+      },
+      "hero": {
+        "title": "Build your perfect taco",
+        "subtitle": "Craft your custom order with all your favorite ingredients"
+      },
+      "sizeSection": {
+        "title": "Choose your size",
+        "description": "Select the perfect size for your taco"
+      },
+      "customizeSection": {
+        "title": "Customize your taco",
+        "subtitle": "Select your meats, sauces, and garnishes",
+        "meatsLimit": "{{count}}/{{max}} total",
+        "meatTypesSelected": "{{count}} type",
+        "meatTypesSelected_plural": "{{count}} types"
+      },
+      "extrasSection": {
+        "title": "Add extras",
+        "subtitle": "Complete your meal with sides and drinks"
+      },
+      "notes": {
+        "title": "Special instructions",
+        "subtitle": "Any special requests for the kitchen?"
+      },
+      "actions": {
+        "update": "Update order",
+        "save": "Save my order"
+      },
+      "summary": {
+        "title": "Order summary",
+        "subtitle": "Review your selections",
+        "tags": {
+          "meats": "{{count}} meat",
+          "meats_plural": "{{count}} meats",
+          "sauces": "{{count}} sauce",
+          "sauces_plural": "{{count}} sauces",
+          "garnishes": "{{count}} garnish",
+          "garnishes_plural": "{{count}} garnishes",
+          "extras": "{{count}} extra",
+          "extras_plural": "{{count}} extras",
+          "drinks": "{{count}} drink",
+          "drinks_plural": "{{count}} drinks",
+          "desserts": "{{count}} dessert",
+          "desserts_plural": "{{count}} desserts"
+        },
+        "specialInstructions": "Special instructions",
+        "emptyState": "Select a taco size to see your order summary",
+        "totalLabel": "Total",
+        "breakdown": {
+          "noTaco": "No taco",
+          "tacos": "{{count}} taco",
+          "tacos_plural": "{{count}} tacos",
+          "extras": "{{count}} extra",
+          "extras_plural": "{{count}} extras",
+          "drinks": "{{count}} drink",
+          "drinks_plural": "{{count}} drinks",
+          "desserts": "{{count}} dessert",
+          "desserts_plural": "{{count}} desserts"
+        }
+      },
+      "progress": {
+        "size": {
+          "label": "Size",
+          "empty": "Select size"
+        },
+        "meats": {
+          "selectedWithMax": "{{count}} selected (max {{max}})",
+          "selectedWithMax_plural": "{{count}} selected (max {{max}})",
+          "selected": "{{count}} selected",
+          "empty": "Add meats"
+        },
+        "sauces": {
+          "selectedWithMax": "{{count}} selected (max {{max}})",
+          "selectedWithMax_plural": "{{count}} selected (max {{max}})",
+          "selected": "{{count}} selected",
+          "empty": "Add sauces"
+        },
+        "garnishes": {
+          "selected": "{{count}} selected",
+          "empty": "Add garnishes (optional)"
+        }
+      },
+      "validation": {
+        "missingMeat": "Select at least one meat.",
+        "missingSauce": "Select at least one sauce.",
+        "missingGarnish": "Select at least one garnish.",
+        "missingSelection": "Select at least a taco or some extras/drinks/desserts."
+      },
+      "errors": {
+        "missingSelection": "Please select at least a taco or some extras/drinks/desserts.",
+        "missingFillings": "If selecting a taco, please select at least one meat and sauce.",
+        "garnishNotAvailable": "Garnishes are not available for this taco size.",
+        "unexpected": "Unexpected error occurred."
+      }
+    },
+    "detail": {
+      "hero": {
+        "badge": "Group order",
+        "participants": {
+          "label": "Participants",
+          "count": "{{count}} order",
+          "count_plural": "{{count}} orders"
+        },
+        "total": {
+          "label": "Total price",
+          "caption": "All orders"
+        },
+        "actions": {
+          "create": "Create new order",
+          "closedReasons": {
+            "open": "Order period expired",
+            "closed": "Order closed",
+            "submitted": "Order submitted",
+            "completed": "Order completed"
+          },
+          "submit": "Submit to kitchen"
+        }
+      }
     }
   }
 }

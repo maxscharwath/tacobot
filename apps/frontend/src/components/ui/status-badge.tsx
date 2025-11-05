@@ -1,4 +1,5 @@
 import type { ComponentPropsWithoutRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from './badge';
 
 type BadgeTone = 'brand' | 'success' | 'warning' | 'neutral';
@@ -21,11 +22,15 @@ type StatusBadgeProps = Omit<ComponentPropsWithoutRef<typeof Badge>, 'tone' | 'p
 };
 
 export function StatusBadge({ status, tones, className, ...props }: StatusBadgeProps) {
+  const { t } = useTranslation();
   const tone = resolveTone(status, tones);
+  const normalized = normalizeStatus(status);
+  const fallbackLabel = formatStatusLabel(status);
+  const label = t(`common.status.${normalized}`, { defaultValue: fallbackLabel });
 
   return (
     <Badge tone={tone} pill className={className} {...props}>
-      {status}
+      {label}
     </Badge>
   );
 }
@@ -38,4 +43,17 @@ function resolveTone(status: string, overrides?: StatusToneOverrides): BadgeTone
   }
 
   return DEFAULT_STATUS_TONES[normalized] ?? 'neutral';
+}
+
+function normalizeStatus(status: string) {
+  return status.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+}
+
+function formatStatusLabel(status: string) {
+  return status
+    .toLowerCase()
+    .split(/[^a-z0-9]+/g)
+    .filter(Boolean)
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(' ');
 }

@@ -2,8 +2,8 @@
   "common": {
     "signIn": "Se connecter",
     "signOut": "Se déconnecter",
-    "signingIn": "Connexion en cours…",
-    "username": "Nom d'utilisateur",
+    "signingIn": "Connexion…",
+    "username": "Identifiant",
     "loggedInAs": "Connecté en tant que",
     "open": "Ouvrir",
     "loading": "Chargement",
@@ -12,8 +12,35 @@
     "cancel": "Annuler",
     "delete": "Supprimer",
     "edit": "Modifier",
-    "submit": "Soumettre",
-    "back": "Retour"
+    "submit": "Envoyer",
+    "back": "Retour",
+    "outOfStock": "Rupture",
+    "labels": {
+      "dropName": "Nom du drop",
+      "timeWindow": "Créneau",
+      "opens": "Ouverture",
+      "closes": "Clôture (limite)",
+      "quantity": "Quantité",
+      "meats": "Viandes",
+      "sauces": "Sauces",
+      "garnishes": "Garnitures",
+      "extras": "Suppléments",
+      "drinks": "Boissons",
+      "desserts": "Desserts"
+    },
+    "placeholders": {
+      "dropName": "course-minuit",
+      "specialInstructions": "ex. sans oignons, extra piquant, sauce à part..."
+    },
+    "status": {
+      "open": "Ouverte",
+      "pending": "En attente",
+      "submitted": "Transmise",
+      "completed": "Terminée",
+      "closed": "Fermée",
+      "draft": "Brouillon",
+      "active": "Active"
+    }
   },
   "navigation": {
     "dashboard": "Tableau de bord",
@@ -23,56 +50,240 @@
   },
   "login": {
     "title": "Console Tacobot",
-    "subtitle": "Connectez-vous avec votre nom d'utilisateur Tacobot pour gérer les commandes de groupe.",
+    "subtitle": "Connecte-toi avec ton identifiant Tacobot pour gérer les commandes de groupe.",
     "usernamePlaceholder": "chef-del-taco",
-    "usernameRequired": "Le nom d'utilisateur est requis",
-    "unexpectedError": "Erreur inattendue. Veuillez réessayer."
+    "usernameRequired": "L'identifiant est requis",
+    "unexpectedError": "Erreur inattendue. Réessaie."
   },
   "dashboard": {
-    "kitchenPulse": "Pouls de la cuisine",
+    "kitchenPulse": "Pouls cuisine",
     "hero": {
-      "title": "Tous les yeux sur la tournée de tacos français ce soir",
-      "subtitle": "Suivez les fenêtres de dépôt actives, les soumissions et les alertes de stock dans un centre de commande clair. Les métriques se rafraîchissent à chaque fois que vous revenez au tableau de bord."
+      "title": "Tous les regards sur la tournée tacos du soir",
+      "subtitle": "Suis fenêtres actives, soumissions et stocks dans un seul poste de commande. Les chiffres se mettent à jour à chaque retour sur le tableau."
     },
     "metrics": {
-      "activeOrders": "Commandes de groupe actives",
-      "awaitingSubmission": "En attente de soumission",
+      "activeOrders": "Commandes actives",
+      "awaitingSubmission": "En attente d'envoi",
       "ordersOnRecord": "Commandes enregistrées",
-      "open": "Ouvert",
+      "open": "Ouvertes",
       "drafts": "Brouillons",
       "nextDispatch": "Prochain envoi {{time}}"
     },
     "recentGroupOrders": {
       "title": "Commandes de groupe récentes",
-      "description": "Surveillez les niveaux de chaleur sur les cycles de livraison actifs et à venir.",
-      "manageAll": "Gérer tout",
-      "emptyState": "Aucune commande de groupe pour le moment. Lancez une fenêtre de livraison pour que l'équipe passe commande.",
+      "description": "Garde un œil sur les cycles en cours et à venir.",
+      "manageAll": "Tout gérer",
+      "emptyState": "Pas encore de commande. Ouvre un créneau pour lancer la machine.",
       "launchFirstCycle": "Lancer le premier cycle",
-      "untitledOrder": "Commande de groupe sans titre"
+      "untitledOrder": "Commande sans nom"
     },
     "latestSubmissions": {
       "title": "Dernières soumissions",
-      "description": "Les commandes les plus fraîches que la cuisine a reçues de votre équipe.",
-      "emptyState": "Aucun historique de commandes pour le moment.",
-      "requestedFor": "Demandé pour {{name}}",
-      "submitted": "Soumis le {{date}}"
+      "description": "Les commandes les plus fraîches reçues par la cuisine.",
+      "emptyState": "Pas encore d'historique.",
+      "requestedFor": "Prévue pour {{name}}",
+      "submitted": "Envoyée le {{date}}"
     },
     "lowStockAlerts": {
-      "title": "Alertes de stock faible",
-      "description": "Gardez les ingrédients à niveau pour que chaque commande arrive avec le croustillant parfait.",
-      "browseInventory": "Parcourir l'inventaire",
-      "allInStock": "Tous les articles sont actuellement en stock. Gardez le grill en marche !",
-      "outOfStock": "Rupture de stock"
+      "title": "Stocks bas",
+      "description": "Complète les ingrédients pour garder le croustillant parfait.",
+      "browseInventory": "Voir l'inventaire",
+      "allInStock": "Tout est en stock. Le grill peut tourner !",
+      "outOfStock": "Rupture"
     }
   },
   "root": {
-    "appTitle": "Console de livraison de tacos français",
-    "appSubtitle": "Gérez les commandes de groupe grésillantes, les impulsions de stock et les chronologies des livreurs dans un espace de travail lumineux.",
+    "appTitle": "Console livraison tacos",
+    "appSubtitle": "Pilote commandes de groupe, stocks et tournées livreurs dans un seul espace.",
     "tacobot": "Commande Tacobot",
     "errors": {
-      "applicationError": "Erreur d'application",
+      "applicationError": "Erreur applicative",
       "unknownError": "Erreur inconnue",
-      "somethingWrong": "Quelque chose s'est mal passé."
+      "somethingWrong": "Un souci est survenu."
+    }
+  },
+  "orders": {
+    "common": {
+      "unnamedDrop": "Drop sans nom",
+      "labels": {
+        "shortId": "ID {{id}}"
+      },
+      "errors": {
+        "api": "Impossible de terminer la requête ({{message}})."
+      }
+    },
+    "list": {
+      "hero": {
+        "badge": "Pensé pour les ops tacos",
+        "title": "Coordonne chaque livraison en un clin d'œil",
+        "subtitle": "Lance des drops limités, cadence la cuisine et garde les livreurs synchronisés. Tout le suivi est ici.",
+        "metrics": {
+          "activeCycles": "Cycles actifs",
+          "totalBatches": "Lots au total",
+          "nextDispatch": "Prochain envoi"
+        }
+      },
+      "queue": {
+        "title": "File des commandes",
+        "subtitle": "Surveille chaque équipe friande de tacos.",
+        "scheduled": "{{count}} planifié",
+        "scheduled_plural": "{{count}} planifiés",
+        "empty": "Aucune commande pour l'instant. Ouvre un créneau pour lancer la machine."
+      },
+      "form": {
+        "title": "Ouvrir un nouveau cycle",
+        "subtitle": "Fixe un créneau, baptise le drop et laisse l'équipe commander.",
+        "labels": {
+          "timeWindow": "Créneau horaire",
+          "opens": "Ouverture",
+          "closes": "Clôture (limite)",
+          "deadlineHint": "Les commandes doivent arriver avant cette heure."
+        },
+        "quickDeadlines": {
+          "morning": "10 h",
+          "noon": "12 h",
+          "afternoon": "14 h",
+          "evening": "17 h"
+        },
+        "actions": {
+          "launch": "Lancer le cycle"
+        },
+        "tip": {
+          "title": "Astuce",
+          "body": "Soigne le nom. Tease les sauces pour mettre tout le monde en appétit."
+        }
+      },
+      "errors": {
+        "datesRequired": "Les dates de début et fin sont obligatoires.",
+        "invalidDates": "Les dates fournies sont invalides.",
+        "endBeforeStart": "La fin doit être après le début.",
+        "unexpected": "Impossible de créer la commande de groupe."
+      }
+    },
+    "create": {
+      "navigation": {
+        "backToOrder": "Retour à la commande"
+      },
+      "hero": {
+        "title": "Compose ton taco parfait",
+        "subtitle": "Assemble les ingrédients que tu adores."
+      },
+      "sizeSection": {
+        "title": "Choisis ta taille",
+        "description": "Sélectionne le format idéal"
+      },
+      "customizeSection": {
+        "title": "Personnalise ton taco",
+        "subtitle": "Choisis viandes, sauces et garnitures",
+        "meatsLimit": "{{count}}/{{max}} au total",
+        "meatTypesSelected": "{{count}} type",
+        "meatTypesSelected_plural": "{{count}} types"
+      },
+      "extrasSection": {
+        "title": "Ajoute des extras",
+        "subtitle": "Complète avec accompagnements et boissons"
+      },
+      "notes": {
+        "title": "Consignes spéciales",
+        "subtitle": "Un mot pour la cuisine ?"
+      },
+      "actions": {
+        "update": "Mettre à jour",
+        "save": "Enregistrer ma commande"
+      },
+      "summary": {
+        "title": "Récapitulatif",
+        "subtitle": "Vérifie ta sélection",
+        "tags": {
+          "meats": "{{count}} viande",
+          "meats_plural": "{{count}} viandes",
+          "sauces": "{{count}} sauce",
+          "sauces_plural": "{{count}} sauces",
+          "garnishes": "{{count}} garniture",
+          "garnishes_plural": "{{count}} garnitures",
+          "extras": "{{count}} extra",
+          "extras_plural": "{{count}} extras",
+          "drinks": "{{count}} boisson",
+          "drinks_plural": "{{count}} boissons",
+          "desserts": "{{count}} dessert",
+          "desserts_plural": "{{count}} desserts"
+        },
+        "specialInstructions": "Consignes spéciales",
+        "emptyState": "Sélectionne une taille pour voir le récapitulatif",
+        "totalLabel": "Total",
+        "breakdown": {
+          "noTaco": "Aucun taco",
+          "tacos": "{{count}} taco",
+          "tacos_plural": "{{count}} tacos",
+          "extras": "{{count}} extra",
+          "extras_plural": "{{count}} extras",
+          "drinks": "{{count}} boisson",
+          "drinks_plural": "{{count}} boissons",
+          "desserts": "{{count}} dessert",
+          "desserts_plural": "{{count}} desserts"
+        }
+      },
+      "progress": {
+        "size": {
+          "label": "Taille",
+          "empty": "Choisir une taille"
+        },
+        "meats": {
+          "selectedWithMax": "{{count}} sélectionné (max {{max}})",
+          "selectedWithMax_plural": "{{count}} sélectionnés (max {{max}})",
+          "selected": "{{count}} sélectionné",
+          "selected_plural": "{{count}} sélectionnés",
+          "empty": "Ajouter des viandes"
+        },
+        "sauces": {
+          "selectedWithMax": "{{count}} sélectionnée (max {{max}})",
+          "selectedWithMax_plural": "{{count}} sélectionnées (max {{max}})",
+          "selected": "{{count}} sélectionnée",
+          "selected_plural": "{{count}} sélectionnées",
+          "empty": "Ajouter des sauces"
+        },
+        "garnishes": {
+          "selected": "{{count}} sélectionnée",
+          "selected_plural": "{{count}} sélectionnées",
+          "empty": "Ajouter des garnitures (optionnel)"
+        }
+      },
+      "validation": {
+        "missingMeat": "Sélectionne au moins une viande.",
+        "missingSauce": "Sélectionne au moins une sauce.",
+        "missingGarnish": "Ajoute au moins une garniture.",
+        "missingSelection": "Choisis un taco ou des suppléments."
+      },
+      "errors": {
+        "missingSelection": "Choisis au moins un taco ou des extras/boissons/desserts.",
+        "missingFillings": "Pour un taco, ajoute au moins une viande et une sauce.",
+        "garnishNotAvailable": "Cette taille n'accepte pas de garnitures.",
+        "unexpected": "Une erreur imprévue est survenue."
+      }
+    },
+    "detail": {
+      "hero": {
+        "badge": "Commande de groupe",
+        "participants": {
+          "label": "Participants",
+          "count": "{{count}} commande",
+          "count_plural": "{{count}} commandes"
+        },
+        "total": {
+          "label": "Total",
+          "caption": "Toutes les commandes"
+        },
+        "actions": {
+          "create": "Créer une nouvelle commande",
+          "closedReasons": {
+            "open": "Créneau expiré",
+            "closed": "Commande clôturée",
+            "submitted": "Commande transmise",
+            "completed": "Commande terminée"
+          },
+          "submit": "Envoyer à la cuisine"
+        }
+      }
     }
   }
 }

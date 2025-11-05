@@ -15,6 +15,7 @@ import {
   useNavigation,
   useParams,
 } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   AvatarLabelGroup,
@@ -321,6 +322,9 @@ function formatDateTimeRange(start: string, end: string) {
 }
 
 export function OrderDetailRoute() {
+  const { t } = useTranslation();
+  const tt = (key: string, options?: Record<string, unknown>) =>
+    t(`orders.detail.${key}`, options);
   const { groupOrder, userOrders, isLeader, stock } = useLoaderData() as LoaderData;
   const _actionData = useActionData() as ActionData | undefined;
   const navigation = useNavigation();
@@ -365,42 +369,44 @@ export function OrderDetailRoute() {
         <div className="pointer-events-none absolute -top-24 right-0 h-60 w-60 rounded-full bg-brand-400/30 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-16 left-10 h-56 w-56 rounded-full bg-purple-500/25 blur-3xl" />
         <div className="relative space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge tone="brand" pill>
-                Group order
-              </Badge>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <Badge tone="brand" pill>
+                  {tt('hero.badge')}
+                </Badge>
               <StatusBadge status={groupOrder.status} />
             </div>
             {userOrders.length > 0 && (
               <div className="flex items-center gap-6">
                 <div className="text-right">
-                  <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                    Participants
-                  </p>
+                    <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                      {tt('hero.participants.label')}
+                    </p>
                   <p className="text-2xl font-bold text-white mt-1">
                     {new Set(userOrders.map((o) => o.userId)).size}
                   </p>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    {userOrders.length} order{userOrders.length !== 1 ? 's' : ''}
+                      {tt('hero.participants.count', { count: userOrders.length })}
                   </p>
                 </div>
                 <div className="h-12 w-px bg-white/10" />
                 <div className="text-right">
-                  <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                    Total Price
-                  </p>
+                    <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                      {tt('hero.total.label')}
+                    </p>
                   <p className="text-2xl font-bold text-brand-100 mt-1">
                     {totalPrice.toFixed(2)} CHF
                   </p>
-                  <p className="text-xs text-slate-400 mt-0.5">All orders</p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {tt('hero.total.caption')}
+                    </p>
                 </div>
               </div>
             )}
           </div>
           <div className="space-y-1">
             <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-white">
-              {groupOrder.name ?? 'Untitled group order'}
+                {groupOrder.name ?? t('orders.common.unnamedDrop')}
             </h1>
             <p className="text-sm text-slate-200">
               {formatDateTimeRange(groupOrder.startDate, groupOrder.endDate)}
@@ -411,16 +417,16 @@ export function OrderDetailRoute() {
               <Link to={`/orders/${params.orderId}/create`} className="cursor-pointer">
                 <Button variant="outline" className="gap-2" size="sm">
                   <Plus size={16} />
-                  Create new order
+                    {tt('hero.actions.create')}
                 </Button>
               </Link>
             ) : (
               <Button variant="outline" className="gap-2" size="sm" disabled>
                 <Lock01 size={16} />
-                {groupOrder.status === 'open' && 'Order period expired'}
-                {groupOrder.status === 'closed' && 'Order closed'}
-                {groupOrder.status === 'submitted' && 'Order submitted'}
-                {groupOrder.status === 'completed' && 'Order completed'}
+                  {groupOrder.status === 'open' && tt('hero.actions.closedReasons.open')}
+                  {groupOrder.status === 'closed' && tt('hero.actions.closedReasons.closed')}
+                  {groupOrder.status === 'submitted' && tt('hero.actions.closedReasons.submitted')}
+                  {groupOrder.status === 'completed' && tt('hero.actions.closedReasons.completed')}
               </Button>
             )}
             {canSubmit && (
@@ -431,7 +437,7 @@ export function OrderDetailRoute() {
                   size="sm"
                 >
                   <Lock01 size={18} />
-                  Submit to Kitchen
+                    {tt('hero.actions.submit')}
                 </Button>
               </Link>
             )}

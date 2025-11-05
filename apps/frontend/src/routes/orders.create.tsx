@@ -5,6 +5,7 @@ import { Package } from '@untitledui/icons/Package';
 import { Plus } from '@untitledui/icons/Plus';
 import { ShoppingBag01 } from '@untitledui/icons/ShoppingBag01';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   type ActionFunctionArgs,
   Form,
@@ -43,7 +44,8 @@ type LoaderData = {
 };
 
 type ActionData = {
-  error?: string;
+  errorKey?: string;
+  errorMessage?: string;
 };
 
 export async function orderCreateLoader({ params, request }: LoaderFunctionArgs) {
@@ -139,34 +141,25 @@ export async function orderCreateAction({ request, params }: ActionFunctionArgs)
   const hasTaco = size && meats.length > 0 && sauces.length > 0;
   const hasOtherItems = extras.length > 0 || drinks.length > 0 || desserts.length > 0;
 
-  if (!hasTaco && !hasOtherItems) {
-    return Response.json(
-      {
-        error: 'Please select at least a taco or some extras/drinks/desserts.',
-      },
-      { status: 400 }
-    );
+    if (!hasTaco && !hasOtherItems) {
+      return Response.json({ errorKey: 'orders.create.errors.missingSelection' }, { status: 400 });
   }
 
   // If taco is selected, validate it
   // Garnitures are optional - only validate that they're not selected if allowGarnitures is false
-  if (size && (!meats.length || !sauces.length)) {
-    return Response.json(
-      {
-        error: 'If selecting a taco, please select at least one meat and sauce.',
-      },
-      { status: 400 }
-    );
+    if (size && (!meats.length || !sauces.length)) {
+      return Response.json(
+        { errorKey: 'orders.create.errors.missingFillings' },
+        { status: 400 }
+      );
   }
 
   // Validate that garnitures are not selected if they're not available
-  if (size && tacoSize && !tacoSize.allowGarnitures && garnitures.length > 0) {
-    return Response.json(
-      {
-        error: 'Garnishes are not available for this taco size.',
-      },
-      { status: 400 }
-    );
+    if (size && tacoSize && !tacoSize.allowGarnitures && garnitures.length > 0) {
+      return Response.json(
+        { errorKey: 'orders.create.errors.garnishNotAvailable' },
+        { status: 400 }
+      );
   }
 
   try {
@@ -208,10 +201,16 @@ export async function orderCreateAction({ request, params }: ActionFunctionArgs)
           ? ((error.body as { error?: { message?: string } }).error?.message ?? error.message)
           : error.message;
 
-      return Response.json({ error: errorMessage }, { status: error.status });
+        return Response.json(
+          {
+            errorKey: 'orders.common.errors.api',
+            errorMessage,
+          },
+          { status: error.status }
+        );
     }
 
-    return Response.json({ error: 'Unexpected error occurred.' }, { status: 500 });
+      return Response.json({ errorKey: 'orders.create.errors.unexpected' }, { status: 500 });
   }
 }
 
@@ -234,6 +233,7 @@ function SelectionGroup({
   disabled?: boolean;
   maxSelections?: number;
 }) {
+  const { t } = useTranslation();
   const canSelectMore = maxSelections === undefined || selected.length < maxSelections;
 
   return (
@@ -292,7 +292,7 @@ function SelectionGroup({
                   )}
                   {!item.in_stock && (
                     <Badge tone="warning" className="text-[9px] px-1.5 py-0 font-semibold">
-                      Out of stock
+                        {t('common.outOfStock')}
                     </Badge>
                   )}
                 </div>
@@ -309,6 +309,9 @@ function SelectionGroup({
 }
 
 export function OrderCreateRoute() {
+  const { t } = useTranslation();
+  const tt = (key: string, options?: Record<string, unknown>) =>
+    t(`orders.create.${key}`, options);
   const { myOrder, stock } = useLoaderData() as LoaderData;
   const actionData = useActionData() as ActionData | undefined;
   const navigation = useNavigation();
@@ -503,6 +506,31 @@ export function OrderCreateRoute() {
     return total;
   }, [selectedTacoSize, meats, extras, drinks, desserts, stock]);
 
+    const summaryBreakdown = [
+      size ? tt('summary.breakdown.tacos', { count: 1 }) : tt('summary.breakdown.noTaco'),
+      tt('summary.breakdown.extras', { count: extras.length }),
+      tt('summary.breakdown.drinks', { count: drinks.length }),
+      tt('summary.breakdown.desserts', { count: desserts.length }),
+    ].join(' · ');
+
+    const validationMessages: string[] = [];
+    if (size && meats.length === 0) {
+      validationMessages.push(tt('validation.missingMeat'));
+    }
+    if (size && sauces.length === 0) {
+      validationMessages.push(tt('validation.missingSauce'));
+    }
+    if (
+      size &&
+      garnitures.length === 0 &&
+      selectedTacoSize?.allowGarnitures
+    ) {
+      validationMessages.push(tt('validation.missingGarnish'));
+    }
+    if (!size && !hasOtherItems) {
+      validationMessages.push(tt('validation.missingSelection'));
+    }
+
   // Can submit if: (has taco with valid selections) OR (has other items)
   const totalMeatQuantity = meats.reduce((sum, m) => sum + m.quantity, 0);
   // Garnitures are always optional - never required
@@ -526,31 +554,41 @@ export function OrderCreateRoute() {
         {
           key: 'size',
           completed: !!size,
-          label: 'Size',
+            label: tt('progress.size.label'),
           icon: Package,
-          description: selectedTacoSize?.name ?? 'Select size',
+            description: selectedTacoSize?.name ?? tt('progress.size.empty'),
         },
         {
           key: 'meats',
           completed: meats.reduce((sum, m) => sum + m.quantity, 0) > 0,
-          label: 'Meats',
+            label: t('common.labels.meats'),
           icon: Plus,
           description: (() => {
             const qty = meats.reduce((sum, m) => sum + m.quantity, 0);
             return qty > 0
-              ? `${qty} selected${selectedTacoSize ? ` (max ${selectedTacoSize.maxMeats})` : ''}`
-              : 'Add meats';
+                ? selectedTacoSize?.maxMeats !== undefined
+                  ? tt('progress.meats.selectedWithMax', {
+                      count: qty,
+                      max: selectedTacoSize.maxMeats,
+                    })
+                  : tt('progress.meats.selected', { count: qty })
+                : tt('progress.meats.empty');
           })(),
         },
         {
           key: 'sauces',
           completed: sauces.length > 0,
-          label: 'Sauces',
+            label: t('common.labels.sauces'),
           icon: Plus,
           description:
             sauces.length > 0
-              ? `${sauces.length} selected${selectedTacoSize ? ` (max ${selectedTacoSize.maxSauces})` : ''}`
-              : 'Add sauces',
+                ? selectedTacoSize?.maxSauces !== undefined
+                  ? tt('progress.sauces.selectedWithMax', {
+                      count: sauces.length,
+                      max: selectedTacoSize.maxSauces,
+                    })
+                  : tt('progress.sauces.selected', { count: sauces.length })
+                : tt('progress.sauces.empty'),
         },
         // Only show garnishes step if they are available
         ...(selectedTacoSize && selectedTacoSize.allowGarnitures
@@ -558,12 +596,12 @@ export function OrderCreateRoute() {
               {
                 key: 'garnishes',
                 completed: garnitures.length > 0,
-                label: 'Garnishes',
+                  label: t('common.labels.garnishes'),
                 icon: CheckCircle,
-                description:
-                  garnitures.length > 0
-                    ? `${garnitures.length} selected`
-                    : 'Add garnishes (optional)',
+                  description:
+                    garnitures.length > 0
+                      ? tt('progress.garnishes.selected', { count: garnitures.length })
+                      : tt('progress.garnishes.empty'),
               },
             ]
           : []),
@@ -611,7 +649,7 @@ export function OrderCreateRoute() {
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-brand-100 transition-colors cursor-pointer"
         >
           <ArrowLeft size={18} />
-          Back to order
+            {tt('navigation.backToOrder')}
         </Link>
       </div>
 
@@ -625,10 +663,10 @@ export function OrderCreateRoute() {
             </div>
             <div className="flex-1">
               <h1 className="text-3xl font-semibold tracking-tight text-white lg:text-4xl">
-                Build your perfect taco
+                    {tt('hero.title')}
               </h1>
               <p className="text-sm text-slate-300 mt-1">
-                Craft your custom order with all your favorite ingredients
+                    {tt('hero.subtitle')}
               </p>
             </div>
           </div>
@@ -646,10 +684,10 @@ export function OrderCreateRoute() {
                   <Package size={20} className="text-brand-300" />
                 </div>
                 <div>
-                  <CardTitle className="text-white">Choose your size</CardTitle>
-                  <CardDescription className="mt-0.5">
-                    Select the perfect size for your taco
-                  </CardDescription>
+                    <CardTitle className="text-white">{tt('sizeSection.title')}</CardTitle>
+                    <CardDescription className="mt-0.5">
+                      {tt('sizeSection.description')}
+                    </CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -716,8 +754,8 @@ export function OrderCreateRoute() {
                 <span className="text-xl">🍖</span>
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-white">Customize your taco</h2>
-                <p className="text-xs text-slate-400">Select your meats, sauces, and garnishes</p>
+                  <h2 className="text-lg font-semibold text-white">{tt('customizeSection.title')}</h2>
+                  <p className="text-xs text-slate-400">{tt('customizeSection.subtitle')}</p>
               </div>
             </div>
 
@@ -728,22 +766,25 @@ export function OrderCreateRoute() {
                     <div className="flex items-center gap-2">
                       <Plus size={18} className="text-brand-400" />
                       <Label className="text-sm normal-case tracking-normal">
-                        Meats
+                          {t('common.labels.meats')}
                         {size && <span className="ml-1 text-rose-400">*</span>}
                       </Label>
                     </div>
                     <div className="flex items-center gap-3">
                       {selectedTacoSize?.maxMeats !== undefined && (
                         <span className="text-xs text-slate-400">
-                          {meats.reduce((sum, m) => sum + m.quantity, 0)}/
-                          {selectedTacoSize.maxMeats} total
+                            {tt('customizeSection.meatsLimit', {
+                              count: meats.reduce((sum, m) => sum + m.quantity, 0),
+                              max: selectedTacoSize.maxMeats,
+                            })}
                         </span>
                       )}
                       {meats.filter((m) => m.quantity > 0).length > 0 && (
-                        <Badge tone="brand" className="text-xs">
-                          {meats.filter((m) => m.quantity > 0).length} type
-                          {meats.filter((m) => m.quantity > 0).length !== 1 ? 's' : ''}
-                        </Badge>
+                          <Badge tone="brand" className="text-xs">
+                            {tt('customizeSection.meatTypesSelected', {
+                              count: meats.filter((m) => m.quantity > 0).length,
+                            })}
+                          </Badge>
                       )}
                     </div>
                   </div>
@@ -822,14 +863,16 @@ export function OrderCreateRoute() {
                                     tone="warning"
                                     className="text-[9px] px-1.5 py-0 font-semibold"
                                   >
-                                    Out of stock
+                                      {t('common.outOfStock')}
                                   </Badge>
                                 )}
                               </div>
                             </div>
                           </div>
                           <div className="flex items-center justify-between pt-3 border-t border-white/10">
-                            <span className="text-xs font-medium text-slate-300">Quantity</span>
+                          <span className="text-xs font-medium text-slate-300">
+                            {t('common.labels.quantity')}
+                          </span>
                             <div
                               className="flex items-center gap-2"
                               onClick={(e) => e.stopPropagation()}
@@ -882,7 +925,7 @@ export function OrderCreateRoute() {
             <Card className="border-white/10 bg-slate-800/30">
               <CardContent className="p-6 space-y-6">
                 <SelectionGroup
-                  title="Sauces"
+                    title={t('common.labels.sauces')}
                   items={stock.sauces}
                   selected={sauces}
                   onToggle={(id) =>
@@ -903,7 +946,7 @@ export function OrderCreateRoute() {
               <Card className="border-white/10 bg-slate-800/30">
                 <CardContent className="p-6 space-y-6">
                   <SelectionGroup
-                    title="Garnishes"
+                      title={t('common.labels.garnishes')}
                     items={stock.garnishes}
                     selected={garnitures}
                     onToggle={(id) => toggleSelection(id, garnitures, setGarnitures)}
@@ -921,13 +964,13 @@ export function OrderCreateRoute() {
           {size && (
             <Card className="p-6">
               <CardHeader className="gap-2">
-                <CardTitle className="text-white">Special instructions</CardTitle>
-                <CardDescription>Any special requests for the kitchen?</CardDescription>
+                  <CardTitle className="text-white">{tt('notes.title')}</CardTitle>
+                  <CardDescription>{tt('notes.subtitle')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <Textarea
                   name="note"
-                  placeholder="e.g., No onions, extra spicy, extra sauce on the side..."
+                    placeholder={t('common.placeholders.specialInstructions')}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   disabled={isSubmitting}
@@ -945,15 +988,15 @@ export function OrderCreateRoute() {
                 <ShoppingBag01 size={20} className="text-violet-300" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-white">Add extras</h2>
-                <p className="text-xs text-slate-400">Complete your meal with sides and drinks</p>
+                    <h2 className="text-lg font-semibold text-white">{tt('extrasSection.title')}</h2>
+                    <p className="text-xs text-slate-400">{tt('extrasSection.subtitle')}</p>
               </div>
             </div>
 
             <Card className="border-white/10 bg-slate-800/30">
               <CardContent className="p-6 space-y-6">
                 <SelectionGroup
-                  title="Extras"
+                      title={t('common.labels.extras')}
                   items={stock.extras}
                   selected={extras}
                   onToggle={(id) => toggleSelection(id, extras, setExtras)}
@@ -968,7 +1011,7 @@ export function OrderCreateRoute() {
             <Card className="border-white/10 bg-slate-800/30">
               <CardContent className="p-6 space-y-6">
                 <SelectionGroup
-                  title="Drinks"
+                      title={t('common.labels.drinks')}
                   items={stock.drinks}
                   selected={drinks}
                   onToggle={(id) => toggleSelection(id, drinks, setDrinks)}
@@ -983,7 +1026,7 @@ export function OrderCreateRoute() {
             <Card className="border-white/10 bg-slate-800/30">
               <CardContent className="p-6 space-y-6">
                 <SelectionGroup
-                  title="Desserts"
+                      title={t('common.labels.desserts')}
                   items={stock.desserts}
                   selected={desserts}
                   onToggle={(id) => toggleSelection(id, desserts, setDesserts)}
@@ -996,12 +1039,16 @@ export function OrderCreateRoute() {
             </Card>
           </div>
 
-          {actionData?.error && <Alert tone="error">{actionData.error}</Alert>}
+            {actionData?.errorKey ? (
+              <Alert tone="error">
+                {t(actionData.errorKey, actionData.errorMessage ? { message: actionData.errorMessage } : undefined)}
+              </Alert>
+            ) : null}
 
           <div className="flex flex-wrap items-center gap-4 pb-8">
             <Link to={`/orders/${params.orderId}`} className="cursor-pointer">
-              <Button type="button" variant="outline" disabled={isSubmitting}>
-                Cancel
+                <Button type="button" variant="outline" disabled={isSubmitting}>
+                  {t('common.cancel')}
               </Button>
             </Link>
             <Button
@@ -1011,7 +1058,7 @@ export function OrderCreateRoute() {
               fullWidth
               className="sm:w-auto"
             >
-              {editOrderId ? 'Update order' : 'Save my order'}
+                {editOrderId ? tt('actions.update') : tt('actions.save')}
             </Button>
           </div>
         </Form>
@@ -1090,8 +1137,8 @@ export function OrderCreateRoute() {
                   <ShoppingBag01 size={20} className="text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-white">Order summary</CardTitle>
-                  <CardDescription className="mt-0.5">Review your selections</CardDescription>
+                    <CardTitle className="text-white">{tt('summary.title')}</CardTitle>
+                    <CardDescription className="mt-0.5">{tt('summary.subtitle')}</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -1109,18 +1156,19 @@ export function OrderCreateRoute() {
                           <div className="mt-1.5 flex flex-wrap gap-1.5 text-xs">
                             {meats.length > 0 && (
                               <span className="rounded-full bg-slate-800/60 px-2 py-0.5 text-slate-300">
-                                {meats.reduce((sum, m) => sum + m.quantity, 0)} meat
-                                {meats.reduce((sum, m) => sum + m.quantity, 0) !== 1 ? 's' : ''}
+                                {tt('summary.tags.meats', {
+                                  count: meats.reduce((sum, m) => sum + m.quantity, 0),
+                                })}
                               </span>
                             )}
                             {sauces.length > 0 && (
                               <span className="rounded-full bg-slate-800/60 px-2 py-0.5 text-slate-300">
-                                {sauces.length} sauce{sauces.length !== 1 ? 's' : ''}
+                                {tt('summary.tags.sauces', { count: sauces.length })}
                               </span>
                             )}
                             {garnitures.length > 0 && (
                               <span className="rounded-full bg-slate-800/60 px-2 py-0.5 text-slate-300">
-                                {garnitures.length} garnish{garnitures.length !== 1 ? 'es' : ''}
+                                {tt('summary.tags.garnishes', { count: garnitures.length })}
                               </span>
                             )}
                           </div>
@@ -1167,9 +1215,7 @@ export function OrderCreateRoute() {
                   </div>
                 ) : (
                   <div className="rounded-xl border border-dashed border-white/15 bg-slate-900/30 p-8 text-center">
-                    <p className="text-sm text-slate-400">
-                      Select a taco size to see your order summary
-                    </p>
+                      <p className="text-sm text-slate-400">{tt('summary.emptyState')}</p>
                   </div>
                 )}
               </div>
@@ -1177,33 +1223,18 @@ export function OrderCreateRoute() {
               {/* Fixed total price section - always visible */}
               <div className="pt-4 border-t border-white/10 shrink-0">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-white">Total</span>
+                    <span className="text-sm font-semibold text-white">{tt('summary.totalLabel')}</span>
                   <span className="text-2xl font-bold text-brand-100">
                     {totalPrice.toFixed(2)} CHF
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-2">
-                  {size ? '1 taco' : 'No taco'} · {extras.length} extra
-                  {extras.length !== 1 ? 's' : ''} · {drinks.length} drink
-                  {drinks.length !== 1 ? 's' : ''} · {desserts.length} dessert
-                  {desserts.length !== 1 ? 's' : ''}
-                </p>
+                  <p className="text-xs text-slate-400 mt-2">{summaryBreakdown}</p>
               </div>
 
               {/* Fixed validation message - always visible */}
               {!canSubmit && (
                 <div className="mt-4 rounded-xl border border-amber-400/20 bg-amber-500/10 p-3 shrink-0">
-                  <p className="text-xs text-amber-200">
-                    {size && meats.length === 0 && 'Select at least one meat. '}
-                    {size && sauces.length === 0 && 'Select at least one sauce. '}
-                    {size &&
-                      garnitures.length === 0 &&
-                      selectedTacoSize?.allowGarnitures &&
-                      'Select at least one garnish. '}
-                    {!size &&
-                      !hasOtherItems &&
-                      'Select at least a taco or some extras/drinks/desserts. '}
-                  </p>
+                    <p className="text-xs text-amber-200">{validationMessages.join(' ')}</p>
                 </div>
               )}
             </CardContent>
