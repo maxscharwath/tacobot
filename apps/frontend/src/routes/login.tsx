@@ -65,7 +65,7 @@ export function LoginRoute() {
     <div className="login-shell">
       <div className="login-card">
         <div className="absolute right-6 top-6">
-          <LanguageSwitcher />
+          <LanguageSwitcher variant="compact" />
         </div>
 
         <header>
