@@ -1,7 +1,6 @@
 // routes/app.tsx
 import React from 'react';
 import { z } from 'zod';
-import { HydrateFallback } from '../components/hydrate-fallback';
 import { DashboardRoute, dashboardLoader } from '../routes/dashboard';
 import { LoginRoute, loginLoader } from '../routes/login';
 import { OrderCreateRoute, orderCreateAction, orderCreateLoader } from '../routes/orders.create';
