@@ -12,6 +12,7 @@ export default defineConfig({
             'babel-plugin-react-compiler',
             {
               runtimeModule: 'react/compiler-runtime',
+              compilationMode: 'annotation',
             },
           ],
         ],

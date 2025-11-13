@@ -33,7 +33,6 @@ export const { routes, routerConfig } = defineRoutes({
     action: rootAction,
     element: React.createElement(RootLayout),
     errorElement: React.createElement(RootErrorBoundary),
-    hydrateFallback: React.createElement(HydrateFallback),
     children: {
       dashboard: {
         index: true,
