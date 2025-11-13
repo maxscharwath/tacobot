@@ -1,6 +1,8 @@
 import { z } from '@hono/zod-openapi';
-import { ErrorResponseSchema, IsoDateStringSchema, jsonContent } from './shared.schemas';
+import { ErrorResponseSchema, IsoDateStringSchema } from './shared.schemas';
 import { TacoSchema } from './user-order.schemas';
+
+export { jsonContent } from './shared.schemas';
 
 const UserResponseSchema = z.object({
   id: z.string(),
@@ -92,5 +94,3 @@ export const UserSchemas = {
   DeliveryProfileRequestSchema,
   ErrorResponseSchema,
 };
-
-export { jsonContent };

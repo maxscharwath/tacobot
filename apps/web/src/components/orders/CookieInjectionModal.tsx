@@ -1,5 +1,4 @@
-import { Lock01 } from '@untitledui/icons/Lock01';
-import { Terminal } from '@untitledui/icons/Terminal';
+import { Lock01, Terminal } from '@untitledui/icons';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/ui';

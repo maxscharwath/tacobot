@@ -126,8 +126,8 @@ export class CreateUserOrderUseCase {
     stock: StockAvailability
   ): UserOrderItems {
     return {
-      tacos: simpleItems.tacos.map((simpleTaco) => {
-        const meats = simpleTaco.meats.map((simpleMeat) => {
+      tacos: simpleItems.tacos.map((simpleTaco: (typeof simpleItems.tacos)[number]) => {
+        const meats = simpleTaco.meats.map((simpleMeat: (typeof simpleTaco.meats)[number]) => {
           const meat = stock[StockCategory.Meats].find((m) => m.id === simpleMeat.id);
           if (!meat) {
             throw new ValidationError({ message: `Meat not found: ${simpleMeat.id}` });
@@ -140,7 +140,7 @@ export class CreateUserOrderUseCase {
           };
         });
 
-        const sauces = simpleTaco.sauces.map((simpleSauce) => {
+        const sauces = simpleTaco.sauces.map((simpleSauce: (typeof simpleTaco.sauces)[number]) => {
           const sauce = stock[StockCategory.Sauces].find((s) => s.id === simpleSauce.id);
           if (!sauce) {
             throw new ValidationError({ message: `Sauce not found: ${simpleSauce.id}` });
@@ -152,21 +152,25 @@ export class CreateUserOrderUseCase {
           };
         });
 
-        const garnitures = simpleTaco.garnitures.map((simpleGarniture) => {
-          const garniture = stock[StockCategory.Garnishes].find((g) => g.id === simpleGarniture.id);
-          if (!garniture) {
-            throw new ValidationError({ message: `Garniture not found: ${simpleGarniture.id}` });
+        const garnitures = simpleTaco.garnitures.map(
+          (simpleGarniture: (typeof simpleTaco.garnitures)[number]) => {
+            const garniture = stock[StockCategory.Garnishes].find(
+              (g) => g.id === simpleGarniture.id
+            );
+            if (!garniture) {
+              throw new ValidationError({ message: `Garniture not found: ${simpleGarniture.id}` });
+            }
+            return {
+              id: GarnitureIdSchema.parse(garniture.id),
+              code: garniture.code,
+              name: garniture.name,
+            };
           }
-          return {
-            id: GarnitureIdSchema.parse(garniture.id),
-            code: garniture.code,
-            name: garniture.name,
-          };
-        });
+        );
 
         // Calculate taco price (base price + meat prices)
         // For now, use sum of meat prices as taco price
-        const price = meats.reduce((sum, meat) => {
+        const price = meats.reduce((sum: number, meat: (typeof meats)[number]) => {
           const meatItem = stock[StockCategory.Meats].find((m) => m.id === meat.id);
           return sum + (meatItem?.price ?? 0) * meat.quantity;
         }, 0);
@@ -188,7 +192,7 @@ export class CreateUserOrderUseCase {
           tacoID: generateTacoID(taco),
         };
       }),
-      extras: simpleItems.extras.map((simpleExtra) => {
+      extras: simpleItems.extras.map((simpleExtra: (typeof simpleItems.extras)[number]) => {
         const extra = stock[StockCategory.Extras].find((e) => e.id === simpleExtra.id);
         if (!extra) {
           throw new ValidationError({ message: `Extra not found: ${simpleExtra.id}` });
@@ -201,7 +205,7 @@ export class CreateUserOrderUseCase {
           quantity: simpleExtra.quantity ?? 1,
         };
       }),
-      drinks: simpleItems.drinks.map((simpleDrink) => {
+      drinks: simpleItems.drinks.map((simpleDrink: (typeof simpleItems.drinks)[number]) => {
         const drink = stock[StockCategory.Drinks].find((d) => d.id === simpleDrink.id);
         if (!drink) {
           throw new ValidationError({ message: `Drink not found: ${simpleDrink.id}` });
@@ -214,7 +218,7 @@ export class CreateUserOrderUseCase {
           quantity: simpleDrink.quantity ?? 1,
         };
       }),
-      desserts: simpleItems.desserts.map((simpleDessert) => {
+      desserts: simpleItems.desserts.map((simpleDessert: (typeof simpleItems.desserts)[number]) => {
         const dessert = stock[StockCategory.Desserts].find((d) => d.id === simpleDessert.id);
         if (!dessert) {
           throw new ValidationError({ message: `Dessert not found: ${simpleDessert.id}` });

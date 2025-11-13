@@ -7,14 +7,14 @@ import { cn } from '@/lib/utils';
  * @component
  */
 type SelectionGroupProps = {
-  title: string;
-  items: Array<{ id: string; name: string; price?: number; in_stock: boolean }>;
-  selected: string[];
-  onToggle: (id: string) => void;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  required?: boolean;
-  disabled?: boolean;
-  maxSelections?: number;
+  readonly title: string;
+  readonly items: Array<{ id: string; name: string; price?: number; in_stock: boolean }>;
+  readonly selected: string[];
+  readonly onToggle: (id: string) => void;
+  readonly icon: React.ComponentType<{ size?: number; className?: string }>;
+  readonly required?: boolean;
+  readonly disabled?: boolean;
+  readonly maxSelections?: number;
 };
 
 export function SelectionGroup({
@@ -76,7 +76,7 @@ export function SelectionGroup({
                 <span
                   className={cn(
                     'block truncate font-medium text-sm',
-                    !item.in_stock ? 'text-slate-500 line-through' : 'text-white'
+                    item.in_stock === false ? 'text-slate-500 line-through' : 'text-white'
                   )}
                 >
                   {item.name}

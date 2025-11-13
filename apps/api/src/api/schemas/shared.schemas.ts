@@ -2,7 +2,7 @@ import { z } from '@hono/zod-openapi';
 
 export const IsoDateStringSchema = z.iso.datetime();
 
-export const IsoDateSchema = IsoDateStringSchema.transform((value) => new Date(value));
+export const IsoDateSchema = IsoDateStringSchema.transform((value: string) => new Date(value));
 
 export const ErrorResponseSchema = z.object({
   error: z.object({

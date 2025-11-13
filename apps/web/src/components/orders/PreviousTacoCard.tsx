@@ -1,4 +1,4 @@
-import { Clock } from '@untitledui/icons/Clock';
+import { Clock } from '@untitledui/icons';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui';
 import { useDateFormat } from '@/hooks/useDateFormat';
@@ -7,10 +7,10 @@ import { formatTacoSizeName, TACO_SIZE_CONFIG } from '@/lib/taco-config';
 import { cn } from '@/lib/utils';
 
 type PreviousTacoCardProps = {
-  order: PreviousOrder;
-  stock: { tacos: Array<{ code: string }> };
-  disabled?: boolean;
-  onSelect: (taco: PreviousOrder['taco']) => void;
+  readonly order: PreviousOrder;
+  readonly stock: { tacos: Array<{ code: string }> };
+  readonly disabled?: boolean;
+  readonly onSelect: (taco: PreviousOrder['taco']) => void;
 };
 
 export function PreviousTacoCard({ order, stock, disabled, onSelect }: PreviousTacoCardProps) {
@@ -61,7 +61,7 @@ export function PreviousTacoCard({ order, stock, disabled, onSelect }: PreviousT
             {taco.meats.length > 0 &&
               taco.meats.map((meat, idx) => (
                 <span
-                  key={idx}
+                  key={`meat-${meat.name}-${meat.quantity ?? 1}-${idx}`}
                   className="inline-flex items-center gap-1 rounded-lg border border-orange-400/25 bg-orange-500/12 px-2.5 py-1 font-semibold text-[11px] text-orange-100"
                 >
                   {meat.name}
@@ -71,7 +71,7 @@ export function PreviousTacoCard({ order, stock, disabled, onSelect }: PreviousT
             {taco.sauces.length > 0 &&
               taco.sauces.map((sauce, idx) => (
                 <span
-                  key={idx}
+                  key={`sauce-${sauce.name}-${idx}`}
                   className="inline-flex items-center rounded-lg border border-violet-400/25 bg-violet-500/12 px-2.5 py-1 font-medium text-[11px] text-violet-100"
                 >
                   {sauce.name}
@@ -80,7 +80,7 @@ export function PreviousTacoCard({ order, stock, disabled, onSelect }: PreviousT
             {taco.garnitures.length > 0 &&
               taco.garnitures.map((garniture, idx) => (
                 <span
-                  key={idx}
+                  key={`garniture-${garniture.name}-${idx}`}
                   className="inline-flex items-center rounded-lg border border-emerald-400/25 bg-emerald-500/12 px-2.5 py-1 font-medium text-[11px] text-emerald-100"
                 >
                   {garniture.name}

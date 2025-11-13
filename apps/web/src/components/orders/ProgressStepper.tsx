@@ -1,4 +1,4 @@
-import { CheckCircle } from '@untitledui/icons/CheckCircle';
+import { CheckCircle } from '@untitledui/icons';
 import { cn } from '@/lib/utils';
 import type { ProgressStep } from '@/types/orders';
 
@@ -8,7 +8,7 @@ import type { ProgressStep } from '@/types/orders';
  */
 
 type ProgressStepperProps = {
-  steps: ProgressStep[];
+  readonly steps: ProgressStep[];
 };
 
 export function ProgressStepper({ steps }: ProgressStepperProps) {

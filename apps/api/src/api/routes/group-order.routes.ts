@@ -20,15 +20,9 @@ import { UserService } from '../../services/user/user.service';
 import { GroupOrderStatus } from '../../shared/types/types';
 import { NotFoundError } from '../../shared/utils/errors.utils';
 import { inject } from '../../shared/utils/inject.utils';
-import { isValidShareCode } from '../../shared/utils/share-code.utils';
 import { jsonContent } from '../schemas/shared.schemas';
 import { UserOrderItemsSchema } from '../schemas/user-order.schemas';
-import {
-  authSecurity,
-  createAuthenticatedRouteApp,
-  createRouteApp,
-  requireUserId,
-} from '../utils/route.utils';
+import { authSecurity, createAuthenticatedRouteApp, requireUserId } from '../utils/route.utils';
 
 const app = createAuthenticatedRouteApp();
 
@@ -230,106 +224,6 @@ app.openapi(
   }
 );
 
-// Public endpoint - no authentication required
-const publicApp = createRouteApp();
-
-// Public endpoint to get group order by share code
-publicApp.openapi(
-  createRoute({
-    method: 'get',
-    path: '/orders/code/{shareCode}',
-    tags: ['Orders'],
-    request: {
-      params: z.object({
-        shareCode: z.string().min(1),
-      }),
-    },
-    responses: {
-      200: {
-        description: 'Group order found by share code',
-        content: jsonContent(GroupOrderResponseSchema),
-      },
-      404: {
-        description: 'Group order not found',
-      },
-    },
-  }),
-  async (c) => {
-    const { shareCode } = c.req.valid('param');
-
-    if (!isValidShareCode(shareCode)) {
-      throw new NotFoundError({
-        resource: 'GroupOrder',
-        shareCode,
-        reason: 'Invalid share code format',
-      });
-    }
-
-    const groupOrderRepository = inject(GroupOrderRepository);
-    const groupOrder = await groupOrderRepository.findByShareCode(shareCode);
-
-    if (!groupOrder) {
-      throw new NotFoundError({ resource: 'GroupOrder', shareCode });
-    }
-
-    return c.json(await serializeGroupOrderResponse(groupOrder), 200);
-  }
-);
-
-// Public endpoint to get group order with user orders (read-only, no auth)
-publicApp.openapi(
-  createRoute({
-    method: 'get',
-    path: '/orders/{id}/public',
-    tags: ['Orders'],
-    request: {
-      params: z.object({
-        id: GroupOrderIdSchema,
-      }),
-    },
-    responses: {
-      200: {
-        description: 'Group order with user orders (public)',
-        content: jsonContent(GroupOrderWithUserOrdersSchema),
-      },
-    },
-  }),
-  async (c) => {
-    const { id } = c.req.valid('param');
-    const getGroupOrderWithUserOrdersUseCase = inject(GetGroupOrderWithUserOrdersUseCase);
-    const result = await getGroupOrderWithUserOrdersUseCase.execute(id);
-    const groupOrder = await serializeGroupOrderResponse(result.groupOrder);
-
-    return c.json(
-      {
-        groupOrder,
-        userOrders: result.userOrders.map((uo) => ({
-          id: uo.id,
-          groupOrderId: uo.groupOrderId,
-          userId: uo.userId,
-          name: uo.name,
-          items: {
-            ...uo.items,
-            tacos: uo.items.tacos.map((taco) => {
-              const { tacoIdHex: _tacoIdHex, ...tacoWithoutInternalFields } =
-                taco as typeof taco & {
-                  tacoIdHex?: string;
-                };
-              return {
-                ...tacoWithoutInternalFields,
-                tacoID: taco.tacoID,
-              };
-            }),
-          },
-          createdAt: uo.createdAt.toISOString(),
-          updatedAt: uo.updatedAt.toISOString(),
-        })),
-      },
-      200
-    );
-  }
-);
-
 // Endpoint to get cookies for order verification
 app.openapi(
   createRoute({
@@ -413,4 +307,3 @@ app.openapi(
 );
 
 export const groupOrderRoutes = app;
-export const publicGroupOrderRoutes = publicApp;

@@ -57,15 +57,6 @@ export function updateGroupOrderStatus(groupOrderId: string, status: 'open' | 'c
   });
 }
 
-// Public endpoints (no authentication required)
-export function getGroupOrderByShareCode(shareCode: string) {
-  return apiClient.get<GroupOrder>(`/api/v1/orders/code/${shareCode}`, { skipAuth: true });
-}
-
-export function getGroupOrderPublic(id: string) {
-  return apiClient.get<GroupOrderWithUserOrders>(`/api/v1/orders/${id}/public`, { skipAuth: true });
-}
-
 export interface OrderCookiesResponse {
   cookies: Record<string, string>;
   csrfToken: string;

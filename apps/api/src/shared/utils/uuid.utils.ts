@@ -17,6 +17,19 @@ const DEFAULT_NAMESPACE = NIL;
 export const randomUUID = () => v4();
 
 /**
+ * Resolve namespace for UUID generation
+ */
+function resolveNamespace(namespace?: string): string {
+  if (!namespace) {
+    return DEFAULT_NAMESPACE;
+  }
+  if (validate(namespace)) {
+    return namespace;
+  }
+  return v5(namespace, NIL);
+}
+
+/**
  * Generate a deterministic UUID (v5) from a seed
  * Uses UUID v5 (namespace-based) to ensure the same seed always produces the same UUID
  *
@@ -26,7 +39,7 @@ export const randomUUID = () => v4();
  * @returns A deterministic UUID string
  */
 export const deterministicUUID = (seed: string, namespace?: string) =>
-  v5(seed, namespace ? (validate(namespace) ? namespace : v5(namespace, NIL)) : DEFAULT_NAMESPACE);
+  v5(seed, resolveNamespace(namespace));
 
 /**
  * Validate if a string is a valid UUID

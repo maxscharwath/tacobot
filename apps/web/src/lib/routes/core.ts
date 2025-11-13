@@ -94,8 +94,18 @@ type BuilderChildren<R extends AnyRouteDef> = ChildRouteDefs<R> extends Record<s
   ? { [K in keyof ChildRouteDefs<R>]: BuilderNode<ChildRouteDefs<R>[K]> }
   : Record<string, never>;
 
+type FullUrlFn<R extends AnyRouteDef> = [ArgsOf<R>] extends [void]
+  ? () => string
+  : RequiredKeys<ArgsOf<R>> extends never
+    ? {
+        (): string;
+        (args: ArgsOf<R>): string;
+      }
+    : (args: ArgsOf<R>) => string;
+
 export type BuilderNode<R extends AnyRouteDef> = BuilderFn<R> & {
   redirectTo: RedirectFn<R>;
+  url: FullUrlFn<R>;
 } & BuilderChildren<R>;
 
 export type Builders<T extends Record<string, AnyRouteDef>> = { [K in keyof T]: BuilderNode<T[K]> };
@@ -184,8 +194,13 @@ const qs = (obj: Record<string, unknown>) => {
   const usp = new URLSearchParams();
   for (const [k, v] of Object.entries(obj)) {
     if (v == null) continue;
-    if (Array.isArray(v)) v.forEach((it) => usp.append(k, String(it)));
-    else usp.set(k, String(v));
+    if (Array.isArray(v)) {
+      for (const it of v) {
+        usp.append(k, String(it));
+      }
+    } else {
+      usp.set(k, String(v));
+    }
   }
   const s = usp.toString();
   return s ? `?${s}` : '';
@@ -226,6 +241,17 @@ const buildOne = <R extends AnyRouteDef>(def: R, basePath: string): BuilderNode<
 
   const redirectTo = ((a?: unknown) => redirect(builderFn(a as ArgsOf<R>))) as RedirectFn<R>;
 
+  const url = ((a?: unknown) => {
+    const path = builderFn(a as ArgsOf<R>);
+    // Use globalThis.location.origin in browser, or provide a way to configure base URL
+    if (typeof globalThis.location !== 'undefined') {
+      return `${globalThis.location.origin}${path}`;
+    }
+    // Fallback for SSR or when location is not available
+    // Could be configured via environment variable or config
+    return path;
+  }) as FullUrlFn<R>;
+
   const children: Record<string, BuilderNode<AnyRouteDef>> = {};
   if (def.children) {
     for (const [k, child] of Object.entries(def.children)) {
@@ -233,7 +259,7 @@ const buildOne = <R extends AnyRouteDef>(def: R, basePath: string): BuilderNode<
     }
   }
 
-  return Object.assign(builderFn, { redirectTo }, children) as BuilderNode<R>;
+  return Object.assign(builderFn, { redirectTo, url }, children) as BuilderNode<R>;
 };
 
 export function createRouteBuilders<const T extends Record<string, AnyRouteDef>>(

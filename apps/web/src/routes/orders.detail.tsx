@@ -1,6 +1,4 @@
-import { Plus } from '@untitledui/icons/Plus';
-import { ShoppingBag01 } from '@untitledui/icons/ShoppingBag01';
-import { Terminal } from '@untitledui/icons/Terminal';
+import { Plus, ShoppingBag01, Terminal } from '@untitledui/icons';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {

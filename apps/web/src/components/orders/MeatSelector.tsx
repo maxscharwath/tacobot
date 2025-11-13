@@ -1,19 +1,18 @@
-import { Minus } from '@untitledui/icons/Minus';
-import { Plus } from '@untitledui/icons/Plus';
+import { Minus, Plus } from '@untitledui/icons';
 import { useTranslation } from 'react-i18next';
 import { Badge, Card, CardContent, Label } from '@/components/ui';
-import type { StockItem, StockResponse } from '@/lib/api/types';
+import type { StockResponse } from '@/lib/api/types';
 import { cn } from '@/lib/utils';
 import type { MeatSelection, TacoSizeItem } from '@/types/orders';
 
 type MeatSelectorProps = {
-  meats: MeatSelection[];
-  stock: StockResponse;
-  selectedTacoSize: TacoSizeItem | null;
-  size: string | null;
-  currency: string;
-  isSubmitting: boolean;
-  updateMeatQuantity: (id: string, delta: number) => void;
+  readonly meats: MeatSelection[];
+  readonly stock: StockResponse;
+  readonly selectedTacoSize: TacoSizeItem | null;
+  readonly size: string | null;
+  readonly currency: string;
+  readonly isSubmitting: boolean;
+  readonly updateMeatQuantity: (id: string, delta: number) => void;
 };
 
 export function MeatSelector({
@@ -48,7 +47,7 @@ export function MeatSelector({
                   })}
                 </span>
               )}
-              {meats.filter((m) => m.quantity > 0).length > 0 && (
+              {meats.some((m) => m.quantity > 0) && (
                 <Badge tone="brand" className="text-xs">
                   {t('orders.create.customizeSection.meatTypesSelected', {
                     count: meats.filter((m) => m.quantity > 0).length,
@@ -72,28 +71,15 @@ export function MeatSelector({
 
               const canClickToAdd =
                 quantity === 0 &&
-                size &&
-                selectedTacoSize &&
+                size !== null &&
+                selectedTacoSize !== null &&
                 item.in_stock &&
                 canAddMore &&
-                !isSubmitting;
+                isSubmitting === false;
 
               return (
                 <div
                   key={item.id}
-                  onClick={() => {
-                    if (canClickToAdd) {
-                      updateMeatQuantity(item.id, 1);
-                    }
-                  }}
-                  role={canClickToAdd ? 'button' : undefined}
-                  tabIndex={canClickToAdd ? 0 : undefined}
-                  onKeyDown={(e) => {
-                    if (canClickToAdd && (e.key === 'Enter' || e.key === ' ')) {
-                      e.preventDefault();
-                      updateMeatQuantity(item.id, 1);
-                    }
-                  }}
                   className={cn(
                     'group relative rounded-2xl border p-4 transition-all duration-200',
                     hasQuantity
@@ -101,11 +87,19 @@ export function MeatSelector({
                       : 'border-white/10 bg-slate-800/50 hover:border-brand-400/40 hover:bg-slate-800/70 hover:shadow-[0_4px_12px_rgba(99,102,241,0.15)]',
                     canClickToAdd && 'cursor-pointer',
                     isDisabled && quantity === 0 && !canClickToAdd && 'cursor-not-allowed',
-                    !item.in_stock &&
+                    item.in_stock === false &&
                       'border-slate-700/50 bg-slate-900/40 opacity-60 grayscale hover:border-slate-700/50 hover:bg-slate-900/40'
                   )}
                 >
-                  {!item.in_stock && (
+                  {canClickToAdd && (
+                    <button
+                      type="button"
+                      onClick={() => updateMeatQuantity(item.id, 1)}
+                      className="absolute inset-0 z-10"
+                      aria-label={t('common.labels.addMeat', { name: item.name })}
+                    />
+                  )}
+                  {item.in_stock === false && (
                     <div className="pointer-events-none absolute inset-0 z-10 rounded-2xl border-2 border-slate-600/30 border-dashed bg-slate-900/40" />
                   )}
                   <div className="relative z-0 mb-4 flex items-start gap-3">
@@ -113,7 +107,7 @@ export function MeatSelector({
                       <span
                         className={cn(
                           'block truncate font-semibold text-sm',
-                          !item.in_stock ? 'text-slate-500 line-through' : 'text-white'
+                          item.in_stock === false ? 'text-slate-500 line-through' : 'text-white'
                         )}
                       >
                         {item.name}
@@ -124,7 +118,7 @@ export function MeatSelector({
                             {item.price!.toFixed(2)} {currency}
                           </span>
                         )}
-                        {!item.in_stock && (
+                        {item.in_stock === false && (
                           <Badge tone="warning" className="px-1.5 py-0 font-semibold text-[9px]">
                             {t('common.outOfStock')}
                           </Badge>
@@ -136,7 +130,10 @@ export function MeatSelector({
                     <span className="font-medium text-slate-300 text-xs">
                       {t('common.labels.quantity')}
                     </span>
-                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="flex items-center gap-2"
+                      onMouseDown={(e) => e.stopPropagation()}
+                    >
                       <button
                         type="button"
                         onClick={() => updateMeatQuantity(item.id, -1)}

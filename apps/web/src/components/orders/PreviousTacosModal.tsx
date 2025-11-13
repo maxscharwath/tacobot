@@ -4,12 +4,12 @@ import type { PreviousOrder, StockResponse } from '@/lib/api/types';
 import { PreviousTacoCard } from './PreviousTacoCard';
 
 type PreviousTacosModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  previousOrders: PreviousOrder[];
-  stock: StockResponse;
-  disabled?: boolean;
-  onSelectTaco: (taco: PreviousOrder['taco']) => void;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly previousOrders: PreviousOrder[];
+  readonly stock: StockResponse;
+  readonly disabled?: boolean;
+  readonly onSelectTaco: (taco: PreviousOrder['taco']) => void;
 };
 
 export function PreviousTacosModal({

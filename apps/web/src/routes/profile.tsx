@@ -1,7 +1,4 @@
-import { CheckCircle } from '@untitledui/icons/CheckCircle';
-import { Copy01 } from '@untitledui/icons/Copy01';
-import { Settings01 } from '@untitledui/icons/Settings01';
-import { Truck01 } from '@untitledui/icons/Truck01';
+import { CheckCircle, Copy01, Settings01, Truck01 } from '@untitledui/icons';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, type LoaderFunctionArgs, useLoaderData } from 'react-router';
@@ -151,7 +148,7 @@ export function ProfileRoute() {
                           {taco.meats.length > 0 &&
                             taco.meats.map((meat, idx) => (
                               <span
-                                key={idx}
+                                key={`profile-meat-${meat.name}-${meat.quantity ?? 1}-${idx}`}
                                 className="inline-flex items-center gap-1 rounded-lg border border-orange-400/25 bg-orange-500/12 px-2.5 py-1 font-semibold text-[11px] text-orange-100"
                               >
                                 {meat.name}
@@ -163,7 +160,7 @@ export function ProfileRoute() {
                           {taco.sauces.length > 0 &&
                             taco.sauces.map((sauce, idx) => (
                               <span
-                                key={idx}
+                                key={`profile-sauce-${sauce.name}-${idx}`}
                                 className="inline-flex items-center rounded-lg border border-violet-400/25 bg-violet-500/12 px-2.5 py-1 font-medium text-[11px] text-violet-100"
                               >
                                 {sauce.name}
@@ -172,7 +169,7 @@ export function ProfileRoute() {
                           {taco.garnitures.length > 0 &&
                             taco.garnitures.map((garniture, idx) => (
                               <span
-                                key={idx}
+                                key={`profile-garniture-${garniture.name}-${idx}`}
                                 className="inline-flex items-center rounded-lg border border-emerald-400/25 bg-emerald-500/12 px-2.5 py-1 font-medium text-[11px] text-emerald-100"
                               >
                                 {garniture.name}

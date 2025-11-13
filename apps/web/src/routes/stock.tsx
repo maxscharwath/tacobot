@@ -1,11 +1,18 @@
-import { AlertTriangle } from '@untitledui/icons/AlertTriangle';
-import { Package } from '@untitledui/icons/Package';
+import { AlertTriangle, Package } from '@untitledui/icons';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { LoaderFunctionArgs } from 'react-router';
 import { useLoaderData } from 'react-router';
 import { StatBubble } from '@/components/orders';
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui';
 import { cn } from '@/lib/utils';
 import type { StockItem, StockResponse } from '../lib/api';
 import { StockApi } from '../lib/api';
@@ -20,28 +27,16 @@ export async function stockLoader(_: LoaderFunctionArgs) {
 }
 
 const STOCK_SECTIONS = [
-  { key: 'meats', tone: 'rose' },
-  { key: 'sauces', tone: 'amber' },
-  { key: 'garnishes', tone: 'emerald' },
-  { key: 'extras', tone: 'violet' },
-  { key: 'drinks', tone: 'sky' },
-  { key: 'desserts', tone: 'cyan' },
+  { key: 'meats', tone: 'rose' as const },
+  { key: 'sauces', tone: 'amber' as const },
+  { key: 'garnishes', tone: 'emerald' as const },
+  { key: 'extras', tone: 'violet' as const },
+  { key: 'drinks', tone: 'sky' as const },
+  { key: 'desserts', tone: 'cyan' as const },
 ] as const satisfies ReadonlyArray<{
   key: keyof StockResponse;
-  tone: 'sky' | 'violet' | 'emerald' | 'amber' | 'rose' | 'cyan';
+  tone: 'sky' | 'violet' | 'emerald' | 'amber' | 'rose' | 'cyan' | 'brand';
 }>;
-
-const TONE_TAB_ACTIVE_CLASSES: Record<(typeof STOCK_SECTIONS)[number]['tone'], string> = {
-  rose: 'border-rose-400/50 bg-rose-500/20 text-rose-50 shadow-[0_12px_40px_rgba(244,114,182,0.25)]',
-  amber:
-    'border-amber-400/50 bg-amber-500/20 text-amber-50 shadow-[0_12px_40px_rgba(251,191,36,0.25)]',
-  emerald:
-    'border-emerald-400/50 bg-emerald-500/20 text-emerald-50 shadow-[0_12px_40px_rgba(16,185,129,0.25)]',
-  violet:
-    'border-violet-400/50 bg-violet-500/20 text-violet-50 shadow-[0_12px_40px_rgba(167,139,250,0.25)]',
-  sky: 'border-sky-400/50 bg-sky-500/20 text-sky-50 shadow-[0_12px_40px_rgba(14,165,233,0.25)]',
-  cyan: 'border-cyan-400/50 bg-cyan-500/20 text-cyan-50 shadow-[0_12px_40px_rgba(34,211,238,0.25)]',
-};
 
 type StockSectionKey = (typeof STOCK_SECTIONS)[number]['key'];
 
@@ -88,9 +83,9 @@ export function StockRoute() {
         <div className="absolute inset-0 bg-linear-to-br from-transparent via-transparent to-brand-500/5" />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-brand-400/50 bg-brand-500/10 px-3 py-1 font-semibold text-brand-100 text-xs uppercase tracking-[0.3em] shadow-[0_4px_12px_rgba(99,102,241,0.2)]">
+            <Badge tone="brand" pill className="uppercase tracking-[0.3em]">
               {tt('badge')}
-            </span>
+            </Badge>
             <h1 className="font-semibold text-2xl text-white leading-tight tracking-tight lg:text-3xl">
               {tt('title')}
             </h1>
@@ -149,24 +144,21 @@ export function StockRoute() {
                 {sections.map(({ key, label, tone }) => {
                   const isActive = key === activeTab;
                   return (
-                    <button
+                    <Button
                       key={key}
-                      role="tab"
                       type="button"
-                      aria-selected={isActive}
+                      variant="tab"
+                      color={isActive ? tone : undefined}
+                      pill
+                      size="sm"
                       onClick={() => setActiveTab(key)}
-                      className={cn(
-                        'flex items-center gap-2 rounded-full border px-4 py-2 font-semibold text-sm uppercase tracking-[0.2em] transition',
-                        isActive
-                          ? TONE_TAB_ACTIVE_CLASSES[tone]
-                          : 'border-white/10 bg-slate-900/60 text-slate-300 hover:border-brand-400/40 hover:text-brand-50'
-                      )}
+                      className="uppercase"
                     >
                       {label}
-                      <span className="rounded-full bg-slate-800/80 px-2 py-0.5 font-medium text-[11px] text-slate-200">
+                      <Badge tone="neutral" pill>
                         {stock[key].length}
-                      </span>
-                    </button>
+                      </Badge>
+                    </Button>
                   );
                 })}
               </div>
@@ -207,18 +199,24 @@ export function StockRoute() {
                           <header className="space-y-3">
                             <div className="flex items-start justify-between gap-3">
                               <h3 className="font-semibold text-base text-white">{item.name}</h3>
-                              <span className="rounded-full border border-white/10 bg-slate-800/70 px-3 py-1 text-[11px] text-slate-400 uppercase tracking-[0.3em]">
+                              <Badge
+                                tone="neutral"
+                                pill
+                                className="text-[11px] uppercase tracking-[0.3em]"
+                              >
                                 {item.code}
-                              </span>
+                              </Badge>
                             </div>
-                            <button
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="sm"
                               onClick={() => navigator.clipboard.writeText(item.id)}
-                              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-900/70 px-3 py-1 text-[11px] text-slate-400 uppercase tracking-[0.3em] transition hover:border-brand-400/50 hover:text-brand-100"
+                              className="text-[11px] uppercase tracking-[0.3em]"
                               title={tt('list.copyIdTooltip')}
                             >
                               {tt('list.copyId')}
-                            </button>
+                            </Button>
                           </header>
                           <footer className="flex items-center justify-between">
                             <Badge tone={item.in_stock ? 'success' : 'warning'} pill>

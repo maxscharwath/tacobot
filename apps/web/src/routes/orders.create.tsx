@@ -1,7 +1,4 @@
-import { ArrowLeft } from '@untitledui/icons/ArrowLeft';
-import { CheckCircle } from '@untitledui/icons/CheckCircle';
-import { Package } from '@untitledui/icons/Package';
-import { Plus } from '@untitledui/icons/Plus';
+import { ArrowLeft, CheckCircle, Package, Plus } from '@untitledui/icons';
 import { useTranslation } from 'react-i18next';
 import {
   type ActionFunctionArgs,

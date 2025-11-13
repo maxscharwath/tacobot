@@ -6,13 +6,13 @@ type Listener = () => void;
 
 class SessionStore {
   private session: Session | null;
-  private listeners = new Set<Listener>();
+  private readonly listeners = new Set<Listener>();
 
   constructor() {
     this.session = this.readFromStorage();
     // Listen for storage changes from other tabs
-    if (typeof window !== 'undefined') {
-      window.addEventListener('storage', this.handleStorageChange.bind(this));
+    if (typeof globalThis.window !== 'undefined') {
+      globalThis.window.addEventListener('storage', this.handleStorageChange.bind(this));
     }
   }
 
@@ -39,8 +39,8 @@ class SessionStore {
   public clearSession() {
     this.session = null;
     try {
-      if (typeof window !== 'undefined') {
-        window.localStorage.removeItem(STORAGE_KEY);
+      if (typeof globalThis.window !== 'undefined') {
+        globalThis.window.localStorage.removeItem(STORAGE_KEY);
       }
     } catch {
       // ignore storage errors
@@ -63,11 +63,11 @@ class SessionStore {
   }
 
   private readFromStorage(): Session | null {
-    if (typeof window === 'undefined') {
+    if (typeof globalThis.window === 'undefined') {
       return null;
     }
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
+      const raw = globalThis.window.localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw) as Session;
       if (!parsed?.token || !parsed?.username || !parsed?.userId) {
@@ -80,11 +80,11 @@ class SessionStore {
   }
 
   private writeToStorage(session: Session) {
-    if (typeof window === 'undefined') {
+    if (typeof globalThis.window === 'undefined') {
       return;
     }
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+      globalThis.window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
     } catch {
       // ignore storage errors
     }

@@ -1,7 +1,4 @@
-import { ArrowLeft } from '@untitledui/icons/ArrowLeft';
-import { Lock01 } from '@untitledui/icons/Lock01';
-import { Send03 } from '@untitledui/icons/Send03';
-import { Truck01 } from '@untitledui/icons/Truck01';
+import { ArrowLeft, Lock01, Send03, Truck01 } from '@untitledui/icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -368,7 +365,7 @@ export function OrderSubmitRoute() {
       setProfileMessage({ type: 'error', text: tt('saved.messages.selectProfile') });
       return;
     }
-    if (!window.confirm(tt('saved.confirmDelete'))) {
+    if (!globalThis.window.confirm(tt('saved.confirmDelete'))) {
       return;
     }
     setProfileLoading(true);

@@ -1,4 +1,4 @@
-import { Trash01 } from '@untitledui/icons/Trash01';
+import { Trash01 } from '@untitledui/icons';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { DeliveryType } from '@/components/orders/DeliveryTypeSelector';
@@ -24,7 +24,7 @@ const initialFormState = () => ({
 });
 
 interface DeliveryProfilesManagerProps {
-  profiles: DeliveryProfile[];
+  readonly profiles: DeliveryProfile[];
 }
 
 export function DeliveryProfilesManager({ profiles }: DeliveryProfilesManagerProps) {
@@ -184,7 +184,7 @@ export function DeliveryProfilesManager({ profiles }: DeliveryProfilesManagerPro
       setFeedback({ tone: 'error', text: tt('messages.selectProfile') });
       return;
     }
-    if (!window.confirm(tt('confirmDelete'))) return;
+    if (!globalThis.window.confirm(tt('confirmDelete'))) return;
     setBusy(true);
     setFeedback(null);
     try {

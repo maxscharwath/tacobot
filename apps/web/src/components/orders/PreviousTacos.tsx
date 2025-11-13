@@ -1,4 +1,4 @@
-import { Package } from '@untitledui/icons/Package';
+import { Package } from '@untitledui/icons';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui';
@@ -7,10 +7,10 @@ import { PreviousTacosModal } from './PreviousTacosModal';
 import { TacoHashSearch } from './TacoHashSearch';
 
 type PreviousTacosProps = {
-  previousOrders: PreviousOrder[];
-  stock: StockResponse;
-  onSelectTaco: (taco: PreviousOrder['taco'] | TacoOrder) => void;
-  disabled?: boolean;
+  readonly previousOrders: PreviousOrder[];
+  readonly stock: StockResponse;
+  readonly onSelectTaco: (taco: PreviousOrder['taco'] | TacoOrder) => void;
+  readonly disabled?: boolean;
 };
 
 export function PreviousTacos({

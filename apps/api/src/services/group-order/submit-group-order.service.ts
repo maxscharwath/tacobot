@@ -92,14 +92,11 @@ export class SubmitGroupOrderUseCase {
     }
 
     if (!canAcceptOrders(groupOrder)) {
-      const errorKey =
-        groupOrder.status !== GroupOrderStatus.OPEN
-          ? 'errors.orders.submit.invalidStatus'
-          : 'errors.orders.submit.expired';
-      throw new ValidationError(
-        groupOrder.status !== GroupOrderStatus.OPEN ? { status: groupOrder.status } : {},
-        errorKey
-      );
+      const isStatusInvalid = groupOrder.status !== GroupOrderStatus.OPEN;
+      const errorKey = isStatusInvalid
+        ? 'errors.orders.submit.invalidStatus'
+        : 'errors.orders.submit.expired';
+      throw new ValidationError(isStatusInvalid ? { status: groupOrder.status } : {}, errorKey);
     }
 
     return groupOrder;

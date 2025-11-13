@@ -7,7 +7,6 @@
  */
 
 import type { CartId } from './cart.schema';
-import { CartIdSchema } from './cart.schema';
 
 /**
  * Session ID type - an alias for CartId since sessions are carts
@@ -18,4 +17,4 @@ export type SessionId = CartId;
 /**
  * Parse a string to SessionId (which is the same as CartId)
  */
-export const SessionIdSchema = CartIdSchema;
+export { CartIdSchema as SessionIdSchema } from './cart.schema';

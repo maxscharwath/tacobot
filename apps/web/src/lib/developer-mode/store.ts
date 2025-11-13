@@ -4,13 +4,13 @@ const STORAGE_KEY = 'tacobot:developerMode';
 
 class DeveloperModeStore {
   private isEnabled: boolean;
-  private listeners = new Set<Listener>();
+  private readonly listeners = new Set<Listener>();
 
   constructor() {
     this.isEnabled = this.readFromStorage();
     // Listen for storage changes from other tabs
-    if (typeof window !== 'undefined') {
-      window.addEventListener('storage', this.handleStorageChange.bind(this));
+    if (typeof globalThis.window !== 'undefined') {
+      globalThis.window.addEventListener('storage', this.handleStorageChange.bind(this));
     }
   }
 
@@ -53,25 +53,25 @@ class DeveloperModeStore {
   }
 
   private readFromStorage(): boolean {
-    if (typeof window === 'undefined') {
+    if (typeof globalThis.window === 'undefined') {
       return false;
     }
     try {
-      return window.localStorage.getItem(STORAGE_KEY) === 'true';
+      return globalThis.window.localStorage.getItem(STORAGE_KEY) === 'true';
     } catch {
       return false;
     }
   }
 
   private writeToStorage(enabled: boolean) {
-    if (typeof window === 'undefined') {
+    if (typeof globalThis.window === 'undefined') {
       return;
     }
     try {
       if (enabled) {
-        window.localStorage.setItem(STORAGE_KEY, 'true');
+        globalThis.window.localStorage.setItem(STORAGE_KEY, 'true');
       } else {
-        window.localStorage.removeItem(STORAGE_KEY);
+        globalThis.window.localStorage.removeItem(STORAGE_KEY);
       }
     } catch {
       // ignore storage errors

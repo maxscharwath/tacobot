@@ -154,12 +154,5 @@ export function isGroupOrderLeader(order: GroupOrder, userId: UserId): boolean {
  * @returns true if the order can accept new orders, false otherwise
  */
 export function canAcceptOrders(order: GroupOrder, referenceDate = new Date()): boolean {
-  if (order.status !== GroupOrderStatus.OPEN) {
-    return false;
-  }
-
-  return isWithinInterval(referenceDate, {
-    start: order.startDate,
-    end: order.endDate,
-  });
+  return order.status === GroupOrderStatus.OPEN && isGroupOrderOpenForOrders(order, referenceDate);
 }

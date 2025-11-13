@@ -1,6 +1,4 @@
-import { ArrowLeft } from '@untitledui/icons/ArrowLeft';
-import { Lock01 } from '@untitledui/icons/Lock01';
-import { Truck01 } from '@untitledui/icons/Truck01';
+import { ArrowLeft, Lock01, Truck01 } from '@untitledui/icons';
 import { useTranslation } from 'react-i18next';
 import { Link, type LoaderFunctionArgs, useLoaderData } from 'react-router';
 import { DeliveryProfilesManager } from '@/components/profile/DeliveryProfilesManager';

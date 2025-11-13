@@ -5,10 +5,10 @@ import type { ComponentType } from 'react';
  * @component
  */
 type StatBubbleProps = {
-  icon: ComponentType<{ size?: number; className?: string }>;
-  label: string;
-  value: string | number;
-  tone: 'brand' | 'violet' | 'sunset';
+  readonly icon: ComponentType<{ size?: number; className?: string }>;
+  readonly label: string;
+  readonly value: string | number;
+  readonly tone: 'brand' | 'violet' | 'sunset';
 };
 
 const toneStyles: Record<StatBubbleProps['tone'], string> = {

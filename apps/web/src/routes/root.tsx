@@ -1,8 +1,4 @@
-import { Activity } from '@untitledui/icons/Activity';
-import { ClipboardCheck } from '@untitledui/icons/ClipboardCheck';
-import { Package } from '@untitledui/icons/Package';
-import { Terminal } from '@untitledui/icons/Terminal';
-import { Users03 } from '@untitledui/icons/Users03';
+import { Activity, ClipboardCheck, Package, Terminal, Users03 } from '@untitledui/icons';
 import type { ComponentType } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +10,7 @@ import {
   useLoaderData,
   useRouteError,
 } from 'react-router';
+import { Alert, Avatar, Button } from '@/components/ui';
 import { LanguageSwitcher } from '../components/language-switcher';
 import { useDeveloperMode } from '../hooks/useDeveloperMode';
 import { authClient } from '../lib/auth-client';
@@ -47,12 +44,12 @@ export function RootLayout() {
       loadSession();
     };
 
-    window.addEventListener('userNameUpdated', handleNameUpdate);
-    window.addEventListener('focus', loadSession);
+    globalThis.window.addEventListener('userNameUpdated', handleNameUpdate);
+    globalThis.window.addEventListener('focus', loadSession);
 
     return () => {
-      window.removeEventListener('userNameUpdated', handleNameUpdate);
-      window.removeEventListener('focus', loadSession);
+      globalThis.window.removeEventListener('userNameUpdated', handleNameUpdate);
+      globalThis.window.removeEventListener('focus', loadSession);
     };
   }, []);
   type NavItem = {
@@ -90,22 +87,23 @@ export function RootLayout() {
 
             {/* User Actions Section */}
             <div className="flex shrink-0 items-center gap-2.5">
-              <button
+              <Button
+                type="button"
+                variant={isDeveloperMode ? 'primary' : 'ghost'}
+                size="sm"
                 onClick={toggleDeveloperMode}
-                className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${
-                  isDeveloperMode
-                    ? 'border-brand-400/70 bg-brand-500/20 text-brand-100 shadow-glow-brand'
-                    : 'border-white/10 bg-slate-800/60 text-slate-400 hover:border-brand-400/40 hover:text-brand-100'
-                }`}
+                className="h-9 w-9 p-0"
                 title={isDeveloperMode ? 'Developer Mode: ON' : 'Developer Mode: OFF'}
               >
                 <Terminal size={16} />
-              </button>
+              </Button>
               <LanguageSwitcher />
               <div className="flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-linear-to-br from-slate-900/90 via-slate-900/80 to-slate-950/90 px-2.5 py-1.5 shadow-black/20 shadow-lg backdrop-blur-sm">
-                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-linear-to-br from-brand-400 via-brand-500 to-sky-500 font-bold text-[10px] text-white shadow-brand-500/30 shadow-md">
-                  {userInitials}
-                </div>
+                <Avatar
+                  size="sm"
+                  initials={userInitials}
+                  className="shrink-0 bg-linear-to-br from-brand-400 via-brand-500 to-sky-500 text-[10px]"
+                />
                 <span
                   className="max-w-[100px] truncate font-semibold text-white text-xs sm:max-w-[150px]"
                   title={userName}
@@ -114,12 +112,14 @@ export function RootLayout() {
                 </span>
                 <Form method="post" className="shrink-0">
                   <input type="hidden" name="_intent" value="logout" />
-                  <button
+                  <Button
                     type="submit"
-                    className="rounded-lg border border-white/5 bg-slate-800/80 px-2.5 py-1 font-semibold text-[11px] text-slate-200 shadow-sm transition-colors hover:border-white/10 hover:bg-slate-700/90"
+                    variant="ghost"
+                    size="sm"
+                    className="px-2.5 py-1 text-[11px]"
                   >
                     {t('common.signOut')}
-                  </button>
+                  </Button>
                 </Form>
               </div>
             </div>
@@ -173,11 +173,18 @@ export function RootErrorBoundary() {
   );
 }
 
-function ErrorState({ title, message }: { title: string; message: string }) {
+function ErrorState({ title, message }: { readonly title: string; readonly message: string }) {
   return (
-    <div className="error-state">
-      <h1>{title}</h1>
-      <p>{message}</p>
+    <div className="relative min-h-screen bg-slate-950 text-slate-100">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="-top-24 absolute right-1/2 h-72 w-72 rounded-full bg-brand-500/20 blur-3xl" />
+        <div className="absolute bottom-0 left-1/2 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl" />
+      </div>
+      <div className="relative flex min-h-screen items-center justify-center p-6">
+        <Alert tone="error" title={title} className="max-w-md">
+          {message}
+        </Alert>
+      </div>
     </div>
   );
 }

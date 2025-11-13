@@ -130,7 +130,14 @@ export class NotFoundError extends ApiError {
 
     // Determine identifier and context type (prefer specific types over generic id)
     const identifier = tacoID || shareCode || id || groupOrderId;
-    const context = tacoID ? 'tacoID' : shareCode ? 'shareCode' : 'id';
+    let context: string;
+    if (tacoID) {
+      context = 'tacoID';
+    } else if (shareCode) {
+      context = 'shareCode';
+    } else {
+      context = 'id';
+    }
 
     return {
       resource,

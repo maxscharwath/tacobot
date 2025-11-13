@@ -1,4 +1,4 @@
-import { Skeleton } from './ui';
+import { Card, CardContent, Skeleton } from './ui';
 
 export function HydrateFallback() {
   return (
@@ -9,32 +9,34 @@ export function HydrateFallback() {
       </div>
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 pt-10 pb-20">
-        <div className="flex flex-col items-start gap-6 rounded-3xl border border-white/10 bg-slate-900/60 p-6">
-          <div className="flex w-full flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-linear-to-br from-brand-400 via-brand-500 to-sky-500 font-semibold text-lg">
-                🌮
+        <Card className="p-6">
+          <CardContent className="flex flex-col items-start gap-6">
+            <div className="flex w-full flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-linear-to-br from-brand-400 via-brand-500 to-sky-500 font-semibold text-lg">
+                  🌮
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-6 w-64" />
+                  <Skeleton className="h-4 w-96" />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Skeleton className="h-6 w-64" />
-                <Skeleton className="h-4 w-96" />
-              </div>
+              <Skeleton className="h-12 w-32" />
             </div>
-            <Skeleton className="h-12 w-32" />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-10 w-32 rounded-full" />
-            ))}
-          </div>
-        </div>
+            <div className="flex flex-wrap gap-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={`badge-${i}`} className="h-10 w-32 rounded-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
           <div className="space-y-4">
             <Skeleton className="h-8 w-48" />
             <div className="space-y-4">
               {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+                <Skeleton key={`card-${i}`} className="h-24 w-full rounded-2xl" />
               ))}
             </div>
           </div>

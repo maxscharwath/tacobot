@@ -1,4 +1,4 @@
-import { CheckCircle } from '@untitledui/icons/CheckCircle';
+import { CheckCircle } from '@untitledui/icons';
 import { Badge } from '@/components/ui';
 
 /**
@@ -6,11 +6,11 @@ import { Badge } from '@/components/ui';
  * @component
  */
 type OrderSectionProps = {
-  title: string;
-  items: string[] | Array<{ name: string; quantity?: number }>;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  emptyText?: string;
-  showQuantity?: boolean;
+  readonly title: string;
+  readonly items: string[] | Array<{ name: string; quantity?: number }>;
+  readonly icon: React.ComponentType<{ size?: number; className?: string }>;
+  readonly emptyText?: string;
+  readonly showQuantity?: boolean;
 };
 
 export function OrderSection({
@@ -44,7 +44,7 @@ export function OrderSection({
 
           return (
             <span
-              key={idx}
+              key={`order-item-${name}-${quantity ?? ''}-${idx}`}
               className="inline-flex items-center gap-1.5 rounded-lg border border-brand-400/20 bg-brand-500/10 px-2.5 py-1 font-medium text-brand-100 text-xs"
             >
               <CheckCircle size={12} className="text-brand-300" />

@@ -8,6 +8,7 @@ import { MiddlewareHandler, Next } from 'hono';
 import { UserRepository } from '../../infrastructure/repositories/user.repository';
 import { UnauthorizedError } from '../../shared/utils/errors.utils';
 import { inject } from '../../shared/utils/inject.utils';
+import { logger } from '../../shared/utils/logger.utils';
 import type { AuthMethod, AuthResult } from './auth.types';
 import { bearerTokenAuth } from './auth-methods/bearer-token.auth';
 
@@ -104,8 +105,10 @@ async function checkBetterAuthSession(c: Context): Promise<AuthResult | null> {
       slackId: user.slackId ?? undefined,
       email: betterAuthUser.email,
     };
-  } catch (_error) {
+  } catch (error_) {
     // If lookup fails, return null to try fallback auth methods
+    // Log error for debugging but don't expose to user
+    logger.debug('Failed to check Better Auth session', { error: error_ });
     return null;
   }
 }

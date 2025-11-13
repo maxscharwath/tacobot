@@ -1,12 +1,10 @@
-import { Activity } from '@untitledui/icons/Activity';
-import { ArrowUpRight } from '@untitledui/icons/ArrowUpRight';
-import { TrendUp01 } from '@untitledui/icons/TrendUp01';
-import { Users03 } from '@untitledui/icons/Users03';
+import { Activity, ArrowUpRight, TrendUp01, Users03 } from '@untitledui/icons';
 import { Trans, useTranslation } from 'react-i18next';
 import type { LoaderFunctionArgs } from 'react-router';
 import { Link, redirect, useLoaderData } from 'react-router';
 import { StatBubble } from '@/components/orders';
 import {
+  Badge,
   Card,
   CardContent,
   CardDescription,
@@ -71,9 +69,9 @@ export function DashboardRoute() {
         <div className="absolute inset-0 bg-linear-to-br from-transparent via-transparent to-brand-500/5" />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-brand-400/50 bg-brand-500/10 px-3 py-1 font-semibold text-brand-100 text-xs uppercase tracking-[0.3em] shadow-[0_4px_12px_rgba(99,102,241,0.2)]">
+            <Badge tone="brand" pill className="uppercase tracking-[0.3em]">
               {t('dashboard.kitchenPulse')}
-            </span>
+            </Badge>
             <h1 className="font-semibold text-2xl text-white leading-tight tracking-tight lg:text-3xl">
               <Trans
                 i18nKey="dashboard.hero.title"
@@ -200,9 +198,9 @@ export function DashboardRoute() {
                 >
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
-                      <span className="rounded-full bg-brand-500/15 px-3 py-1 font-semibold text-brand-200 text-xs uppercase tracking-[0.3em]">
+                      <Badge tone="brand" pill className="uppercase tracking-[0.3em]">
                         {history.orderType}
-                      </span>
+                      </Badge>
                       <span className="text-slate-400 text-xs">
                         {t('dashboard.latestSubmissions.requestedFor', {
                           name: history.requestedFor ?? '—',

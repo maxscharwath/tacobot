@@ -23,6 +23,30 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   );
 }
 
+/**
+ * Extract error information from error body
+ */
+function extractErrorInfo(errorBody: unknown): ApiErrorBody | null {
+  if (!errorBody || typeof errorBody !== 'object') {
+    return null;
+  }
+
+  if (!('id' in errorBody && 'code' in errorBody)) {
+    return null;
+  }
+
+  return {
+    id: 'id' in errorBody && typeof errorBody.id === 'string' ? errorBody.id : undefined,
+    code: 'code' in errorBody && typeof errorBody.code === 'string' ? errorBody.code : undefined,
+    message:
+      'message' in errorBody && typeof errorBody.message === 'string'
+        ? errorBody.message
+        : undefined,
+    key: 'key' in errorBody && typeof errorBody.key === 'string' ? errorBody.key : undefined,
+    details: 'details' in errorBody && isRecord(errorBody.details) ? errorBody.details : undefined,
+  };
+}
+
 export class ApiError extends Error {
   public readonly status: number;
   public readonly body: unknown;
@@ -39,24 +63,12 @@ export class ApiError extends Error {
     // Extract error information if body contains error object
     if (body && typeof body === 'object' && 'error' in body) {
       const bodyWithError: { error?: unknown } = body;
-      const errorBody = bodyWithError.error;
-      if (errorBody && typeof errorBody === 'object' && 'id' in errorBody && 'code' in errorBody) {
-        const apiErrorBody: ApiErrorBody = {
-          id: 'id' in errorBody && typeof errorBody.id === 'string' ? errorBody.id : undefined,
-          code:
-            'code' in errorBody && typeof errorBody.code === 'string' ? errorBody.code : undefined,
-          message:
-            'message' in errorBody && typeof errorBody.message === 'string'
-              ? errorBody.message
-              : undefined,
-          key: 'key' in errorBody && typeof errorBody.key === 'string' ? errorBody.key : undefined,
-          details:
-            'details' in errorBody && isRecord(errorBody.details) ? errorBody.details : undefined,
-        };
-        this.errorId = apiErrorBody.id;
-        this.errorCode = apiErrorBody.code;
-        this.key = apiErrorBody.key;
-        this.details = apiErrorBody.details;
+      const errorInfo = extractErrorInfo(bodyWithError.error);
+      if (errorInfo) {
+        this.errorId = errorInfo.id;
+        this.errorCode = errorInfo.code;
+        this.key = errorInfo.key;
+        this.details = errorInfo.details;
       }
     }
   }
@@ -67,10 +79,17 @@ type RequestOptions = Omit<RequestInit, 'method' | 'body'> & {
   skipAuth?: boolean;
 };
 
-async function send<TResponse>(method: HttpMethod, path: string, options: RequestOptions = {}) {
-  // Use relative URL if apiBaseUrl is empty (same-domain deployment)
-  // Otherwise construct full URL
-  const url = ENV.apiBaseUrl ? new URL(path, ENV.apiBaseUrl) : path;
+/**
+ * Build request URL
+ */
+function buildUrl(path: string): string | URL {
+  return ENV.apiBaseUrl ? new URL(path, ENV.apiBaseUrl) : path;
+}
+
+/**
+ * Setup request headers
+ */
+function setupHeaders(options: RequestOptions): Headers {
   const headers = new Headers(options.headers);
 
   if (!headers.has('Accept')) {
@@ -93,7 +112,26 @@ async function send<TResponse>(method: HttpMethod, path: string, options: Reques
     }
   }
 
+  return headers;
+}
+
+/**
+ * Parse response payload
+ */
+function parseResponse(response: Response): Promise<unknown> {
+  const contentType = response.headers.get('Content-Type') ?? '';
+  const isJson = contentType.includes('application/json');
+  if (!isJson) {
+    return Promise.resolve(undefined);
+  }
+  return response.json().catch(() => undefined);
+}
+
+async function send<TResponse>(method: HttpMethod, path: string, options: RequestOptions = {}) {
+  const url = buildUrl(path);
+  const headers = setupHeaders(options);
   const urlString = typeof url === 'string' ? url : url.toString();
+
   const response = await fetch(urlString, {
     ...options,
     method,
@@ -102,15 +140,12 @@ async function send<TResponse>(method: HttpMethod, path: string, options: Reques
     credentials: 'include', // Include cookies for Better Auth sessions
   });
 
-  const contentType = response.headers.get('Content-Type') ?? '';
-  const isJson = contentType.includes('application/json');
-  const payload = isJson ? await response.json().catch(() => undefined) : undefined;
+  const payload = await parseResponse(response);
 
   if (!response.ok) {
     // Note: We don't clear session on 401 because Better Auth manages sessions via cookies
     // The auth system will handle redirects and session invalidation
     // Clearing here would cause infinite loops when the user is simply not logged in
-
     throw new ApiError(response.status, payload);
   }
 

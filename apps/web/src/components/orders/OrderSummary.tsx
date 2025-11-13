@@ -1,4 +1,4 @@
-import { ShoppingBag01 } from '@untitledui/icons/ShoppingBag01';
+import { ShoppingBag01 } from '@untitledui/icons';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui';
 import type { StockResponse } from '@/lib/api';
@@ -12,28 +12,28 @@ import { ProgressStepper } from './ProgressStepper';
  */
 
 type OrderSummaryProps = {
-  selectedTacoSize: TacoSizeItem | null;
-  meats: MeatSelection[];
-  sauces: string[];
-  garnitures: string[];
-  extras: string[];
-  drinks: string[];
-  desserts: string[];
-  note: string;
-  priceBreakdown: PriceBreakdownItem[];
-  totalPrice: number;
-  currency: string;
-  summaryBreakdown: string;
-  hasTaco: boolean;
-  hasOtherItems: boolean;
-  canSubmit: boolean;
-  validationMessages: string[];
-  stock: StockResponse;
-  progressSteps: ProgressStep[];
-  formId: string;
-  isSubmitting: boolean;
-  editOrderId: string | null;
-  onCancel: () => void;
+  readonly selectedTacoSize: TacoSizeItem | null;
+  readonly meats: MeatSelection[];
+  readonly sauces: string[];
+  readonly garnitures: string[];
+  readonly extras: string[];
+  readonly drinks: string[];
+  readonly desserts: string[];
+  readonly note: string;
+  readonly priceBreakdown: PriceBreakdownItem[];
+  readonly totalPrice: number;
+  readonly currency: string;
+  readonly summaryBreakdown: string;
+  readonly hasTaco: boolean;
+  readonly hasOtherItems: boolean;
+  readonly canSubmit: boolean;
+  readonly validationMessages: string[];
+  readonly stock: StockResponse;
+  readonly progressSteps: ProgressStep[];
+  readonly formId: string;
+  readonly isSubmitting: boolean;
+  readonly editOrderId: string | null;
+  readonly onCancel: () => void;
 };
 
 export function OrderSummary({
@@ -145,7 +145,10 @@ export function OrderSummary({
                   className={cn('space-y-2', selectedTacoSize && 'border-white/10 border-t pt-2')}
                 >
                   {priceBreakdown.slice(selectedTacoSize ? 1 : 0).map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-xs">
+                    <div
+                      key={`price-item-${item.label}-${idx}`}
+                      className="flex items-center justify-between text-xs"
+                    >
                       <span className="text-slate-400">{item.label}</span>
                       <span className="font-medium text-slate-300">
                         {item.price.toFixed(2)} {currency}

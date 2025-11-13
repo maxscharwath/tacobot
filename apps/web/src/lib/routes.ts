@@ -2,7 +2,6 @@
 import React from 'react';
 import { z } from 'zod';
 import { DashboardRoute, dashboardLoader } from '../routes/dashboard';
-import { joinCodeLoader } from '../routes/join.code';
 import { LoginRoute, loginLoader } from '../routes/login';
 import { OrderCreateRoute, orderCreateAction, orderCreateLoader } from '../routes/orders.create';
 import { OrderDetailRoute, orderDetailAction, orderDetailLoader } from '../routes/orders.detail';
@@ -17,7 +16,6 @@ import { StockRoute, stockLoader } from '../routes/stock';
 import { defineRoutes } from './routes/core';
 
 const orderParams = z.object({ orderId: z.string().min(1) });
-const joinCodeParams = z.object({ code: z.string().min(1) });
 const loginSearch = z.object({ redirect: z.string().optional() });
 
 export const { routes, routerConfig } = defineRoutes({
@@ -27,12 +25,6 @@ export const { routes, routerConfig } = defineRoutes({
     loader: loginLoader,
     element: React.createElement(LoginRoute),
     errorElement: React.createElement(RootErrorBoundary),
-  },
-  joinCode: {
-    path: '/join/:code',
-    params: joinCodeParams,
-    errorElement: React.createElement(RootErrorBoundary),
-    loader: joinCodeLoader,
   },
   root: {
     path: '/',

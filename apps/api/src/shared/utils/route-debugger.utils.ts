@@ -46,7 +46,9 @@ export function debugRoutes(routes: RouteDefinition[], framework: 'Hono'): void 
   const sortedRoutes = Array.from(groupedByPath.entries()).sort(([a], [b]) => a.localeCompare(b));
 
   for (const [path, methods] of sortedRoutes) {
-    const methodList = Array.from(methods).sort().join(', ');
+    const methodList = Array.from(methods)
+      .sort((a, b) => a.localeCompare(b))
+      .join(', ');
     logger.info(`${methodList} ${path}`);
   }
 }

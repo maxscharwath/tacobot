@@ -109,11 +109,14 @@ app.openapi(
         items: {
           ...userOrder.items,
           tacos: userOrder.items.tacos.map((taco) => {
-            const { tacoIdHex: _tacoIdHex, ...tacoWithoutInternalFields } = taco as typeof taco & {
-              tacoIdHex?: string;
-            };
+            // Remove tacoIdHex if it exists (internal field, not part of API response)
+            const tacoCopy = { ...taco };
+            if ('tacoIdHex' in tacoCopy) {
+              // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+              delete tacoCopy.tacoIdHex;
+            }
             return {
-              ...tacoWithoutInternalFields,
+              ...tacoCopy,
               tacoID: taco.tacoID,
             };
           }),

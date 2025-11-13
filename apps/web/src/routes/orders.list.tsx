@@ -1,7 +1,4 @@
-import { ArrowUpRight } from '@untitledui/icons/ArrowUpRight';
-import { Calendar } from '@untitledui/icons/Calendar';
-import { Package } from '@untitledui/icons/Package';
-import { Truck01 } from '@untitledui/icons/Truck01';
+import { ArrowUpRight, Calendar, Package, Truck01 } from '@untitledui/icons';
 import { addHours, format, setHours, setMinutes } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';

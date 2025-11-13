@@ -1,9 +1,4 @@
-import { Edit01 } from '@untitledui/icons/Edit01';
-import { InfoCircle } from '@untitledui/icons/InfoCircle';
-import { Key01 } from '@untitledui/icons/Key01';
-import { Laptop01 } from '@untitledui/icons/Laptop01';
-import { Lock01 } from '@untitledui/icons/Lock01';
-import { Phone01 } from '@untitledui/icons/Phone01';
+import { Edit01, InfoCircle, Key01, Laptop01, Lock01, Phone01 } from '@untitledui/icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { type LoaderFunctionArgs, redirect } from 'react-router';

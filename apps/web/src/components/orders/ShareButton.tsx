@@ -1,21 +1,20 @@
-import { Copy01 } from '@untitledui/icons/Copy01';
-import { Link01 } from '@untitledui/icons/Link01';
+import { Copy01, Link01 } from '@untitledui/icons';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { routes } from '../../lib/routes';
 import { Button } from '../ui';
 
 interface ShareButtonProps {
-  groupOrderId: string;
-  shareCode: string | null;
-  orderName?: string | null;
+  readonly groupOrderId: string;
+  readonly shareCode: string | null;
+  readonly orderName?: string | null;
 }
 
-export function ShareButton({ groupOrderId, shareCode, orderName }: ShareButtonProps) {
+export function ShareButton({ groupOrderId, shareCode }: ShareButtonProps) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState<'link' | 'code' | null>(null);
 
-  const shareUrl = `${window.location.origin}/orders/${groupOrderId}`;
-  const joinUrl = shareCode ? `${window.location.origin}/join/${shareCode}` : shareUrl;
+  const shareUrl = routes.root.orderDetail.url({ orderId: groupOrderId });
 
   const copyToClipboard = async (text: string, type: 'link' | 'code') => {
     try {
@@ -28,7 +27,7 @@ export function ShareButton({ groupOrderId, shareCode, orderName }: ShareButtonP
   };
 
   const handleCopyLink = () => {
-    copyToClipboard(joinUrl, 'link');
+    copyToClipboard(shareUrl, 'link');
   };
 
   const handleCopyCode = () => {
@@ -37,47 +36,21 @@ export function ShareButton({ groupOrderId, shareCode, orderName }: ShareButtonP
     }
   };
 
-  const handleShareToSlack = () => {
-    // Format message for Slack
-    const message = orderName ? `${orderName}\n${joinUrl}` : `Join our group order!\n${joinUrl}`;
-
-    // Try Web Share API first (works on mobile and some desktop browsers)
-    if (navigator.share) {
-      navigator
-        .share({
-          title: orderName || 'Join our group order!',
-          text: message,
-          url: joinUrl,
-        })
-        .catch((error) => {
-          console.error('Error sharing:', error);
-          // Fallback to copying to clipboard
-          copyToClipboard(message, 'link');
-        });
-    } else {
-      // Fallback: Copy formatted message to clipboard
-      // User can paste it into Slack
-      copyToClipboard(message, 'link');
-    }
-  };
-
   return (
-    <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-6">
-      <h3 className="mb-4 font-semibold text-lg text-white">
-        {t('orders.detail.hero.share.title')}
-      </h3>
+    <div className="rounded-2xl border border-slate-200 bg-white/80 p-6 text-slate-900 shadow-sm transition-colors dark:border-white/10 dark:bg-slate-900/70 dark:text-white">
+      <h3 className="mb-4 font-semibold text-lg">{t('orders.detail.hero.share.title')}</h3>
 
       <div className="space-y-4">
         {/* Share Code - if available */}
         {shareCode && (
           <div>
-            <div className="flex items-stretch overflow-hidden rounded-2xl border border-white/10">
-              <div className="flex flex-1 items-center justify-center bg-slate-800/60 px-4 py-3 text-center font-bold font-mono text-white text-xl">
+            <div className="flex items-stretch overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10">
+              <div className="flex flex-1 items-center justify-center bg-slate-100 px-4 py-3 text-center font-bold font-mono text-slate-900 text-xl dark:bg-slate-800/60 dark:text-white">
                 {shareCode}
               </div>
               <button
                 onClick={handleCopyCode}
-                className="flex shrink-0 items-center justify-center gap-2 border-white/10 border-l bg-slate-800/80 px-4 py-3 font-semibold text-slate-100 text-sm transition-colors hover:border-brand-400/60 hover:bg-slate-800 hover:text-brand-50"
+                className="flex shrink-0 items-center justify-center gap-2 border-slate-200 border-l bg-slate-50 px-4 py-3 font-semibold text-slate-900 text-sm transition-colors hover:border-brand-400/60 hover:bg-slate-100 hover:text-brand-600 dark:border-white/10 dark:bg-slate-800/80 dark:text-slate-100 dark:hover:bg-slate-800 dark:hover:text-brand-50"
               >
                 <Copy01 size={18} />
                 {copied === 'code'
@@ -96,13 +69,10 @@ export function ShareButton({ groupOrderId, shareCode, orderName }: ShareButtonP
               ? t('orders.detail.hero.share.linkCopied')
               : t('orders.detail.hero.share.copyLink')}
           </Button>
-          <Button onClick={handleShareToSlack} variant="outline" className="flex-1 gap-2">
-            {t('orders.detail.hero.share.shareToSlack')}
-          </Button>
         </div>
 
         {/* Instructions */}
-        <p className="border-white/10 border-t pt-2 text-slate-400 text-sm">
+        <p className="border-slate-200 border-t pt-2 text-slate-500 text-sm dark:border-white/10 dark:text-slate-400">
           {t('orders.detail.hero.share.inviteInstructions')}
         </p>
       </div>

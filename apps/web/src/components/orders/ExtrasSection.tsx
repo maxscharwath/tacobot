@@ -1,18 +1,17 @@
-import { Plus } from '@untitledui/icons/Plus';
-import { ShoppingBag01 } from '@untitledui/icons/ShoppingBag01';
+import { Plus, ShoppingBag01 } from '@untitledui/icons';
 import { useTranslation } from 'react-i18next';
 import { SelectionGroup } from '@/components/orders';
 import { Card, CardContent } from '@/components/ui';
 import type { StockResponse } from '@/lib/api/types';
 
 type ExtrasSectionProps = {
-  stock: StockResponse;
-  extras: string[];
-  drinks: string[];
-  desserts: string[];
-  onToggleExtra: (id: string) => void;
-  onToggleDrink: (id: string) => void;
-  onToggleDessert: (id: string) => void;
+  readonly stock: StockResponse;
+  readonly extras: string[];
+  readonly drinks: string[];
+  readonly desserts: string[];
+  readonly onToggleExtra: (id: string) => void;
+  readonly onToggleDrink: (id: string) => void;
+  readonly onToggleDessert: (id: string) => void;
 };
 
 export function ExtrasSection({

@@ -22,9 +22,9 @@ interface NormalizedTaco {
 function normalizeTaco(taco: Taco): NormalizedTaco {
   return {
     size: taco.size,
-    meats: taco.meats.map((m) => m.id).sort(),
-    sauces: taco.sauces.map((s) => s.id).sort(),
-    garnitures: taco.garnitures.map((g) => g.id).sort(),
+    meats: taco.meats.map((m) => m.id).sort((a, b) => a.localeCompare(b)),
+    sauces: taco.sauces.map((s) => s.id).sort((a, b) => a.localeCompare(b)),
+    garnitures: taco.garnitures.map((g) => g.id).sort((a, b) => a.localeCompare(b)),
   };
 }
 

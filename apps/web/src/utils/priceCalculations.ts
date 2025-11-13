@@ -15,12 +15,12 @@ export function calculateTacoPrice(
   let total = tacoSize.price;
 
   // Add meat prices
-  meats.forEach((meatSelection) => {
+  for (const meatSelection of meats) {
     const meat = stock.meats.find((m) => m.id === meatSelection.id);
     if (meat?.price) {
       total += meat.price * meatSelection.quantity;
     }
-  });
+  }
 
   return total;
 }
@@ -78,26 +78,26 @@ export function generatePriceBreakdown(
     });
   }
 
-  extras.forEach((extraId) => {
+  for (const extraId of extras) {
     const extra = stock.extras.find((e) => e.id === extraId);
     if (extra?.price) {
       breakdown.push({ label: extra.name, price: extra.price });
     }
-  });
+  }
 
-  drinks.forEach((drinkId) => {
+  for (const drinkId of drinks) {
     const drink = stock.drinks.find((d) => d.id === drinkId);
     if (drink?.price) {
       breakdown.push({ label: drink.name, price: drink.price });
     }
-  });
+  }
 
-  desserts.forEach((dessertId) => {
+  for (const dessertId of desserts) {
     const dessert = stock.desserts.find((d) => d.id === dessertId);
     if (dessert?.price) {
       breakdown.push({ label: dessert.name, price: dessert.price });
     }
-  });
+  }
 
   return breakdown;
 }

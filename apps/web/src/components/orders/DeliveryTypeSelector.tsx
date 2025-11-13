@@ -46,17 +46,11 @@ export function DeliveryTypeSelector({
           const isSelected = selected === type;
 
           return (
-            <div
+            <button
               key={type}
-              role="button"
-              tabIndex={disabled ? -1 : 0}
-              onClick={() => !disabled && onSelect(type)}
-              onKeyDown={(e) => {
-                if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
-                  e.preventDefault();
-                  onSelect(type);
-                }
-              }}
+              type="button"
+              disabled={disabled}
+              onClick={() => onSelect(type)}
               className={cn(
                 'group relative flex cursor-pointer flex-col items-center gap-3 rounded-2xl border p-4 transition-all duration-200',
                 isSelected
@@ -80,7 +74,7 @@ export function DeliveryTypeSelector({
                   {t(`orders.submit.${config.labelKey}`)}
                 </span>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>

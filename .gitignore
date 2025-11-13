@@ -46,3 +46,6 @@ coverage/
 logs/
 .vercel
 .turbo/
+
+*storybook.log
+storybook-static

@@ -3,8 +3,8 @@
  * @component
  */
 type OrderItemChipProps = {
-  label: string;
-  value: string;
+  readonly label: string;
+  readonly value: string;
 };
 
 export function OrderItemChip({ label, value }: OrderItemChipProps) {

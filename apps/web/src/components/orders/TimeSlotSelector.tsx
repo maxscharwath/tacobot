@@ -1,12 +1,12 @@
-import { AlarmClock } from '@untitledui/icons/AlarmClock';
+import { AlarmClock } from '@untitledui/icons';
 import { useTranslation } from 'react-i18next';
 import { Label, Select } from '@/components/ui';
 
 type TimeSlotSelectorProps = {
-  selected: string | undefined;
-  onSelect: (time: string) => void;
-  disabled?: boolean;
-  required?: boolean;
+  readonly selected: string | undefined;
+  readonly onSelect: (time: string) => void;
+  readonly disabled?: boolean;
+  readonly required?: boolean;
 };
 
 /**

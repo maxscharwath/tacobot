@@ -3,7 +3,19 @@
   "vcs": { "enabled": true, "clientKind": "git" },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["apps/**", "*.json", "*.ts", "*.tsx", "*.mts", "*.cts", "!!**/*.css"]
+    "includes": [
+      "apps/**",
+      "*.json",
+      "*.ts",
+      "*.tsx",
+      "*.mts",
+      "*.cts",
+      "!!**/*.css",
+      "!!**/storybook-static/**",
+      "!!**/node_modules/**",
+      "!!**/dist/**",
+      "!!**/build/**"
+    ]
   },
   "formatter": {
     "enabled": true,

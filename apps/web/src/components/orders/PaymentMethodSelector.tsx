@@ -4,10 +4,10 @@ import type { PaymentMethod } from '@/lib/api/types';
 import { cn } from '@/lib/utils';
 
 type PaymentMethodSelectorProps = {
-  selected: PaymentMethod | undefined;
-  onSelect: (method: PaymentMethod) => void;
-  disabled?: boolean;
-  required?: boolean;
+  readonly selected: PaymentMethod | undefined;
+  readonly onSelect: (method: PaymentMethod) => void;
+  readonly disabled?: boolean;
+  readonly required?: boolean;
 };
 
 const PAYMENT_METHOD_CONFIG: Record<
@@ -52,17 +52,11 @@ export function PaymentMethodSelector({
           const isSelected = selected === method;
 
           return (
-            <div
+            <button
               key={method}
-              role="button"
-              tabIndex={disabled ? -1 : 0}
-              onClick={() => !disabled && onSelect(method)}
-              onKeyDown={(e) => {
-                if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
-                  e.preventDefault();
-                  onSelect(method);
-                }
-              }}
+              type="button"
+              disabled={disabled}
+              onClick={() => onSelect(method)}
               className={cn(
                 'group relative flex cursor-pointer flex-col items-center gap-3 rounded-2xl border p-4 transition-all duration-200',
                 isSelected
@@ -86,7 +80,7 @@ export function PaymentMethodSelector({
                   {t(`orders.submit.${config.labelKey}`)}
                 </span>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>

@@ -1,5 +1,4 @@
-import { CheckCircle } from '@untitledui/icons/CheckCircle';
-import { Package } from '@untitledui/icons/Package';
+import { CheckCircle, Package } from '@untitledui/icons';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui';
 import type { StockResponse } from '@/lib/api';
@@ -11,10 +10,10 @@ import { cn } from '@/lib/utils';
  * @component
  */
 type TacoSizeSelectorProps = {
-  sizes: StockResponse['tacos'];
-  selected: string;
-  onSelect: (size: string) => void;
-  currency: string;
+  readonly sizes: StockResponse['tacos'];
+  readonly selected: string;
+  readonly onSelect: (size: string) => void;
+  readonly currency: string;
 };
 
 export function TacoSizeSelector({ sizes, selected, onSelect, currency }: TacoSizeSelectorProps) {
@@ -43,17 +42,10 @@ export function TacoSizeSelector({ sizes, selected, onSelect, currency }: TacoSi
             const isSelected = selected === tacoSize.code;
 
             return (
-              <div
+              <button
                 key={tacoSize.id}
-                role="button"
-                tabIndex={0}
+                type="button"
                 onClick={() => onSelect(isSelected ? '' : tacoSize.code)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onSelect(isSelected ? '' : tacoSize.code);
-                  }
-                }}
                 className={cn(
                   'group relative flex cursor-pointer flex-col items-center gap-3 rounded-2xl border p-5 transition-all duration-200',
                   isSelected
@@ -89,7 +81,7 @@ export function TacoSizeSelector({ sizes, selected, onSelect, currency }: TacoSi
                     </span>
                   )}
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

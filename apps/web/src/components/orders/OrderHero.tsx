@@ -12,18 +12,18 @@ import { toDate } from '@/lib/utils/date';
  * @component
  */
 type OrderHeroProps = {
-  groupOrder: GroupOrder;
-  userOrders: UserOrderSummary[];
-  totalPrice: number;
-  currency: string;
-  canAddOrders: boolean;
-  canSubmit: boolean;
-  orderId: string;
-  canManageStatus?: boolean;
-  statusIntent?: 'close-group-order' | 'reopen-group-order';
-  isClosedManually?: boolean;
-  isSubmitting?: boolean;
-  isLeader?: boolean;
+  readonly groupOrder: GroupOrder;
+  readonly userOrders: UserOrderSummary[];
+  readonly totalPrice: number;
+  readonly currency: string;
+  readonly canAddOrders: boolean;
+  readonly canSubmit: boolean;
+  readonly orderId: string;
+  readonly canManageStatus?: boolean;
+  readonly statusIntent?: 'close-group-order' | 'reopen-group-order';
+  readonly isClosedManually?: boolean;
+  readonly isSubmitting?: boolean;
+  readonly isLeader?: boolean;
 };
 
 export function OrderHero({

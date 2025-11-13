@@ -5,7 +5,7 @@ import { cors } from 'hono/cors';
 import { logger as honoLogger } from 'hono/logger';
 import { wrapBetterAuthErrors } from './api/middleware/better-auth-error-wrapper.middleware';
 import { errorHandler } from './api/middleware/error-handler.middleware';
-import { groupOrderRoutes, publicGroupOrderRoutes } from './api/routes/group-order.routes';
+import { groupOrderRoutes } from './api/routes/group-order.routes';
 import { healthRoutes } from './api/routes/health.routes';
 import { resourceRoutes } from './api/routes/resource.routes';
 import { tacoRoutes } from './api/routes/taco.routes';
@@ -112,7 +112,6 @@ app.get(
 app.route('/api', healthRoutes);
 
 // Public API routes (no authentication required) - register FIRST so they match before authenticated routes
-app.route('/api/v1', publicGroupOrderRoutes);
 app.route('/api/v1', tacoRoutes);
 
 // v1 API routes (authenticated) - register AFTER public routes

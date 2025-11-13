@@ -1,5 +1,4 @@
-import { ArrowRight } from '@untitledui/icons/ArrowRight';
-import { Link01 } from '@untitledui/icons/Link01';
+import { ArrowRight, Link01 } from '@untitledui/icons';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Input } from '@/components/ui';
@@ -7,8 +6,8 @@ import { TacosApi } from '@/lib/api';
 import type { TacoOrder } from '@/lib/api/types';
 
 type TacoHashSearchProps = {
-  onSelectTaco: (taco: TacoOrder) => void;
-  disabled?: boolean;
+  readonly onSelectTaco: (taco: TacoOrder) => void;
+  readonly disabled?: boolean;
 };
 
 export function TacoHashSearch({ onSelectTaco, disabled }: TacoHashSearchProps) {
@@ -31,7 +30,9 @@ export function TacoHashSearch({ onSelectTaco, disabled }: TacoHashSearchProps) 
       onSelectTaco(taco);
       setHash(''); // Clear input on success
       setError(null);
-    } catch (_err) {
+    } catch (error_) {
+      // Log error for debugging but don't expose to user
+      console.error('Failed to fetch taco by hash:', error_);
       setError(t('orders.create.hashSearch.errors.notFound'));
     } finally {
       setIsLoading(false);

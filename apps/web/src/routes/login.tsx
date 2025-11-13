@@ -1,6 +1,8 @@
+import { Lock01 } from '@untitledui/icons';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { type LoaderFunctionArgs, redirect, useNavigate } from 'react-router';
+import { Alert, Button, Card, Divider, Input, Label, SegmentedControl } from '@/components/ui';
 import { LanguageSwitcher } from '../components/language-switcher';
 import { authClient } from '../lib/auth-client';
 
@@ -179,7 +181,7 @@ export function LoginRoute() {
       {/* Login card */}
       <div className="relative flex min-h-screen items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 p-8 shadow-[0_40px_120px_rgba(8,47,73,0.35)] backdrop-blur">
+          <Card className="relative overflow-hidden border-white/10 bg-slate-900/60 p-8 shadow-[0_40px_120px_rgba(8,47,73,0.35)] backdrop-blur">
             {/* Brand header */}
             <header className="mb-8 text-center">
               <div className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-2xl bg-linear-to-br from-brand-400 via-brand-500 to-sky-500 text-3xl shadow-[0_20px_50px_rgba(99,102,241,0.4)]">
@@ -194,74 +196,35 @@ export function LoginRoute() {
             </header>
 
             {/* Mode toggle */}
-            <div className="mb-6 flex gap-2 rounded-xl border border-white/10 bg-slate-800/40 p-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('signin');
-                  setError(null);
-                }}
-                className={`flex-1 rounded-lg px-4 py-2 font-semibold text-sm transition-colors ${
-                  mode === 'signin'
-                    ? 'bg-brand-500 text-white shadow-[0_4px_12px_rgba(99,102,241,0.3)]'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                {t('login.signIn')}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('signup');
-                  setError(null);
-                }}
-                className={`flex-1 rounded-lg px-4 py-2 font-semibold text-sm transition-colors ${
-                  mode === 'signup'
-                    ? 'bg-brand-500 text-white shadow-[0_4px_12px_rgba(99,102,241,0.3)]'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                {t('login.signUpButton')}
-              </button>
-            </div>
+            <SegmentedControl
+              className="mb-6"
+              value={mode}
+              onValueChange={(nextMode) => {
+                setMode(nextMode);
+                setError(null);
+              }}
+              options={[
+                { value: 'signin', label: t('login.signIn') },
+                { value: 'signup', label: t('login.signUpButton') },
+              ]}
+            />
 
             {/* Passkey Sign In Button (only for sign in mode) */}
             {mode === 'signin' && (
               <>
-                <button
+                <Button
                   type="button"
                   onClick={handlePasskeySignIn}
                   disabled={isLoading}
-                  className="mb-6 flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-slate-800/60 px-4 py-3 font-semibold text-white transition hover:border-white/20 hover:bg-slate-700/60 disabled:cursor-not-allowed disabled:opacity-60"
+                  variant="secondary"
+                  fullWidth
+                  className="mb-6"
                 >
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
+                  <Lock01 size={18} />
                   {t('login.signInWithPasskey')}
-                </button>
+                </Button>
 
-                {/* Divider */}
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-white/10 border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-slate-900/60 px-2 text-slate-400">
-                      {t('login.orUsePassword')}
-                    </span>
-                  </div>
-                </div>
+                <Divider className="mb-6" label={t('login.orUsePassword')} />
               </>
             )}
 
@@ -269,25 +232,20 @@ export function LoginRoute() {
             <form onSubmit={handleEmailPasswordSubmit} className="space-y-4">
               {mode === 'signup' && (
                 <div className="space-y-2">
-                  <label htmlFor="name" className="block font-medium text-slate-200 text-sm">
-                    {t('login.name.label')}
-                  </label>
-                  <input
+                  <Label htmlFor="name">{t('login.name.label')}</Label>
+                  <Input
                     id="name"
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder={t('login.name.placeholder')}
-                    className="w-full rounded-xl border border-white/10 bg-slate-800/60 px-4 py-3 text-white placeholder-slate-500 shadow-inner transition focus:border-brand-400/50 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
                   />
                 </div>
               )}
 
               <div className="space-y-2">
-                <label htmlFor="email" className="block font-medium text-slate-200 text-sm">
-                  {t('login.email.label')}
-                </label>
-                <input
+                <Label htmlFor="email">{t('login.email.label')}</Label>
+                <Input
                   id="email"
                   type="email"
                   value={formData.email}
@@ -296,15 +254,12 @@ export function LoginRoute() {
                   required
                   disabled={isLoading}
                   autoComplete="email"
-                  className="w-full rounded-xl border border-white/10 bg-slate-800/60 px-4 py-3 text-white placeholder-slate-500 shadow-inner transition focus:border-brand-400/50 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:opacity-60"
                 />
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="password" className="block font-medium text-slate-200 text-sm">
-                  {t('login.password.label')}
-                </label>
-                <input
+                <Label htmlFor="password">{t('login.password.label')}</Label>
+                <Input
                   id="password"
                   type="password"
                   value={formData.password}
@@ -314,29 +269,20 @@ export function LoginRoute() {
                   disabled={isLoading}
                   minLength={8}
                   autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-                  className="w-full rounded-xl border border-white/10 bg-slate-800/60 px-4 py-3 text-white placeholder-slate-500 shadow-inner transition focus:border-brand-400/50 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:opacity-60"
                 />
               </div>
 
-              {error && (
-                <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-rose-100 text-sm">
-                  {error}
-                </div>
-              )}
+              {error && <Alert tone="error">{error}</Alert>}
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-6 py-3 font-semibold text-white shadow-[0_20px_50px_rgba(99,102,241,0.35)] transition hover:from-brand-600 hover:to-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-60"
-              >
+              <Button type="submit" disabled={isLoading} variant="primary" size="lg" fullWidth>
                 {isLoading
                   ? t('login.pleaseWait')
                   : mode === 'signin'
                     ? t('login.signIn')
                     : t('login.signUpButton')}
-              </button>
+              </Button>
             </form>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

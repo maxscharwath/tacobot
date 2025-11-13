@@ -1,14 +1,10 @@
-import { CheckCircle } from '@untitledui/icons/CheckCircle';
-import { Copy01 } from '@untitledui/icons/Copy01';
-import { Edit03 } from '@untitledui/icons/Edit03';
-import { Tag01 } from '@untitledui/icons/Tag01';
-import { Trash01 } from '@untitledui/icons/Trash01';
+import { CheckCircle, Copy01, Edit03, Tag01, Trash01 } from '@untitledui/icons';
 import { useState } from 'react';
 import { Form, Link, useNavigate } from 'react-router';
 import { Badge, Button } from '@/components/ui';
 import type { StockResponse } from '@/lib/api';
 import type { UserOrderSummary } from '@/lib/api/types';
-import { formatTacoSizeName, hexToTacoID, TACO_SIZE_CONFIG } from '@/lib/taco-config';
+import { formatTacoSizeName, TACO_SIZE_CONFIG } from '@/lib/taco-config';
 import { cn } from '@/lib/utils';
 
 /**
@@ -16,16 +12,16 @@ import { cn } from '@/lib/utils';
  * @component
  */
 type OrderCardProps = {
-  order: UserOrderSummary;
-  isMyOrder: boolean;
-  canEdit: boolean;
-  canDelete: boolean;
-  orderId: string;
-  isSubmitting: boolean;
-  stock: StockResponse;
-  currency: string;
-  tt: (key: string, options?: Record<string, unknown>) => string;
-  onDelete?: (orderId: string) => void;
+  readonly order: UserOrderSummary;
+  readonly isMyOrder: boolean;
+  readonly canEdit: boolean;
+  readonly canDelete: boolean;
+  readonly orderId: string;
+  readonly isSubmitting: boolean;
+  readonly stock: StockResponse;
+  readonly currency: string;
+  readonly tt: (key: string, options?: Record<string, unknown>) => string;
+  readonly onDelete?: (orderId: string) => void;
 };
 
 export function OrderCard({
@@ -207,7 +203,7 @@ export function OrderCard({
             {meatsList.length > 0 &&
               meatsList.map((meat: { name: string; quantity: number }, idx: number) => (
                 <span
-                  key={idx}
+                  key={`meat-${meat.name}-${meat.quantity}-${idx}`}
                   className="inline-flex items-center gap-1 rounded-lg border border-orange-400/25 bg-orange-500/12 px-2.5 py-1 font-semibold text-[11px] text-orange-100"
                 >
                   {meat.name}
@@ -217,7 +213,7 @@ export function OrderCard({
             {saucesList.length > 0 &&
               saucesList.map((sauce: string, idx: number) => (
                 <span
-                  key={idx}
+                  key={`sauce-${sauce}-${idx}`}
                   className="inline-flex items-center rounded-lg border border-violet-400/25 bg-violet-500/12 px-2.5 py-1 font-medium text-[11px] text-violet-100"
                 >
                   {sauce}
@@ -226,7 +222,7 @@ export function OrderCard({
             {garnishesList.length > 0 &&
               garnishesList.map((garnish: string, idx: number) => (
                 <span
-                  key={idx}
+                  key={`garnish-${garnish}-${idx}`}
                   className="inline-flex items-center rounded-lg border border-emerald-400/25 bg-emerald-500/12 px-2.5 py-1 font-medium text-[11px] text-emerald-100"
                 >
                   {garnish}

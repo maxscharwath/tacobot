@@ -72,12 +72,12 @@ export const schemas = {
         address: z.string().optional(),
         requestedFor: z
           .string()
-          .refine((value) => value === '' || /^\d{2}:\d{2}$/.test(value), {
+          .refine((value: string) => value === '' || /^\d{2}:\d{2}$/.test(value), {
             message: 'Time slot must be empty or in HH:MM format',
           }),
       })
       .refine(
-        (data) => {
+        (data: { type: OrderType; address?: string; requestedFor: string }) => {
           if (data.type === OrderType.DELIVERY) {
             return data.address !== undefined && data.address !== '';
           }
