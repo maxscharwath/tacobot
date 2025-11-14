@@ -156,3 +156,17 @@ export function isGroupOrderLeader(order: GroupOrder, userId: UserId): boolean {
 export function canAcceptOrders(order: GroupOrder, referenceDate = new Date()): boolean {
   return order.status === GroupOrderStatus.OPEN && isGroupOrderOpenForOrders(order, referenceDate);
 }
+
+/**
+ * Determine if a group order can be submitted by the organizer.
+ *
+ * Rules:
+ * - Status must be OPEN (not closed, submitted, or completed)
+ * - Time window is NOT checked - organizer can submit after endDate
+ *
+ * @param order - The group order to evaluate
+ * @returns true if the order can be submitted, false otherwise
+ */
+export function canSubmitGroupOrder(order: GroupOrder): boolean {
+  return order.status === GroupOrderStatus.OPEN;
+}

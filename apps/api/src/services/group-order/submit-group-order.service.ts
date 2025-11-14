@@ -7,7 +7,7 @@ import { PaymentMethod } from '@tacobot/gigatacos-client';
 import { injectable } from 'tsyringe';
 import { GroupOrderRepository } from '../../infrastructure/repositories/group-order.repository';
 import { UserOrderRepository } from '../../infrastructure/repositories/user-order.repository';
-import { canAcceptOrders, type GroupOrderId } from '../../schemas/group-order.schema';
+import { canSubmitGroupOrder, type GroupOrderId } from '../../schemas/group-order.schema';
 import { isUserOrderEmpty, type UserOrder } from '../../schemas/user-order.schema';
 import type { Customer, DeliveryInfo, StockAvailability } from '../../shared/types/types';
 import { GroupOrderStatus } from '../../shared/types/types';
@@ -91,12 +91,12 @@ export class SubmitGroupOrderUseCase {
       throw new NotFoundError({ resource: 'GroupOrder', id: groupOrderId });
     }
 
-    if (!canAcceptOrders(groupOrder)) {
-      const isStatusInvalid = groupOrder.status !== GroupOrderStatus.OPEN;
-      const errorKey = isStatusInvalid
-        ? 'errors.orders.submit.invalidStatus'
-        : 'errors.orders.submit.expired';
-      throw new ValidationError(isStatusInvalid ? { status: groupOrder.status } : {}, errorKey);
+    // Only check status, not time window - organizer can submit after endDate
+    if (!canSubmitGroupOrder(groupOrder)) {
+      throw new ValidationError(
+        { status: groupOrder.status },
+        'errors.orders.submit.invalidStatus'
+      );
     }
 
     return groupOrder;
