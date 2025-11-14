@@ -1,7 +1,8 @@
 import { Terminal } from 'lucide-react';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Await,
   Link,
   type LoaderFunctionArgs,
   redirect,
@@ -10,6 +11,7 @@ import {
   useParams,
 } from 'react-router';
 import { CookieInjectionModal, OrderHero, OrdersList, ShareButton } from '@/components/orders';
+import { OrderDetailSkeleton } from '@/components/skeletons';
 import { Button } from '@/components/ui';
 import { useDeveloperMode } from '@/hooks/useDeveloperMode';
 import { useTotalPrice } from '../hooks/useOrderPrice';
@@ -23,6 +25,7 @@ import type {
   UserOrderFormData,
 } from '../lib/types/form-data';
 import { createActionHandler } from '../lib/utils/action-handler';
+import { defer } from '../lib/utils/defer';
 import { parseFormData } from '../lib/utils/form-data';
 import { createDeferredWithAuth, requireSession } from '../lib/utils/loader-helpers';
 
@@ -43,16 +46,7 @@ type GroupOrderData = {
   currentUserId: LoaderData['currentUserId'];
 };
 
-export async function orderDetailLoader({ params }: LoaderFunctionArgs) {
-  const groupOrderId = params.orderId;
-  if (!groupOrderId) {
-    throw new Response('Order not found', { status: 404 });
-  }
-
-  const { userId } = await requireSession();
-
-  // Load data immediately instead of deferring to avoid hydration issues
-  // Deferring can cause problems when promises reject with redirects during hydration
+async function loadOrderDetail(groupOrderId: string, userId: string) {
   const [groupOrderWithUsers, stockData] = await Promise.all([
     createDeferredWithAuth(() => OrdersApi.getGroupOrderWithOrders(groupOrderId)),
     createDeferredWithAuth(() => StockApi.getStock()),
@@ -71,6 +65,19 @@ export async function orderDetailLoader({ params }: LoaderFunctionArgs) {
     },
     stock: stockData,
   };
+}
+
+export async function orderDetailLoader({ params }: LoaderFunctionArgs) {
+  const groupOrderId = params.orderId;
+  if (!groupOrderId) {
+    throw new Response('Order not found', { status: 404 });
+  }
+
+  const { userId } = await requireSession();
+
+  return defer({
+    data: loadOrderDetail(groupOrderId, userId),
+  });
 }
 
 export const orderDetailAction = createActionHandler({
@@ -285,10 +292,23 @@ function OrderDetailContent({
 }
 
 export function OrderDetailRoute() {
-  const { groupOrderData, stock } = useLoaderData<{
-    groupOrderData: GroupOrderData;
-    stock: LoaderData['stock'];
+  const { data } = useLoaderData<{
+    data: Promise<{
+      groupOrderData: GroupOrderData;
+      stock: LoaderData['stock'];
+    }>;
   }>();
 
-  return <OrderDetailContent groupOrderData={groupOrderData} stock={stock} />;
+  return (
+    <Suspense fallback={<OrderDetailSkeleton />}>
+      <Await resolve={data}>
+        {(resolvedData) => (
+          <OrderDetailContent
+            groupOrderData={resolvedData.groupOrderData}
+            stock={resolvedData.stock}
+          />
+        )}
+      </Await>
+    </Suspense>
+  );
 }
