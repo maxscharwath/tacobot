@@ -1,4 +1,5 @@
 // routes/app.tsx
+import { HydrateFallback } from '@/components/hydrate-fallback';
 import {
   DashboardSkeleton,
   OrderCreateSkeleton,
@@ -38,6 +39,7 @@ export const { routes, routerConfig } = defineRoutes({
     loader: authenticationLoader,
     element: React.createElement(LoginRoute),
     errorElement: React.createElement(RootErrorBoundary),
+    hydrateFallback: React.createElement(HydrateFallback),
   },
   signup: {
     path: '/signup',
@@ -45,6 +47,7 @@ export const { routes, routerConfig } = defineRoutes({
     loader: authenticationLoader,
     element: React.createElement(LoginRoute),
     errorElement: React.createElement(RootErrorBoundary),
+    hydrateFallback: React.createElement(HydrateFallback),
   },
   root: {
     path: '/',
@@ -52,6 +55,7 @@ export const { routes, routerConfig } = defineRoutes({
     action: rootAction,
     element: React.createElement(RootLayout),
     errorElement: React.createElement(RootErrorBoundary),
+    hydrateFallback: React.createElement(HydrateFallback),
     children: {
       dashboard: {
         index: true,
