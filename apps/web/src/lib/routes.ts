@@ -1,29 +1,29 @@
 // routes/app.tsx
-import React, { lazy } from 'react';
-import { z } from 'zod';
-import { OrderDetailSkeleton, OrdersSkeleton, StockSkeleton } from '@/components/skeletons';
-import { DashboardRoute, dashboardLoader } from '@/routes/dashboard';
+import {
+  DashboardSkeleton,
+  OrderCreateSkeleton,
+  OrderDetailSkeleton,
+  OrdersSkeleton,
+  ProfileSkeleton,
+  StockSkeleton,
+} from '@/components/skeletons';
+import { dashboardLoader, DashboardRoute } from '@/routes/dashboard';
 import { authenticationLoader, LoginRoute } from '@/routes/login';
-import { OrderCreateRoute, orderCreateAction, orderCreateLoader } from '@/routes/orders.create';
+import { orderCreateAction, orderCreateLoader, OrderCreateRoute } from '@/routes/orders.create';
 import { orderDetailAction, orderDetailLoader } from '@/routes/orders.detail';
-
-// Lazy load the order detail route to prevent hydration issues
-const OrderDetailRoute = lazy(() =>
-  import('@/routes/orders.detail').then((module) => ({
-    default: module.OrderDetailRoute,
-  }))
-);
-
-import { OrdersRoute, ordersAction, ordersLoader } from '@/routes/orders.list';
-import { OrderSubmitRoute, orderSubmitAction, orderSubmitLoader } from '@/routes/orders.submit';
-import { ProfileRoute, profileLoader } from '@/routes/profile';
-import { AccountRoute, accountLoader } from '@/routes/profile.account';
-import { ProfileDeliveryRoute, profileDeliveryLoader } from '@/routes/profile.delivery';
+import { ordersAction, ordersLoader, OrdersRoute } from '@/routes/orders.list';
+import { orderSubmitAction, orderSubmitLoader, OrderSubmitRoute } from '@/routes/orders.submit';
+import { profileLoader, ProfileRoute } from '@/routes/profile';
+import { accountLoader, AccountRoute } from '@/routes/profile.account';
+import { profileDeliveryLoader, ProfileDeliveryRoute } from '@/routes/profile.delivery';
 import { RootErrorBoundary, RootLayout } from '@/routes/root';
 import { rootAction, rootLoader } from '@/routes/root.loader';
-import { StockRoute, stockLoader } from '@/routes/stock';
+import { stockLoader, StockRoute } from '@/routes/stock';
+import React, { lazy } from 'react';
+import { z } from 'zod';
 import { defineRoutes } from './routes/core';
 
+// Lazy load the order detail route to prevent hydration issues
 const orderParams = z.object({ orderId: z.string().min(1) });
 const loginSearch = z.object({ redirect: z.string().optional() });
 const orderCreateSearch = z.object({
@@ -57,6 +57,7 @@ export const { routes, routerConfig } = defineRoutes({
         index: true,
         element: React.createElement(DashboardRoute),
         loader: dashboardLoader,
+        hydrateFallback: React.createElement(DashboardSkeleton),
       },
       orders: {
         path: 'orders',
@@ -71,7 +72,11 @@ export const { routes, routerConfig } = defineRoutes({
         element: React.createElement(
           React.Suspense,
           { fallback: React.createElement(OrderDetailSkeleton) },
-          React.createElement(OrderDetailRoute)
+          React.createElement(lazy(() =>
+            import('@/routes/orders.detail').then((module) => ({
+              default: module.OrderDetailRoute,
+            }))
+          ))
         ),
         loader: orderDetailLoader,
         action: orderDetailAction,
@@ -85,6 +90,7 @@ export const { routes, routerConfig } = defineRoutes({
         element: React.createElement(OrderCreateRoute),
         loader: orderCreateLoader,
         action: orderCreateAction,
+        hydrateFallback: React.createElement(OrderCreateSkeleton),
       },
       orderSubmit: {
         path: 'orders/:orderId/submit',
@@ -92,6 +98,7 @@ export const { routes, routerConfig } = defineRoutes({
         element: React.createElement(OrderSubmitRoute),
         loader: orderSubmitLoader,
         action: orderSubmitAction,
+        hydrateFallback: React.createElement(OrderDetailSkeleton),
       },
       stock: {
         path: 'stock',
@@ -103,16 +110,19 @@ export const { routes, routerConfig } = defineRoutes({
         path: 'profile',
         element: React.createElement(ProfileRoute),
         loader: profileLoader,
+        hydrateFallback: React.createElement(ProfileSkeleton),
       },
       profileDelivery: {
         path: 'profile/delivery',
         element: React.createElement(ProfileDeliveryRoute),
         loader: profileDeliveryLoader,
+        hydrateFallback: React.createElement(ProfileSkeleton),
       },
       profileAccount: {
         path: 'profile/account',
         element: React.createElement(AccountRoute),
         loader: accountLoader,
+        hydrateFallback: React.createElement(ProfileSkeleton),
       },
     },
   },

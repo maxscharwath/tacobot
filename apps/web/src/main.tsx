@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { RouterProvider } from 'react-router/dom';
+import { RouterProvider } from 'react-router';
 import { router } from './router';
-import './lib/i18n';
+import '@/lib/i18n';
 import '@/globals.css';
 
 const root = document.getElementById('root');
