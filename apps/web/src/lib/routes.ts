@@ -1,6 +1,7 @@
 // routes/app.tsx
 import React from 'react';
 import { z } from 'zod';
+import { OrderDetailSkeleton } from '../components/skeletons';
 import { DashboardRoute, dashboardLoader } from '../routes/dashboard';
 import { LoginRoute, signinLoader, signupLoader } from '../routes/login';
 import { OrderCreateRoute, orderCreateAction, orderCreateLoader } from '../routes/orders.create';
@@ -62,6 +63,7 @@ export const { routes, routerConfig } = defineRoutes({
         loader: orderDetailLoader,
         action: orderDetailAction,
         errorElement: React.createElement(RootErrorBoundary),
+        hydrateFallback: React.createElement(OrderDetailSkeleton),
       },
       orderCreate: {
         path: 'orders/:orderId/create',
