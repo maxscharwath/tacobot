@@ -292,12 +292,24 @@ function OrderDetailContent({
 }
 
 export function OrderDetailRoute() {
-  const { data } = useLoaderData<{
-    data: Promise<{
-      groupOrderData: GroupOrderData;
-      stock: LoaderData['stock'];
-    }>;
-  }>();
+  // Use try-catch to handle cases where React might not be fully initialized
+  let data: Promise<{
+    groupOrderData: GroupOrderData;
+    stock: LoaderData['stock'];
+  }>;
+  
+  try {
+    const loaderData = useLoaderData<{
+      data: Promise<{
+        groupOrderData: GroupOrderData;
+        stock: LoaderData['stock'];
+      }>;
+    }>();
+    data = loaderData.data;
+  } catch (error) {
+    // If hooks aren't available yet, return skeleton directly
+    return <OrderDetailSkeleton />;
+  }
 
   return (
     <Suspense fallback={<OrderDetailSkeleton />}>

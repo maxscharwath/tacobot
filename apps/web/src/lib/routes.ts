@@ -1,11 +1,18 @@
 // routes/app.tsx
-import React from 'react';
+import React, { lazy } from 'react';
 import { z } from 'zod';
 import { OrderDetailSkeleton } from '../components/skeletons';
 import { DashboardRoute, dashboardLoader } from '../routes/dashboard';
 import { LoginRoute, signinLoader, signupLoader } from '../routes/login';
 import { OrderCreateRoute, orderCreateAction, orderCreateLoader } from '../routes/orders.create';
-import { OrderDetailRoute, orderDetailAction, orderDetailLoader } from '../routes/orders.detail';
+import { orderDetailAction, orderDetailLoader } from '../routes/orders.detail';
+
+// Lazy load the order detail route to prevent hydration issues
+const OrderDetailRoute = lazy(() =>
+  import('../routes/orders.detail').then((module) => ({
+    default: module.OrderDetailRoute,
+  }))
+);
 import { OrdersRoute, ordersAction, ordersLoader } from '../routes/orders.list';
 import { OrderSubmitRoute, orderSubmitAction, orderSubmitLoader } from '../routes/orders.submit';
 import { ProfileRoute, profileLoader } from '../routes/profile';
@@ -59,7 +66,11 @@ export const { routes, routerConfig } = defineRoutes({
       orderDetail: {
         path: 'orders/:orderId',
         params: orderParams,
-        element: React.createElement(OrderDetailRoute),
+        element: React.createElement(
+          React.Suspense,
+          { fallback: React.createElement(OrderDetailSkeleton) },
+          React.createElement(OrderDetailRoute)
+        ),
         loader: orderDetailLoader,
         action: orderDetailAction,
         errorElement: React.createElement(RootErrorBoundary),
