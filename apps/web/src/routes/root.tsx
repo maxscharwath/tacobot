@@ -28,44 +28,29 @@ export function RootLayout() {
   );
 
   // Get Better Auth session to display the updated name
-  // Only run in browser after React is fully initialized
   useEffect(() => {
-    // Guard: only run if we're in the browser and React is ready
-    if (typeof window === 'undefined') return;
-    
-    let cleanup: (() => void) | undefined;
+    const loadSession = () => {
+      authClient.getSession().then((session) => {
+        if (session?.data?.user) {
+          const name = session.data.user.name || session.data.user.email.split('@')[0];
+          setUserName(name);
+          setUserInitials(name.slice(0, 2).toUpperCase());
+        }
+      });
+    };
 
-    // Use requestAnimationFrame to ensure React is fully ready
-    const rafId = requestAnimationFrame(() => {
-      const loadSession = () => {
-        authClient.getSession().then((session) => {
-          if (session?.data?.user) {
-            const name = session.data.user.name || session.data.user.email.split('@')[0];
-            setUserName(name);
-            setUserInitials(name.slice(0, 2).toUpperCase());
-          }
-        });
-      };
+    loadSession();
 
+    const handleNameUpdate = () => {
       loadSession();
+    };
 
-      // Listen for name update events
-      const handleNameUpdate = () => {
-        loadSession();
-      };
-
-      window.addEventListener('userNameUpdated', handleNameUpdate);
-      window.addEventListener('focus', loadSession);
-
-      cleanup = () => {
-        window.removeEventListener('userNameUpdated', handleNameUpdate);
-        window.removeEventListener('focus', loadSession);
-      };
-    });
+    window.addEventListener('userNameUpdated', handleNameUpdate);
+    window.addEventListener('focus', loadSession);
 
     return () => {
-      cancelAnimationFrame(rafId);
-      cleanup?.();
+      window.removeEventListener('userNameUpdated', handleNameUpdate);
+      window.removeEventListener('focus', loadSession);
     };
   }, []);
   type NavItem = {
