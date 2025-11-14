@@ -14,20 +14,20 @@ import { CookieInjectionModal, OrderHero, OrdersList, ShareButton } from '@/comp
 import { OrderDetailSkeleton } from '@/components/skeletons';
 import { Button } from '@/components/ui';
 import { useDeveloperMode } from '@/hooks/useDeveloperMode';
-import { useTotalPrice } from '../hooks/useOrderPrice';
-import { OrdersApi, StockApi } from '../lib/api';
-import type { UpsertUserOrderBody } from '../lib/api/orders';
-import { routes } from '../lib/routes';
+import { useTotalPrice } from '@/hooks/useOrderPrice';
+import type { UpsertUserOrderBody } from '@/lib/api';
+import { OrdersApi, StockApi } from '@/lib/api';
+import { routes } from '@/lib/routes';
 import type {
   DeleteUserOrderFormData,
   ManageOrderStatusFormData,
   SubmitGroupOrderFormData,
   UserOrderFormData,
-} from '../lib/types/form-data';
-import { createActionHandler } from '../lib/utils/action-handler';
-import { defer } from '../lib/utils/defer';
-import { parseFormData } from '../lib/utils/form-data';
-import { createDeferredWithAuth, requireSession } from '../lib/utils/loader-helpers';
+} from '@/lib/types/form-data';
+import { createActionHandler } from '@/lib/utils/action-handler';
+import { defer } from '@/lib/utils/defer';
+import { parseFormData } from '@/lib/utils/form-data';
+import { createDeferredWithAuth, requireSession } from '@/lib/utils/loader-helpers';
 
 type LoaderData = {
   groupOrder: Awaited<ReturnType<typeof OrdersApi.getGroupOrderWithOrders>>['groupOrder'];
@@ -176,10 +176,10 @@ export const orderDetailAction = createActionHandler({
 function OrderDetailContent({
   groupOrderData,
   stock,
-}: {
+}: Readonly<{
   groupOrderData: GroupOrderData;
   stock: LoaderData['stock'];
-}) {
+}>) {
   const { t } = useTranslation();
   const tt = (key: string, options?: Record<string, unknown>) => t(`orders.detail.${key}`, options);
   const { groupOrder, userOrders, isLeader, currentUserId } = groupOrderData;
@@ -278,7 +278,7 @@ function OrderDetailContent({
 
       <div className="flex flex-col gap-3 border-white/10 border-t pt-4 text-slate-400 text-sm sm:flex-row sm:items-center sm:justify-between">
         <Link
-          to="/orders"
+          to={routes.root.orders()}
           className="inline-flex cursor-pointer items-center gap-2 text-brand-100 transition-colors hover:text-brand-50"
         >
           {tt('list.footer.backToOrders')}
@@ -292,24 +292,12 @@ function OrderDetailContent({
 }
 
 export function OrderDetailRoute() {
-  // Use try-catch to handle cases where React might not be fully initialized
-  let data: Promise<{
-    groupOrderData: GroupOrderData;
-    stock: LoaderData['stock'];
-  }>;
-  
-  try {
-    const loaderData = useLoaderData<{
-      data: Promise<{
-        groupOrderData: GroupOrderData;
-        stock: LoaderData['stock'];
-      }>;
-    }>();
-    data = loaderData.data;
-  } catch (error) {
-    // If hooks aren't available yet, return skeleton directly
-    return <OrderDetailSkeleton />;
-  }
+  const { data } = useLoaderData<{
+    data: Promise<{
+      groupOrderData: GroupOrderData;
+      stock: LoaderData['stock'];
+    }>;
+  }>();
 
   return (
     <Suspense fallback={<OrderDetailSkeleton />}>

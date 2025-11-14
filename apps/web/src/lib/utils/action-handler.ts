@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs } from 'react-router';
 import { redirect } from 'react-router';
-import { ApiError } from '../api/http';
+import { ApiError } from '@/lib/api/http';
 
 type ActionHandler<T = void> = (
   params: T,

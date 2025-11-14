@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next';
-import { ApiError } from '../api/http';
+import { ApiError } from '@/lib/api/http';
 
 /**
  * Get translated error message from ApiError

@@ -4,10 +4,10 @@
  */
 
 import { redirect } from 'react-router';
-import { ApiError } from '../api/http';
-import { authClient } from '../auth-client';
-import { routes } from '../routes';
-import { sessionStore } from '../session/store';
+import { ApiError } from '@/lib/api/http';
+import { authClient } from '@/lib/auth-client';
+import { routes } from '@/lib/routes';
+import { sessionStore } from '@/lib/session/store';
 
 /**
  * Check if user has a valid session, redirect to login if not

@@ -14,11 +14,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui';
+import type { StockItem, StockResponse } from '@/lib/api';
+import { StockApi } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import type { StockItem, StockResponse } from '../lib/api';
-import { StockApi } from '../lib/api';
-import { defer } from '../lib/utils/defer';
-import { createDeferredWithAuth, requireSession } from '../lib/utils/loader-helpers';
+import { defer } from '@/lib/utils/defer';
+import { createDeferredWithAuth, requireSession } from '@/lib/utils/loader-helpers';
 
 type LoaderData = {
   stock: Awaited<ReturnType<typeof StockApi.getStock>>;

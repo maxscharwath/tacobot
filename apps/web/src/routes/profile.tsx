@@ -12,8 +12,8 @@ import {
   CardTitle,
   EmptyState,
 } from '@/components/ui';
+import { UserApi } from '@/lib/api';
 import { routes } from '@/lib/routes';
-import { UserApi } from '../lib/api';
 
 type LoaderData = {
   profile: Awaited<ReturnType<typeof UserApi.getProfile>>;

@@ -1,5 +1,5 @@
-import { ENV } from '../env';
-import { sessionStore } from '../session/store';
+import { ENV } from '@/lib/env';
+import { sessionStore } from '@/lib/session/store';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 

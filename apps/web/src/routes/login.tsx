@@ -2,6 +2,7 @@ import { Lock } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { type LoaderFunctionArgs, redirect, useLocation, useNavigate } from 'react-router';
+import { LanguageSwitcher } from '@/components/language-switcher';
 import {
   Alert,
   Avatar,
@@ -15,61 +16,44 @@ import {
   Label,
   SegmentedControl,
 } from '@/components/ui';
-import { LanguageSwitcher } from '../components/language-switcher';
-import { UserApi } from '../lib/api';
-import { ApiError } from '../lib/api/http';
-import { authClient } from '../lib/auth-client';
-import { routes } from '../lib/routes';
+import { UserApi } from '@/lib/api';
+import { ApiError } from '@/lib/api/http';
+import { authClient } from '@/lib/auth-client';
+import { routes } from '@/lib/routes';
 
-export async function signinLoader(_: LoaderFunctionArgs) {
+/**
+ * Authentication loader for both signin and signup pages
+ * Redirects to home if user is already authenticated with a valid session
+ */
+export async function authenticationLoader(_: LoaderFunctionArgs) {
   // Check if user is already signed in with Better Auth
   // Only redirect if we have a valid session - don't redirect if session is invalid
   const session = await authClient.getSession();
-  if (session?.data?.user) {
-    // Verify the session is actually valid by checking the API
-    try {
-      await UserApi.getProfile();
-      // If we get here, session is valid, redirect to home
-      throw redirect('/');
-    } catch (error) {
-      // If API returns 401, session is invalid, stay on login page
-      if (error instanceof ApiError && error.status === 401) {
-        return null;
-      }
-      // For other errors, also stay on login page
-      return null;
-    }
+  if (!session?.data?.user) {
+    return null;
   }
-  return null;
-}
 
-export async function signupLoader(_: LoaderFunctionArgs) {
-  // Check if user is already signed in with Better Auth
-  // Only redirect if we have a valid session - don't redirect if session is invalid
-  const session = await authClient.getSession();
-  if (session?.data?.user) {
-    // Verify the session is actually valid by checking the API
-    try {
-      await UserApi.getProfile();
-      // If we get here, session is valid, redirect to home
-      throw redirect('/');
-    } catch (error) {
-      // If API returns 401, session is invalid, stay on signup page
-      if (error instanceof ApiError && error.status === 401) {
-        return null;
-      }
-      // For other errors, also stay on signup page
+  // Verify the session is actually valid by checking the API
+  try {
+    await UserApi.getProfile();
+    // If we get here, session is valid, redirect to home
+    // Note: redirect() throws a Response, which is the standard React Router pattern
+    throw redirect(routes.root());
+  } catch (error) {
+    // If API returns 401, session is invalid, stay on auth page
+    if (error instanceof ApiError && error.status === 401) {
       return null;
     }
+    // Re-throw the redirect Response so React Router can handle it
+    throw error;
   }
-  return null;
 }
 
 export function LoginRoute() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const isSignUp = location.pathname === '/signup';
+  const isSignUp = location.pathname === routes.signup();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -82,7 +66,7 @@ export function LoginRoute() {
   useEffect(() => {
     authClient.getSession().then((session) => {
       if (session?.data) {
-        navigate('/');
+        navigate(routes.root());
       }
     });
   }, [navigate]);
@@ -94,11 +78,7 @@ export function LoginRoute() {
 
     try {
       if (isSignUp) {
-        const result = await authClient.signUp.email({
-          email: formData.email,
-          password: formData.password,
-          name: formData.name || formData.email.split('@')[0],
-        });
+        const result = await authClient.signUp.email(formData);
 
         if (result.error) {
           setError(result.error.message || t('login.signUpFailed'));
@@ -117,11 +97,74 @@ export function LoginRoute() {
       }
 
       // Redirect on success
-      navigate('/');
+      navigate(routes.root());
     } catch (err) {
       setError(err instanceof Error ? err.message : t('login.unexpectedError'));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Helper to handle successful passkey authentication
+  const handlePasskeySuccess = () => {
+    setIsLoading(false);
+    navigate(routes.root());
+  };
+
+  // Helper to handle passkey authentication errors
+  const handlePasskeyError = (error: unknown) => {
+    const errorMessage =
+      error && typeof error === 'object' && 'message' in error
+        ? (error.message as string)
+        : t('login.passkeySignInFailed');
+    setError(errorMessage);
+    setIsLoading(false);
+  };
+
+  // Helper to check if error is a cancellation
+  const isCancellationError = (error: unknown): boolean => {
+    return !!(
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      error.code === 'AUTH_CANCELLED'
+    );
+  };
+
+  // Helper function to attempt passkey sign-in
+  const attemptPasskeySignIn = async (useAutoFill: boolean): Promise<boolean> => {
+    try {
+      const result = await authClient.signIn.passkey({
+        autoFill: useAutoFill,
+        fetchOptions: {
+          onSuccess: handlePasskeySuccess,
+          onError: (ctx) => {
+            const isCancelled = isCancellationError(ctx.error);
+            if (!isCancelled) {
+              handlePasskeyError(ctx.error);
+            }
+          },
+        },
+      });
+
+      // Handle result if callbacks didn't fire
+      if (result?.error) {
+        const isCancelled = isCancellationError(result.error);
+        if (isCancelled) {
+          return false;
+        }
+        handlePasskeyError(result.error);
+        return false;
+      }
+
+      if (result?.data) {
+        handlePasskeySuccess();
+        return true;
+      }
+
+      return false;
+    } catch {
+      return false;
     }
   };
 
@@ -142,56 +185,6 @@ export function LoginRoute() {
     // This is harmless and occurs when the WebAuthn prompt is cancelled or closed.
     // It's a browser internal message and doesn't affect functionality.
 
-    // Helper function to attempt passkey sign-in
-    const attemptPasskeySignIn = (useAutoFill: boolean): Promise<boolean> => {
-      return new Promise((resolve) => {
-        authClient.signIn
-          .passkey({
-            autoFill: useAutoFill,
-            fetchOptions: {
-              onSuccess: () => {
-                setIsLoading(false);
-                navigate('/');
-                resolve(true);
-              },
-              onError: (ctx) => {
-                if (ctx.error && 'code' in ctx.error && ctx.error.code === 'AUTH_CANCELLED') {
-                  // User cancelled - don't treat as error, just resolve as false
-                  resolve(false);
-                } else {
-                  // Other error - show message and resolve as false
-                  const errorMessage = ctx.error?.message || t('login.passkeySignInFailed');
-                  setError(errorMessage);
-                  setIsLoading(false);
-                  resolve(false);
-                }
-              },
-            },
-          })
-          .then((result) => {
-            // Handle result if callbacks didn't fire
-            if (result?.error) {
-              if ('code' in result.error && result.error.code === 'AUTH_CANCELLED') {
-                resolve(false);
-              } else {
-                setError(result.error.message || t('login.passkeySignInFailed'));
-                setIsLoading(false);
-                resolve(false);
-              }
-            } else if (result?.data) {
-              setIsLoading(false);
-              navigate('/');
-              resolve(true);
-            } else {
-              resolve(false);
-            }
-          })
-          .catch(() => {
-            resolve(false);
-          });
-      });
-    };
-
     try {
       // First try with autoFill
       const success = await attemptPasskeySignIn(true);
@@ -201,7 +194,7 @@ export function LoginRoute() {
         const retrySuccess = await attemptPasskeySignIn(false);
 
         if (!retrySuccess) {
-          // Both attempts failed or were cancelled
+          // Both attempts failed or were canceled
           setError(
             'Passkey sign-in was cancelled. Please try again and select your passkey when prompted.'
           );
@@ -214,6 +207,14 @@ export function LoginRoute() {
       setIsLoading(false);
     }
   };
+
+  // Determine button text based on state
+  const getSubmitButtonText = () => {
+    if (isLoading) return t('login.pleaseWait');
+    if (isSignUp) return t('login.signUpButton');
+    return t('login.signIn');
+  };
+  const submitButtonText = getSubmitButtonText();
 
   return (
     <div className="relative min-h-screen bg-slate-950 text-slate-100">
@@ -331,11 +332,7 @@ export function LoginRoute() {
                 {error && <Alert tone="error">{error}</Alert>}
 
                 <Button type="submit" disabled={isLoading} variant="primary" size="lg" fullWidth>
-                  {isLoading
-                    ? t('login.pleaseWait')
-                    : isSignUp
-                      ? t('login.signUpButton')
-                      : t('login.signIn')}
+                  {submitButtonText}
                 </Button>
               </form>
             </CardContent>

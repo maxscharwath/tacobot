@@ -12,6 +12,10 @@ import {
   useNavigation,
   useParams,
 } from 'react-router';
+import { type DeliveryType, DeliveryTypeSelector } from '@/components/orders/DeliveryTypeSelector';
+import { OrderConfirmationModal } from '@/components/orders/OrderConfirmationModal';
+import { PaymentMethodSelector } from '@/components/orders/PaymentMethodSelector';
+import { TimeSlotSelector } from '@/components/orders/TimeSlotSelector';
 import {
   Alert,
   Button,
@@ -24,20 +28,16 @@ import {
   Input,
   Label,
 } from '@/components/ui';
-import { type DeliveryType, DeliveryTypeSelector } from '../components/orders/DeliveryTypeSelector';
-import { OrderConfirmationModal } from '../components/orders/OrderConfirmationModal';
-import { PaymentMethodSelector } from '../components/orders/PaymentMethodSelector';
-import { TimeSlotSelector } from '../components/orders/TimeSlotSelector';
-import { SWISS_CANTONS, SWITZERLAND_COUNTRY } from '../constants/location';
-import { useDeveloperMode } from '../hooks/useDeveloperMode';
-import { OrdersApi, UserApi } from '../lib/api';
-import { ApiError } from '../lib/api/http';
-import type { DeliveryProfile, DeliveryProfilePayload, PaymentMethod } from '../lib/api/types';
-import { authClient } from '../lib/auth-client';
-import { routes } from '../lib/routes';
-import type { DeliveryFormData } from '../lib/types/form-data';
-import { createActionHandler } from '../lib/utils/action-handler';
-import { parseFormData } from '../lib/utils/form-data';
+import { SWISS_CANTONS, SWITZERLAND_COUNTRY } from '@/constants/location';
+import { useDeveloperMode } from '@/hooks/useDeveloperMode';
+import { OrdersApi, UserApi } from '@/lib/api';
+import { ApiError } from '@/lib/api/http';
+import type { DeliveryProfile, DeliveryProfilePayload, PaymentMethod } from '@/lib/api/types';
+import { authClient } from '@/lib/auth-client';
+import { routes } from '@/lib/routes';
+import type { DeliveryFormData } from '@/lib/types/form-data';
+import { createActionHandler } from '@/lib/utils/action-handler';
+import { parseFormData } from '@/lib/utils/form-data';
 
 type LoaderData = {
   groupOrder: Awaited<ReturnType<typeof OrdersApi.getGroupOrderWithOrders>>['groupOrder'];

@@ -11,11 +11,11 @@ import {
   useLoaderData,
   useRouteError,
 } from 'react-router';
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { Alert, Avatar, Button, Card } from '@/components/ui';
-import { LanguageSwitcher } from '../components/language-switcher';
-import { useDeveloperMode } from '../hooks/useDeveloperMode';
-import { authClient } from '../lib/auth-client';
-import { routes } from '../lib/routes';
+import { useDeveloperMode } from '@/hooks/useDeveloperMode';
+import { authClient } from '@/lib/auth-client';
+import { routes } from '@/lib/routes';
 import type { RootLoaderData } from './root.loader';
 
 export function RootLayout() {
@@ -32,7 +32,7 @@ export function RootLayout() {
     const loadSession = () => {
       authClient.getSession().then((session) => {
         if (session?.data?.user) {
-          const name = session.data.user.name || session.data.user.email.split('@')[0];
+          const name = session.data.user.name;
           setUserName(name);
           setUserInitials(name.slice(0, 2).toUpperCase());
         }
@@ -45,12 +45,12 @@ export function RootLayout() {
       loadSession();
     };
 
-    window.addEventListener('userNameUpdated', handleNameUpdate);
-    window.addEventListener('focus', loadSession);
+    globalThis.addEventListener('userNameUpdated', handleNameUpdate);
+    globalThis.addEventListener('focus', loadSession);
 
     return () => {
-      window.removeEventListener('userNameUpdated', handleNameUpdate);
-      window.removeEventListener('focus', loadSession);
+      globalThis.removeEventListener('userNameUpdated', handleNameUpdate);
+      globalThis.removeEventListener('focus', loadSession);
     };
   }, []);
   type NavItem = {
@@ -59,10 +59,10 @@ export function RootLayout() {
     icon: ComponentType<{ size?: number; className?: string }>;
   };
   const navItems: NavItem[] = [
-    { href: '/', labelKey: 'navigation.dashboard', icon: Activity },
-    { href: '/orders', labelKey: 'navigation.orders', icon: ClipboardCheck },
-    { href: '/stock', labelKey: 'navigation.stock', icon: Package },
-    { href: '/profile', labelKey: 'navigation.profile', icon: Users },
+    { href: routes.root.dashboard(), labelKey: 'navigation.dashboard', icon: Activity },
+    { href: routes.root.orders(), labelKey: 'navigation.orders', icon: ClipboardCheck },
+    { href: routes.root.stock(), labelKey: 'navigation.stock', icon: Package },
+    { href: routes.root.profile(), labelKey: 'navigation.profile', icon: Users },
   ];
 
   return (
@@ -145,7 +145,7 @@ export function RootLayout() {
               <NavLink
                 key={href}
                 to={href}
-                end={href === '/'}
+                end={href === routes.root()}
                 className={({ isActive }) =>
                   [
                     'group flex items-center gap-2 rounded-full border px-3.5 py-1.5 font-medium text-sm transition',

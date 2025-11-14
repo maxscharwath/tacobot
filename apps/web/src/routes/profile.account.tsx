@@ -17,6 +17,7 @@ import {
 } from '@/components/ui';
 import { authClient } from '@/lib/auth-client';
 import { ENV } from '@/lib/env';
+import { routes } from '@/lib/routes';
 
 function NameEditor({
   currentName,
@@ -68,7 +69,7 @@ function NameEditor({
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
-                handleSave();
+                void handleSave();
               } else if (e.key === 'Escape') {
                 handleCancel();
               }
@@ -163,7 +164,7 @@ function PasskeyNameEditor({
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
-              handleSave();
+              void handleSave();
             } else if (e.key === 'Escape') {
               handleCancel();
             }
@@ -238,7 +239,7 @@ type UserSession = {
 export async function accountLoader(_: LoaderFunctionArgs) {
   const session = await authClient.getSession();
   if (!session?.data) {
-    throw redirect('/login');
+    throw redirect(routes.signin());
   }
   return null;
 }
@@ -283,7 +284,7 @@ export function AccountRoute() {
   }, []); // Don't depend on t to avoid recreating the function
 
   useEffect(() => {
-    loadData();
+    void loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount
 

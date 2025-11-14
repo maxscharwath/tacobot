@@ -16,11 +16,11 @@ import { StatBubble } from '@/components/orders';
 import { OrdersSkeleton } from '@/components/skeletons';
 import { Alert, Button, DateTimePicker, Input, Label, StatusBadge } from '@/components/ui';
 import { useDateFormat } from '@/hooks/useDateFormat';
-import { OrdersApi, UserApi } from '../lib/api';
-import { routes } from '../lib/routes';
-import { toDate } from '../lib/utils/date';
-import { defer } from '../lib/utils/defer';
-import { createDeferredWithAuth, requireSession } from '../lib/utils/loader-helpers';
+import { OrdersApi, UserApi } from '@/lib/api';
+import { routes } from '@/lib/routes';
+import { toDate } from '@/lib/utils/date';
+import { defer } from '@/lib/utils/defer';
+import { createDeferredWithAuth, requireSession } from '@/lib/utils/loader-helpers';
 
 type LoaderData = {
   groupOrders: Awaited<ReturnType<typeof UserApi.getGroupOrders>>;
@@ -39,9 +39,9 @@ export async function ordersLoader(_: LoaderFunctionArgs) {
   });
 }
 
-import type { CreateGroupOrderFormData } from '../lib/types/form-data';
-import { createActionHandler } from '../lib/utils/action-handler';
-import { parseFormData } from '../lib/utils/form-data';
+import type { CreateGroupOrderFormData } from '@/lib/types/form-data';
+import { createActionHandler } from '@/lib/utils/action-handler';
+import { parseFormData } from '@/lib/utils/form-data';
 
 export const ordersAction = createActionHandler({
   handlers: {

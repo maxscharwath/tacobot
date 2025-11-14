@@ -1,26 +1,27 @@
 // routes/app.tsx
 import React, { lazy } from 'react';
 import { z } from 'zod';
-import { OrderDetailSkeleton } from '../components/skeletons';
-import { DashboardRoute, dashboardLoader } from '../routes/dashboard';
-import { LoginRoute, signinLoader, signupLoader } from '../routes/login';
-import { OrderCreateRoute, orderCreateAction, orderCreateLoader } from '../routes/orders.create';
-import { orderDetailAction, orderDetailLoader } from '../routes/orders.detail';
+import { OrderDetailSkeleton, OrdersSkeleton, StockSkeleton } from '@/components/skeletons';
+import { DashboardRoute, dashboardLoader } from '@/routes/dashboard';
+import { authenticationLoader, LoginRoute } from '@/routes/login';
+import { OrderCreateRoute, orderCreateAction, orderCreateLoader } from '@/routes/orders.create';
+import { orderDetailAction, orderDetailLoader } from '@/routes/orders.detail';
 
 // Lazy load the order detail route to prevent hydration issues
 const OrderDetailRoute = lazy(() =>
-  import('../routes/orders.detail').then((module) => ({
+  import('@/routes/orders.detail').then((module) => ({
     default: module.OrderDetailRoute,
   }))
 );
-import { OrdersRoute, ordersAction, ordersLoader } from '../routes/orders.list';
-import { OrderSubmitRoute, orderSubmitAction, orderSubmitLoader } from '../routes/orders.submit';
-import { ProfileRoute, profileLoader } from '../routes/profile';
-import { AccountRoute, accountLoader } from '../routes/profile.account';
-import { ProfileDeliveryRoute, profileDeliveryLoader } from '../routes/profile.delivery';
-import { RootErrorBoundary, RootLayout } from '../routes/root';
-import { rootAction, rootLoader } from '../routes/root.loader';
-import { StockRoute, stockLoader } from '../routes/stock';
+
+import { OrdersRoute, ordersAction, ordersLoader } from '@/routes/orders.list';
+import { OrderSubmitRoute, orderSubmitAction, orderSubmitLoader } from '@/routes/orders.submit';
+import { ProfileRoute, profileLoader } from '@/routes/profile';
+import { AccountRoute, accountLoader } from '@/routes/profile.account';
+import { ProfileDeliveryRoute, profileDeliveryLoader } from '@/routes/profile.delivery';
+import { RootErrorBoundary, RootLayout } from '@/routes/root';
+import { rootAction, rootLoader } from '@/routes/root.loader';
+import { StockRoute, stockLoader } from '@/routes/stock';
 import { defineRoutes } from './routes/core';
 
 const orderParams = z.object({ orderId: z.string().min(1) });
@@ -34,14 +35,14 @@ export const { routes, routerConfig } = defineRoutes({
   signin: {
     path: '/signin',
     search: loginSearch,
-    loader: signinLoader,
+    loader: authenticationLoader,
     element: React.createElement(LoginRoute),
     errorElement: React.createElement(RootErrorBoundary),
   },
   signup: {
     path: '/signup',
     search: loginSearch,
-    loader: signupLoader,
+    loader: authenticationLoader,
     element: React.createElement(LoginRoute),
     errorElement: React.createElement(RootErrorBoundary),
   },
@@ -62,6 +63,7 @@ export const { routes, routerConfig } = defineRoutes({
         element: React.createElement(OrdersRoute),
         loader: ordersLoader,
         action: ordersAction,
+        hydrateFallback: React.createElement(OrdersSkeleton),
       },
       orderDetail: {
         path: 'orders/:orderId',
@@ -95,6 +97,7 @@ export const { routes, routerConfig } = defineRoutes({
         path: 'stock',
         element: React.createElement(StockRoute),
         loader: stockLoader,
+        hydrateFallback: React.createElement(StockSkeleton),
       },
       profile: {
         path: 'profile',

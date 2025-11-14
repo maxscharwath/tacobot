@@ -1,10 +1,10 @@
 import { type LoaderFunctionArgs, redirect } from 'react-router';
-import { UserApi } from '../lib/api';
-import { authClient } from '../lib/auth-client';
-import { routes } from '../lib/routes';
-import { sessionStore } from '../lib/session/store';
-import { createActionHandler } from '../lib/utils/action-handler';
-import { isLoginRoute, requireSession, withAuthErrorHandling } from '../lib/utils/loader-helpers';
+import { UserApi } from '@/lib/api';
+import { authClient } from '@/lib/auth-client';
+import { routes } from '@/lib/routes';
+import { sessionStore } from '@/lib/session/store';
+import { createActionHandler } from '@/lib/utils/action-handler';
+import { isLoginRoute, requireSession, withAuthErrorHandling } from '@/lib/utils/loader-helpers';
 
 export type RootLoaderData = {
   profile: Awaited<ReturnType<typeof UserApi.getProfile>>;

@@ -35,13 +35,13 @@ import {
 import { useOrderForm } from '@/hooks/useOrderForm';
 import { useOrderValidation } from '@/hooks/useOrderValidation';
 import { useProgressSteps } from '@/hooks/useProgressSteps';
-import { OrdersApi, StockApi, UserApi } from '../lib/api';
-import { ApiError } from '../lib/api/http';
-import type { UpsertUserOrderBody } from '../lib/api/orders';
-import { authClient } from '../lib/auth-client';
-import { routes } from '../lib/routes';
-import { createActionHandler } from '../lib/utils/action-handler';
-import { getSummaryBreakdown } from '../utils/order-helpers';
+import { OrdersApi, StockApi, UserApi } from '@/lib/api';
+import { ApiError } from '@/lib/api/http';
+import type { UpsertUserOrderBody } from '@/lib/api/orders';
+import { authClient } from '@/lib/auth-client';
+import { routes } from '@/lib/routes';
+import { createActionHandler } from '@/lib/utils/action-handler';
+import { getSummaryBreakdown } from '@/utils/order-helpers';
 
 type LoaderData = {
   groupOrder: Awaited<ReturnType<typeof OrdersApi.getGroupOrderWithOrders>>['groupOrder'];

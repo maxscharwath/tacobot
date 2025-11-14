@@ -15,11 +15,11 @@ import {
   StatusBadge,
 } from '@/components/ui';
 import { useDateFormat } from '@/hooks/useDateFormat';
-import { UserApi } from '../lib/api';
-import { routes } from '../lib/routes';
-import { toDate } from '../lib/utils/date';
-import { defer } from '../lib/utils/defer';
-import { createDeferredWithAuth, requireSession } from '../lib/utils/loader-helpers';
+import { UserApi } from '@/lib/api';
+import { routes } from '@/lib/routes';
+import { toDate } from '@/lib/utils/date';
+import { defer } from '@/lib/utils/defer';
+import { createDeferredWithAuth, requireSession } from '@/lib/utils/loader-helpers';
 
 async function loadDashboard() {
   const [groupOrders, orderHistory] = await Promise.all([
