@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { GroupOrderRepository } from '../../infrastructure/repositories/group-order.repository';
 import {
   canAcceptOrders,
+  canSubmitGroupOrder,
   type GroupOrder,
   GroupOrderIdSchema,
 } from '../../schemas/group-order.schema';
@@ -44,6 +45,7 @@ const GroupOrderResponseSchema = z.object({
   endDate: z.string(),
   status: z.string(),
   canAcceptOrders: z.boolean(),
+  canSubmitGroupOrder: z.boolean(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
 });
@@ -83,6 +85,7 @@ async function serializeGroupOrderResponse(groupOrder: GroupOrder) {
     endDate: groupOrder.endDate.toISOString(),
     status: groupOrder.status,
     canAcceptOrders: canAcceptOrders(groupOrder),
+    canSubmitGroupOrder: canSubmitGroupOrder(groupOrder),
     createdAt: groupOrder.createdAt?.toISOString(),
     updatedAt: groupOrder.updatedAt?.toISOString(),
   };

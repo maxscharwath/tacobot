@@ -124,6 +124,7 @@ export interface GroupOrder {
   endDate: string;
   status: string;
   canAcceptOrders: boolean;
+  canSubmitGroupOrder: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

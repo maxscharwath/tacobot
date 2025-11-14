@@ -191,7 +191,7 @@ function OrderDetailContent({
 
   // Check if the group order can accept new orders
   const canAddOrders = groupOrder.canAcceptOrders;
-  const canSubmit = isLeader && groupOrder.canAcceptOrders;
+  const canSubmit = isLeader && groupOrder.canSubmitGroupOrder;
   const isSubmitted = groupOrder.status === 'submitted' || groupOrder.status === 'completed';
   const canManageStatus =
     isLeader &&
