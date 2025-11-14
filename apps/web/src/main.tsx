@@ -11,6 +11,7 @@ if (!root) {
   throw new Error('Root container element not found');
 }
 
+// Render immediately - this is a client-side only app
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
     <RouterProvider router={router} />
