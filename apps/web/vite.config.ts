@@ -30,6 +30,16 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router'],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'router-vendor': ['react-router'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
   },
