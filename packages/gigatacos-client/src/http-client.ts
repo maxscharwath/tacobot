@@ -4,9 +4,12 @@
  */
 
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
+import { wrapper } from 'axios-cookiejar-support';
+import { CookieJar } from 'tough-cookie';
 import type { HttpClientConfig, Logger, ProxyConfig } from './types';
 import { noopLogger } from './utils/logger';
 import { CsrfError, RateLimitError, NetworkError, isCsrfError, isRateLimitError } from './errors';
+import { getRealisticBrowserHeaders, getAjaxHeaders } from './browser-headers';
 
 /**
  * Request configuration
@@ -26,18 +29,29 @@ export class HttpClient {
   private readonly baseUrl: string; // Original backend URL
   private readonly logger: Logger;
   private readonly proxyConfig?: ProxyConfig;
+  private readonly cookieJar: CookieJar;
 
   constructor(config: HttpClientConfig) {
     // Normalize baseUrl to remove trailing slash
     this.baseUrl = config.baseUrl.endsWith('/') ? config.baseUrl.slice(0, -1) : config.baseUrl;
     this.logger = config.logger ?? noopLogger;
     this.proxyConfig = config.proxy;
+    this.cookieJar = new CookieJar();
 
-    this.axiosInstance = axios.create({
+    // Create axios instance with cookie jar support
+    const instance = axios.create({
       baseURL: this.getAxiosBaseUrl(),
-      headers: this.buildProxyHeaders(),
-    });
+      headers: {
+        ...getRealisticBrowserHeaders(),
+        ...this.buildProxyHeaders(),
+      },
+      jar: this.cookieJar,
+      withCredentials: true,
+      timeout: 30000, // 30 second timeout
+      maxRedirects: 5,
+    } as any);
 
+    this.axiosInstance = wrapper(instance);
     this.setupErrorInterceptor();
   }
 
@@ -154,12 +168,13 @@ export class HttpClient {
   private buildHeaders(config: RequestConfig, additionalHeaders?: Record<string, string>): Record<string, string> {
     // Normalize baseUrl to remove trailing slash for Origin
     const normalizedBaseUrl = this.baseUrl.endsWith('/') ? this.baseUrl.slice(0, -1) : this.baseUrl;
-    
+
+    // Get AJAX headers for form submissions (includes realistic browser headers)
+    const ajaxHeaders = getAjaxHeaders(`${normalizedBaseUrl}/index.php?content=livraison`);
+
     const headers: Record<string, string> = {
+      ...ajaxHeaders,
       'X-CSRF-Token': config.csrfToken,
-      'X-Requested-With': 'XMLHttpRequest',
-      'Referer': `${normalizedBaseUrl}/index.php?content=livraison`,
-      'Origin': normalizedBaseUrl,
       ...additionalHeaders,
       ...config.headers,
     };
@@ -244,9 +259,26 @@ export class HttpClient {
    */
   async get<T>(path: string, config: RequestConfig): Promise<{ data: T; cookies: Record<string, string> }> {
     this.logRequest('GET', path, config);
-    const response = await this.axiosInstance.get<T>(path, {
-      headers: this.buildHeaders(config),
-    });
+
+    // For GET requests with cookies (subsequent navigation), update Sec-Fetch-Site
+    const normalizedBaseUrl = this.baseUrl.endsWith('/') ? this.baseUrl.slice(0, -1) : this.baseUrl;
+    const hasCookies = config.cookies && Object.keys(config.cookies).length > 0;
+
+    const headers: Record<string, string> = {
+      'X-CSRF-Token': config.csrfToken,
+      ...config.headers,
+    };
+
+    // If we have cookies, this is a same-origin navigation, not initial load
+    if (hasCookies && config.cookies) {
+      headers['Referer'] = `${normalizedBaseUrl}/`;
+      headers['Sec-Fetch-Site'] = 'same-origin';
+      headers['Cookie'] = Object.entries(config.cookies)
+        .map(([key, value]) => `${key}=${value}`)
+        .join('; ');
+    }
+
+    const response = await this.axiosInstance.get<T>(path, { headers });
     return this.extractResponse(response);
   }
 
@@ -259,6 +291,8 @@ export class HttpClient {
     config: RequestConfig
   ): Promise<{ data: T; cookies: Record<string, string> }> {
     const formDataString = this.toFormData(data, config.csrfToken);
+
+    // Build headers with AJAX-specific headers for form submissions
     const headers = this.buildHeaders(config, {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
     });

@@ -300,60 +300,31 @@ export class GigatacosClient {
     try {
       // First, visit homepage to initialize PHP session properly
       this.logger.debug('Initializing session by visiting homepage', { baseUrl: this.baseUrl });
-      const homeResponse = await axios.get<string>(`${this.baseUrl}/`, {
-        headers: {
-          Accept: 'text/html',
-        },
-        validateStatus: () => true,
+      const homeResult = await this.httpClient.get<string>('/', {
+        csrfToken: '', // Not needed for homepage
+        headers: {},
       });
 
-      // Extract cookies from homepage response
-      const homeCookies: Record<string, string> = {};
-      const homeSetCookieHeaders = homeResponse.headers['set-cookie'];
-      if (homeSetCookieHeaders) {
-        for (const cookie of homeSetCookieHeaders) {
-          const [nameValue] = cookie.split(';');
-          const [name, value] = (nameValue || '').split('=');
-          if (name && value) {
-            homeCookies[name.trim()] = value.trim();
-          }
-        }
-      }
+      // Cookies are already extracted by httpClient
+      const homeCookies = homeResult.cookies;
 
       this.logger.debug('Homepage visited', {
-        status: homeResponse.status,
+        status: 200, // If we got here, it was successful
         cookieCount: Object.keys(homeCookies).length,
         cookieNames: Object.keys(homeCookies),
       });
 
       // Now fetch the HTML page containing the CSRF token
-      const cookieHeader =
-        Object.keys(homeCookies).length > 0
-          ? Object.entries(homeCookies)
-              .map(([key, value]) => `${key}=${value}`)
-              .join('; ')
-          : undefined;
-
-      const htmlResponse = await this.requestCsrfPage(cookieHeader);
+      const csrfResult = await this.requestCsrfPage(homeCookies);
 
       // Extract CSRF token from HTML
-      const csrfToken = extractCsrfTokenFromHtml(htmlResponse.data, this.logger);
+      const csrfToken = extractCsrfTokenFromHtml(csrfResult.data, this.logger);
       if (!csrfToken) {
         throw new CsrfError();
       }
 
-      // Extract cookies from HTML response and merge with homepage cookies
-      const cookies: Record<string, string> = { ...homeCookies };
-      const setCookieHeaders = htmlResponse.headers['set-cookie'];
-      if (setCookieHeaders) {
-        for (const cookie of setCookieHeaders) {
-          const [nameValue] = cookie.split(';');
-          const [name, value] = (nameValue || '').split('=');
-          if (name && value) {
-            cookies[name.trim()] = value.trim();
-          }
-        }
-      }
+      // Merge cookies from both requests
+      const cookies: Record<string, string> = { ...homeCookies, ...csrfResult.cookies };
 
       this.logger.info('New session created successfully', {
         tokenLength: csrfToken.length,
@@ -412,78 +383,41 @@ export class GigatacosClient {
     cookies: Record<string, string>
   ): Promise<SessionContext> {
     try {
-      // Build cookie header from existing cookies
-      const cookieHeader =
-        Object.keys(cookies).length > 0
-          ? Object.entries(cookies)
-              .map(([key, value]) => `${key}=${value}`)
-              .join('; ')
-          : undefined;
-
       this.logger.debug('Refreshing CSRF token - visiting homepage first to reinitialize session', {
         baseUrl: this.baseUrl,
         cookieCount: Object.keys(cookies).length,
       });
 
-      // First, visit homepage to reinitialize PHP session properly (similar to createNewSession)
-      const homeResponse = await axios.get<string>(`${this.baseUrl}/`, {
-        headers: {
-          Accept: 'text/html',
-          ...(cookieHeader ? { Cookie: cookieHeader } : {}),
-        },
-        validateStatus: () => true,
+      // First, visit homepage to reinitialize PHP session properly
+      const homeResult = await this.httpClient.get<string>('/', {
+        csrfToken: '', // Not needed for homepage
+        cookies,
+        headers: {},
       });
 
-      // Extract and merge cookies from homepage response
-      const updatedCookies: Record<string, string> = { ...cookies };
-      const homeSetCookieHeaders = homeResponse.headers['set-cookie'];
-      if (homeSetCookieHeaders) {
-        for (const cookie of homeSetCookieHeaders) {
-          const [nameValue] = cookie.split(';');
-          const [name, value] = (nameValue || '').split('=');
-          if (name && value) {
-            updatedCookies[name.trim()] = value.trim();
-          }
-        }
-      }
-
-      // Build updated cookie header
-      const updatedCookieHeader =
-        Object.keys(updatedCookies).length > 0
-          ? Object.entries(updatedCookies)
-              .map(([key, value]) => `${key}=${value}`)
-              .join('; ')
-          : undefined;
+      // Merge cookies from homepage
+      const updatedCookies = { ...cookies, ...homeResult.cookies };
 
       this.logger.debug('Homepage visited, fetching CSRF token page', {
-        status: homeResponse.status,
+        status: 200,
         cookieCount: Object.keys(updatedCookies).length,
       });
 
       // Fetch the HTML page containing the CSRF token with updated cookies
-      const htmlResponse = await this.requestCsrfPage(updatedCookieHeader);
+      const csrfResult = await this.requestCsrfPage(updatedCookies);
 
       // Extract CSRF token from HTML
-      const csrfToken = extractCsrfTokenFromHtml(htmlResponse.data, this.logger);
+      const csrfToken = extractCsrfTokenFromHtml(csrfResult.data, this.logger);
       if (!csrfToken) {
         throw new CsrfError();
       }
 
-      // Extract cookies from CSRF page response and merge with existing
-      const setCookieHeaders = htmlResponse.headers['set-cookie'];
-      if (setCookieHeaders) {
-        for (const cookie of setCookieHeaders) {
-          const [nameValue] = cookie.split(';');
-          const [name, value] = (nameValue || '').split('=');
-          if (name && value) {
-            updatedCookies[name.trim()] = value.trim();
-          }
-        }
-      }
+      // Merge all cookies
+      const finalCookies = { ...updatedCookies, ...csrfResult.cookies };
 
       this.logger.info('CSRF token refreshed with existing cookies', {
         tokenLength: csrfToken.length,
-        cookieCount: Object.keys(updatedCookies).length,
+        cookieCount: Object.keys(finalCookies).length,
         csrfToken: csrfToken, // Log actual token for debugging
       });
 
@@ -491,7 +425,7 @@ export class GigatacosClient {
       return {
         sessionId: '',
         csrfToken,
-        cookies: updatedCookies,
+        cookies: finalCookies,
       };
     } catch (error) {
       this.logger.error('Failed to refresh CSRF token with cookies', {
@@ -508,32 +442,19 @@ export class GigatacosClient {
   /**
    * Request CSRF page with fallback URLs
    */
-  private async requestCsrfPage(cookieHeader?: string): Promise<AxiosResponse<string>> {
-    const csrfPath = 'index.php?content=livraison';
-    const normalizedPath = csrfPath.startsWith('/') ? csrfPath.slice(1) : csrfPath;
-    const candidateUrls = [`${this.baseUrl}/${normalizedPath}`, `${this.baseUrl}/`];
-    let lastError: unknown;
+  private async requestCsrfPage(cookies: Record<string, string>): Promise<{ data: string; cookies: Record<string, string> }> {
+    const csrfPath = '/index.php?content=livraison';
 
-    for (const url of candidateUrls) {
-      try {
-        return await axios.get<string>(url, {
-          headers: {
-            Accept: 'text/html',
-            ...(cookieHeader ? { Cookie: cookieHeader } : {}),
-          },
-        });
-      } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.status === 404) {
-          lastError = error;
-          this.logger.warn('CSRF page returned 404, trying fallback', { url });
-          continue;
-        }
-        lastError = error;
-        break;
-      }
+    try {
+      return await this.httpClient.get<string>(csrfPath, {
+        csrfToken: '', // Not needed yet
+        cookies,
+        headers: {},
+      });
+    } catch (error) {
+      this.logger.error('Failed to fetch CSRF page', { error });
+      throw error instanceof Error ? error : new CsrfError();
     }
-
-    throw lastError instanceof Error ? lastError : new CsrfError();
   }
 
   // ============================================================================
