@@ -23,12 +23,31 @@ export const UserOrderIdSchema = zId<UserOrderId>();
 /**
  * User order schema using Zod
  */
+const PaymentActorSchema = z.object({
+  id: z.string(),
+  name: z.string().nullish(),
+});
+
+const PaymentStatusSchema = z.object({
+  settled: z.boolean(),
+  settledAt: z.date().nullish(),
+  settledBy: PaymentActorSchema.nullish(),
+});
+
+const ParticipantPaymentSchema = z.object({
+  paid: z.boolean(),
+  paidAt: z.date().nullish(),
+  paidBy: PaymentActorSchema.nullish(),
+});
+
 export const UserOrderSchema = z.object({
   id: zId<UserOrderId>(),
   groupOrderId: zId<GroupOrderId>(),
   userId: zId<UserId>(),
   name: z.string().nullable().optional(),
   items: z.custom<UserOrderItems>(),
+  reimbursement: PaymentStatusSchema,
+  participantPayment: ParticipantPaymentSchema,
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -44,6 +63,12 @@ export const UserOrderFromDbSchema = z.object({
   userId: z.string(), // UUID from DB as string
   items: z.unknown(), // Prisma Json type - automatically parsed
   tacoIdsHex: z.unknown().nullish(), // Prisma Json type - array of taco IDs in hex format
+  reimbursed: z.boolean(),
+  reimbursedAt: z.date().nullish(),
+  reimbursedById: z.string().nullish(),
+  paidByUser: z.boolean(),
+  paidByUserAt: z.date().nullish(),
+  paidByUserId: z.string().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
   user: z
@@ -51,6 +76,8 @@ export const UserOrderFromDbSchema = z.object({
       name: z.string().nullish(), // Allow null for Better Auth users
     })
     .optional(),
+  reimbursedBy: PaymentActorSchema.nullish(),
+  paidByUserRef: PaymentActorSchema.nullish(),
 });
 
 /**
@@ -91,6 +118,26 @@ export function createUserOrderFromDb(data: z.infer<typeof UserOrderFromDbSchema
     userId: validated.userId as UserId, // Accept Better Auth IDs or UUIDs
     name: validated.user?.name,
     items: validated.items as UserOrderItems, // Type guard ensures this is UserOrderItems
+    reimbursement: {
+      settled: validated.reimbursed,
+      settledAt: validated.reimbursedAt ?? null,
+      settledBy: validated.reimbursedBy
+        ? {
+            id: validated.reimbursedBy.id as UserId,
+            name: validated.reimbursedBy.name ?? null,
+          }
+        : null,
+    },
+    participantPayment: {
+      paid: validated.paidByUser,
+      paidAt: validated.paidByUserAt ?? null,
+      paidBy: validated.paidByUserRef
+        ? {
+            id: validated.paidByUserRef.id as UserId,
+            name: validated.paidByUserRef.name ?? null,
+          }
+        : null,
+    },
     createdAt: validated.createdAt,
     updatedAt: validated.updatedAt,
   };

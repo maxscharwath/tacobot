@@ -10,7 +10,13 @@ import {
   useNavigation,
   useParams,
 } from 'react-router';
-import { CookieInjectionModal, OrderHero, OrdersList, ShareButton } from '@/components/orders';
+import {
+  CookieInjectionModal,
+  GroupOrderReceipts,
+  OrderHero,
+  OrdersList,
+  ShareButton,
+} from '@/components/orders';
 import { OrderDetailSkeleton } from '@/components/skeletons';
 import { Button } from '@/components/ui';
 import { useDeveloperMode } from '@/hooks/useDeveloperMode';
@@ -254,6 +260,15 @@ function OrderDetailContent({
           )}
         </div>
       </div>
+
+      <GroupOrderReceipts
+        groupOrder={groupOrder}
+        userOrders={userOrders}
+        stock={stock}
+        currency={currency}
+        isLeader={isLeader}
+        currentUserId={currentUserId}
+      />
 
       <CookieInjectionModal
         isOpen={isCookieModalOpen}

@@ -2,6 +2,7 @@ export { CookieInjectionModal } from './CookieInjectionModal';
 export type { DeliveryType } from './DeliveryTypeSelector';
 export { DeliveryTypeSelector } from './DeliveryTypeSelector';
 export { ExtrasSection } from './ExtrasSection';
+export { GroupOrderReceipts } from './GroupOrderReceipts';
 export { MeatSelector } from './MeatSelector';
 export { OrderCard } from './OrderCard';
 export { OrderConfirmationModal } from './OrderConfirmationModal';

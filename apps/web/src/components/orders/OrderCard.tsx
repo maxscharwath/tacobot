@@ -27,6 +27,7 @@ type OrderCardProps = {
   readonly currency: string;
   readonly onDelete?: (orderId: string) => void;
   readonly onDuplicate?: () => void;
+  readonly onOrderChange?: () => void;
 };
 
 export function OrderCard({
@@ -39,6 +40,7 @@ export function OrderCard({
   stock,
   currency,
   onDuplicate,
+  onOrderChange,
 }: OrderCardProps) {
   const { t } = useTranslation();
   const fetcher = useFetcher();
@@ -63,6 +65,7 @@ export function OrderCard({
       const body = convertOrderToUpsertBody(order);
       await OrdersApi.upsertUserOrder(orderId, body);
       onDuplicate?.();
+      onOrderChange?.();
     } catch (error) {
       console.error('Failed to duplicate order:', error);
     }

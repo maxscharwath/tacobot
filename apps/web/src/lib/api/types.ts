@@ -124,6 +124,7 @@ export interface GroupOrder {
   status: string;
   canAcceptOrders: boolean;
   canSubmitGroupOrder: boolean;
+  fee?: number | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -190,6 +191,23 @@ export interface UserOrderItems {
   desserts: PricedSelection[];
 }
 
+export interface PaymentMarker {
+  id: string;
+  name?: string | null;
+}
+
+export interface ReimbursementStatus {
+  settled: boolean;
+  settledAt?: string | null;
+  settledBy?: PaymentMarker | null;
+}
+
+export interface ParticipantPaymentStatus {
+  paid: boolean;
+  paidAt?: string | null;
+  paidBy?: PaymentMarker | null;
+}
+
 export interface UserOrderSummary {
   id: string;
   groupOrderId: string;
@@ -197,6 +215,8 @@ export interface UserOrderSummary {
   name?: string | null;
   status: string;
   items: UserOrderItems;
+  reimbursement: ReimbursementStatus;
+  participantPayment: ParticipantPaymentStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -237,6 +257,39 @@ export interface GroupOrderSubmissionBody {
   };
   paymentMethod: PaymentMethod;
   dryRun?: boolean; // If true, skips actual submission to RocknRoll.php but creates session and cart
+}
+
+export interface OrderSummaryItem {
+  tacos: Array<{
+    quantity: number;
+    size: string;
+    price: number;
+    meats: string;
+    garnitures: string;
+    sauces: string;
+  }>;
+  extras: Array<{
+    quantity: number;
+    name: string;
+    price: number;
+  }>;
+  drinks: Array<{
+    quantity: number;
+    name: string;
+    price: number;
+  }>;
+  desserts: Array<{
+    quantity: number;
+    name: string;
+    price: number;
+  }>;
+}
+
+export interface OrderSummary {
+  cartTotal: number;
+  deliveryFee: number;
+  totalAmount: number;
+  items: OrderSummaryItem;
 }
 
 export interface GroupOrderSubmissionResponse {

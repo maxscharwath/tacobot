@@ -14,6 +14,7 @@ import { GroupOrderStatus } from '../../shared/types/types';
 import { NotFoundError, ValidationError } from '../../shared/utils/errors.utils';
 import { inject } from '../../shared/utils/inject.utils';
 import { logger } from '../../shared/utils/logger.utils';
+import { calculateTotalPriceFromUserOrders } from '../../shared/utils/order-price.utils';
 import { validateItemAvailability } from '../../shared/utils/order-validation.utils';
 import { BackendOrderSubmissionService } from '../order/backend-order-submission.service';
 import { ResourceService } from '../resource/resource.service';
@@ -23,6 +24,7 @@ type SubmissionResult = {
   transactionId: string;
   orderData: unknown;
   sessionId: string;
+  orderSummary: import('@tacobot/gigatacos-client').OrderSummary | null;
   dryRun?: boolean;
 };
 
@@ -63,9 +65,23 @@ export class SubmitGroupOrderUseCase {
       dryRun
     );
 
+    // Calculate fee: difference between backend total price and computed price
+    const computedPrice = calculateTotalPriceFromUserOrders(userOrders);
+    const backendTotalPrice = result.orderSummary?.totalAmount ?? computedPrice;
+    const backendDeliveryFee = result.orderSummary?.deliveryFee;
+    const fee = backendDeliveryFee ?? Math.max(backendTotalPrice - computedPrice, 0);
+
     await this.groupOrderRepository.update(groupOrderId, {
       sessionId: result.sessionId,
       status: GroupOrderStatus.SUBMITTED,
+      fee,
+    });
+
+    logger.info('Fee calculated and stored', {
+      groupOrderId,
+      computedPrice,
+      backendTotalPrice,
+      fee,
     });
 
     logger.info(dryRun ? 'Group order dry run completed' : 'Group order submitted', {

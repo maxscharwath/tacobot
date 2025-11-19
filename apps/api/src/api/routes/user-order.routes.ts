@@ -6,10 +6,14 @@
 import { createRoute } from '@hono/zod-openapi';
 import { z } from 'zod';
 import { GroupOrderIdSchema } from '../../schemas/group-order.schema';
+import type { UserOrder } from '../../schemas/user-order.schema';
+import { UserOrderIdSchema } from '../../schemas/user-order.schema';
 import { SubmitGroupOrderUseCase } from '../../services/group-order/submit-group-order.service';
 import { CreateUserOrderUseCase } from '../../services/user-order/create-user-order.service';
 import { DeleteUserOrderUseCase } from '../../services/user-order/delete-user-order.service';
 import { GetUserOrderUseCase } from '../../services/user-order/get-user-order.service';
+import { UpdateUserOrderReimbursementStatusUseCase } from '../../services/user-order/update-user-order-reimbursement.service';
+import { UpdateUserOrderUserPaymentStatusUseCase } from '../../services/user-order/update-user-order-user-payment.service';
 import { TimeSlotSchema } from '../../shared/types/time-slot';
 import { OrderType } from '../../shared/types/types';
 import { inject } from '../../shared/utils/inject.utils';
@@ -23,15 +27,90 @@ const CreateUserOrderRequestSchema = z.object({
   items: UserOrderItemsRequestSchema,
 });
 
+const PaymentActorResponseSchema = z.object({
+  id: z.string(),
+  name: z.string().nullish(),
+});
+
+const ReimbursementStatusResponseSchema = z.object({
+  settled: z.boolean(),
+  settledAt: z.string().nullish(),
+  settledBy: PaymentActorResponseSchema.nullish(),
+});
+
+const ParticipantPaymentStatusResponseSchema = z.object({
+  paid: z.boolean(),
+  paidAt: z.string().nullish(),
+  paidBy: PaymentActorResponseSchema.nullish(),
+});
+
 const UserOrderResponseSchema = z.object({
   id: z.string(),
   groupOrderId: z.string(),
   userId: z.string(),
+  name: z.string().nullish(),
   username: z.string().optional(),
   items: UserOrderItemsSchema,
+  reimbursement: ReimbursementStatusResponseSchema,
+  participantPayment: ParticipantPaymentStatusResponseSchema,
   createdAt: z.string(),
   updatedAt: z.string(),
 });
+
+const UpdateReimbursementRequestSchema = z.object({
+  reimbursed: z.boolean(),
+});
+
+const UpdateUserPaidRequestSchema = z.object({
+  paid: z.boolean(),
+});
+
+function sanitizeUserOrderItems(items: UserOrder['items']): UserOrder['items'] {
+  return {
+    ...items,
+    tacos: items.tacos.map((taco) => {
+      const { tacoIdHex, ...rest } = taco as typeof taco & { tacoIdHex?: string };
+      if (tacoIdHex) {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete (rest as typeof taco & { tacoIdHex?: string }).tacoIdHex;
+      }
+      return rest;
+    }),
+  };
+}
+
+function serializeUserOrderResponse(userOrder: UserOrder) {
+  return {
+    id: userOrder.id,
+    groupOrderId: userOrder.groupOrderId,
+    userId: userOrder.userId,
+    name: userOrder.name ?? null,
+    username: userOrder.name ?? undefined,
+    items: sanitizeUserOrderItems(userOrder.items),
+    reimbursement: {
+      settled: userOrder.reimbursement.settled,
+      settledAt: userOrder.reimbursement.settledAt?.toISOString() ?? null,
+      settledBy: userOrder.reimbursement.settledBy
+        ? {
+            id: userOrder.reimbursement.settledBy.id,
+            name: userOrder.reimbursement.settledBy.name,
+          }
+        : null,
+    },
+    participantPayment: {
+      paid: userOrder.participantPayment.paid,
+      paidAt: userOrder.participantPayment.paidAt?.toISOString() ?? null,
+      paidBy: userOrder.participantPayment.paidBy
+        ? {
+            id: userOrder.participantPayment.paidBy.id,
+            name: userOrder.participantPayment.paidBy.name,
+          }
+        : null,
+    },
+    createdAt: userOrder.createdAt.toISOString(),
+    updatedAt: userOrder.updatedAt.toISOString(),
+  };
+}
 
 app.openapi(
   createRoute({
@@ -61,18 +140,7 @@ app.openapi(
     const createUserOrderUseCase = inject(CreateUserOrderUseCase);
     const userOrder = await createUserOrderUseCase.execute(groupOrderId, userId, body);
 
-    return c.json(
-      {
-        id: userOrder.id,
-        groupOrderId: userOrder.groupOrderId,
-        userId: userOrder.userId,
-        name: userOrder.name,
-        items: userOrder.items,
-        createdAt: userOrder.createdAt.toISOString(),
-        updatedAt: userOrder.updatedAt.toISOString(),
-      },
-      201
-    );
+    return c.json(serializeUserOrderResponse(userOrder), 201);
   }
 );
 
@@ -100,32 +168,7 @@ app.openapi(
     const getUserOrderUseCase = inject(GetUserOrderUseCase);
     const userOrder = await getUserOrderUseCase.execute(orderId);
 
-    return c.json(
-      {
-        id: userOrder.id,
-        groupOrderId: userOrder.groupOrderId,
-        userId: userOrder.userId,
-        name: userOrder.name,
-        items: {
-          ...userOrder.items,
-          tacos: userOrder.items.tacos.map((taco) => {
-            // Remove tacoIdHex if it exists (internal field, not part of API response)
-            const tacoCopy = { ...taco };
-            if ('tacoIdHex' in tacoCopy) {
-              // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-              delete tacoCopy.tacoIdHex;
-            }
-            return {
-              ...tacoCopy,
-              tacoID: taco.tacoID,
-            };
-          }),
-        },
-        createdAt: userOrder.createdAt.toISOString(),
-        updatedAt: userOrder.updatedAt.toISOString(),
-      },
-      200
-    );
+    return c.json(serializeUserOrderResponse(userOrder), 200);
   }
 );
 
@@ -154,6 +197,84 @@ app.openapi(
     await deleteUserOrderUseCase.execute(orderId, deleterUserId);
 
     return c.body(null, 204);
+  }
+);
+
+app.openapi(
+  createRoute({
+    method: 'patch',
+    path: '/orders/{id}/items/{itemId}/reimbursement',
+    tags: ['Orders'],
+    security: authSecurity,
+    request: {
+      params: z.object({
+        id: GroupOrderIdSchema,
+        itemId: z.string(),
+      }),
+      body: {
+        content: jsonContent(UpdateReimbursementRequestSchema),
+      },
+    },
+    responses: {
+      200: {
+        description: 'Reimbursement status updated',
+        content: jsonContent(UserOrderResponseSchema),
+      },
+    },
+  }),
+  async (c) => {
+    const requesterId = requireUserId(c);
+    const { id: groupOrderId, itemId } = c.req.valid('param');
+    const body = c.req.valid('json');
+    const userOrderId = UserOrderIdSchema.parse(itemId);
+    const updateReimbursementUseCase = inject(UpdateUserOrderReimbursementStatusUseCase);
+    const userOrder = await updateReimbursementUseCase.execute(
+      groupOrderId,
+      userOrderId,
+      requesterId,
+      body.reimbursed
+    );
+
+    return c.json(serializeUserOrderResponse(userOrder), 200);
+  }
+);
+
+app.openapi(
+  createRoute({
+    method: 'patch',
+    path: '/orders/{id}/items/{itemId}/payment',
+    tags: ['Orders'],
+    security: authSecurity,
+    request: {
+      params: z.object({
+        id: GroupOrderIdSchema,
+        itemId: z.string(),
+      }),
+      body: {
+        content: jsonContent(UpdateUserPaidRequestSchema),
+      },
+    },
+    responses: {
+      200: {
+        description: 'User payment status updated',
+        content: jsonContent(UserOrderResponseSchema),
+      },
+    },
+  }),
+  async (c) => {
+    const requesterId = requireUserId(c);
+    const { id: groupOrderId, itemId } = c.req.valid('param');
+    const body = c.req.valid('json');
+    const userOrderId = UserOrderIdSchema.parse(itemId);
+    const updatePaymentUseCase = inject(UpdateUserOrderUserPaymentStatusUseCase);
+    const userOrder = await updatePaymentUseCase.execute(
+      groupOrderId,
+      userOrderId,
+      requesterId,
+      body.paid
+    );
+
+    return c.json(serializeUserOrderResponse(userOrder), 200);
   }
 );
 

@@ -133,9 +133,11 @@ export const orderSubmitAction = createActionHandler({
   onSuccess: (_request, params) => {
     const groupOrderId = params.orderId;
     if (!groupOrderId) throw new Response('Order not found', { status: 404 });
-    // Return success data instead of redirecting immediately
-    // The component will handle showing the modal and redirecting
-    return Response.json({ success: true, groupOrderId });
+    // Return success data - the component will handle showing the modal and redirecting
+    return Response.json({
+      success: true,
+      groupOrderId,
+    });
   },
 });
 

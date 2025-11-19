@@ -5,7 +5,12 @@
  */
 
 import { randomBytes } from 'node:crypto';
-import { type OrderSubmissionResponse, PaymentMethod } from '@tacobot/gigatacos-client';
+import {
+  OrderStatus,
+  type OrderSubmissionResponse,
+  type OrderSummary,
+  PaymentMethod,
+} from '@tacobot/gigatacos-client';
 import axios from 'axios';
 import { injectable } from 'tsyringe';
 import { BackendIntegrationClient } from '../../infrastructure/api/backend-integration.client';
@@ -43,6 +48,7 @@ export class BackendOrderSubmissionService {
     transactionId: string;
     orderData: OrderSubmissionResponse['OrderData'];
     sessionId: string;
+    orderSummary: OrderSummary | null;
     dryRun?: boolean;
   }> {
     // Create a new session for this combined order
@@ -70,16 +76,18 @@ export class BackendOrderSubmissionService {
       // Generate transaction ID (format: timestamp_random)
       const transactionId = `${Date.now()}_${randomBytes(8).toString('hex')}`;
 
-      let orderResult: OrderSubmissionResponse;
+      let orderResult;
 
       if (dryRun) {
-        // Dry run: Skip actual submission, create mock response
         logger.info('Dry run mode: Skipping RocknRoll.php submission', {
           sessionId,
           groupOrderId,
           transactionId,
         });
 
+        // Create mock response matching the backend API structure
+        // Note: Structure matches OrderSubmissionResponse from @tacobot/gigatacos-client
+        // where OrderData.price is string, not number
         orderResult = {
           success: true,
           orderId: `dry-run-${transactionId}`,
@@ -99,23 +107,14 @@ export class BackendOrderSubmissionService {
             name: customer.name,
             phone: customer.phone,
             address: formatAddressForBackend(delivery.address),
-            status: 'dry-run',
+            status: OrderStatus.PENDING,
             date: new Date().toISOString(),
             type: delivery.type,
-            requestedFor: delivery.requestedFor,
-            ...({
-              dryRun: true,
-              message: 'Order not submitted - dry run mode',
-              sessionId,
-              transactionId,
-            } as Record<string, unknown>),
+            requestedFor: String(delivery.requestedFor),
           },
         };
       } else {
-        // Format address as string for backend API
         const addressString = formatAddressForBackend(delivery.address);
-
-        // Submit order to backend
         orderResult = await this.backendIntegration.submitOrder(sessionId, {
           name: customer.name,
           phone: customer.phone,
@@ -124,7 +123,7 @@ export class BackendOrderSubmissionService {
           type: delivery.type,
           requestedFor: delivery.requestedFor,
           transaction_id: transactionId,
-          ...(paymentMethod && { payment_method: paymentMethod }),
+          payment_method: paymentMethod,
         });
       }
 
@@ -144,13 +143,15 @@ export class BackendOrderSubmissionService {
         }
       );
 
-      return {
+      const result = {
         orderId: orderResult.orderId,
         transactionId,
         orderData: orderResult.OrderData,
         sessionId,
+        orderSummary,
         ...(dryRun && { dryRun: true }),
       };
+      return result;
     } catch (error) {
       logger.error('Failed to submit order', {
         sessionId,

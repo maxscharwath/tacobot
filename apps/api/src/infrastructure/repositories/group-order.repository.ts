@@ -68,22 +68,11 @@ export class GroupOrderRepository {
     }
   }
 
-  async findByShareCode(shareCode: string): Promise<GroupOrder | null> {
-    try {
-      const dbGroupOrder = await this.prisma.client.groupOrder.findUnique({
-        where: { shareCode },
-      });
-
-      return dbGroupOrder ? createGroupOrderFromDb(dbGroupOrder) : null;
-    } catch (error) {
-      logger.error('Failed to get group order by share code', { shareCode, error });
-      return null;
-    }
-  }
-
   async update(
     id: GroupOrderId,
-    updates: Partial<Pick<GroupOrder, 'name' | 'status' | 'startDate' | 'endDate' | 'sessionId'>>
+    updates: Partial<
+      Pick<GroupOrder, 'name' | 'status' | 'startDate' | 'endDate' | 'sessionId' | 'fee'>
+    >
   ): Promise<GroupOrder> {
     try {
       const dbGroupOrder = await this.prisma.client.groupOrder.update({
@@ -94,6 +83,7 @@ export class GroupOrderRepository {
           ...(updates.startDate !== undefined && { startDate: updates.startDate }),
           ...(updates.endDate !== undefined && { endDate: updates.endDate }),
           ...(updates.sessionId !== undefined && { sessionId: updates.sessionId }),
+          ...(updates.fee !== undefined && { fee: updates.fee }),
           updatedAt: new Date(),
         },
       });

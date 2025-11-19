@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.5/schema.json",
   "vcs": { "enabled": true, "clientKind": "git" },
   "files": {
     "ignoreUnknown": false,
@@ -10,6 +10,7 @@
       "*.tsx",
       "*.mts",
       "*.cts",
+      "!apps/api/logs/**",
       "!!**/*.css",
       "!!**/storybook-static/**",
       "!!**/node_modules/**",
@@ -37,6 +38,7 @@
       "!**/node_modules",
       "!**/dist",
       "!**/build",
+      "!apps/api/logs/**",
       "!**/coverage",
       "!**/logs",
       "!**/*.log",

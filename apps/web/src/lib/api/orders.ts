@@ -45,6 +45,32 @@ export function deleteUserOrder(groupOrderId: string, itemId: string) {
   return apiClient.delete<void>(`/api/v1/orders/${groupOrderId}/items/${itemId}`);
 }
 
+export function updateUserOrderReimbursementStatus(
+  groupOrderId: string,
+  itemId: string,
+  reimbursed: boolean
+) {
+  return apiClient.patch<UserOrderResponse>(
+    `/api/v1/orders/${groupOrderId}/items/${itemId}/reimbursement`,
+    {
+      body: { reimbursed },
+    }
+  );
+}
+
+export function updateUserOrderParticipantPayment(
+  groupOrderId: string,
+  itemId: string,
+  paid: boolean
+) {
+  return apiClient.patch<UserOrderResponse>(
+    `/api/v1/orders/${groupOrderId}/items/${itemId}/payment`,
+    {
+      body: { paid },
+    }
+  );
+}
+
 export function deleteGroupOrder(groupOrderId: string) {
   return apiClient.delete<void>(`/api/v1/orders/${groupOrderId}`);
 }

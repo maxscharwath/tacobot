@@ -12,6 +12,7 @@ import {
   type GroupOrder,
   GroupOrderIdSchema,
 } from '../../schemas/group-order.schema';
+import type { UserOrder } from '../../schemas/user-order.schema';
 import { CreateGroupOrderUseCase } from '../../services/group-order/create-group-order.service';
 import { DeleteGroupOrderUseCase } from '../../services/group-order/delete-group-order.service';
 import { GetGroupOrderUseCase } from '../../services/group-order/get-group-order.service';
@@ -46,6 +47,7 @@ const GroupOrderResponseSchema = z.object({
   status: z.string(),
   canAcceptOrders: z.boolean(),
   canSubmitGroupOrder: z.boolean(),
+  fee: z.number().nullable().optional(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
 });
@@ -56,6 +58,28 @@ const UserOrderResponseSchema = z.object({
   userId: z.string(),
   name: z.string().nullable().optional(),
   items: UserOrderItemsSchema,
+  reimbursement: z.object({
+    settled: z.boolean(),
+    settledAt: z.string().nullable().optional(),
+    settledBy: z
+      .object({
+        id: z.string(),
+        name: z.string().nullable(),
+      })
+      .nullable()
+      .optional(),
+  }),
+  participantPayment: z.object({
+    paid: z.boolean(),
+    paidAt: z.string().nullable().optional(),
+    paidBy: z
+      .object({
+        id: z.string(),
+        name: z.string().nullable(),
+      })
+      .nullable()
+      .optional(),
+  }),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -85,8 +109,23 @@ async function serializeGroupOrderResponse(groupOrder: GroupOrder) {
     status: groupOrder.status,
     canAcceptOrders: canAcceptOrders(groupOrder),
     canSubmitGroupOrder: canSubmitGroupOrder(groupOrder),
+    fee: groupOrder.fee ?? null,
     createdAt: groupOrder.createdAt?.toISOString(),
     updatedAt: groupOrder.updatedAt?.toISOString(),
+  };
+}
+
+function sanitizeGroupUserOrderItems(items: UserOrder['items']): UserOrder['items'] {
+  return {
+    ...items,
+    tacos: items.tacos.map((taco) => {
+      const { tacoIdHex, ...rest } = taco as typeof taco & { tacoIdHex?: string };
+      if (tacoIdHex) {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete (rest as typeof taco & { tacoIdHex?: string }).tacoIdHex;
+      }
+      return rest;
+    }),
   };
 }
 
@@ -213,9 +252,26 @@ app.openapi(
           groupOrderId: uo.groupOrderId,
           userId: uo.userId,
           name: uo.name,
-          items: {
-            ...uo.items,
-            tacos: uo.items.tacos,
+          items: sanitizeGroupUserOrderItems(uo.items),
+          reimbursement: {
+            settled: uo.reimbursement.settled,
+            settledAt: uo.reimbursement.settledAt?.toISOString() ?? null,
+            settledBy: uo.reimbursement.settledBy
+              ? {
+                  id: uo.reimbursement.settledBy.id,
+                  name: uo.reimbursement.settledBy.name ?? null,
+                }
+              : null,
+          },
+          participantPayment: {
+            paid: uo.participantPayment.paid,
+            paidAt: uo.participantPayment.paidAt?.toISOString() ?? null,
+            paidBy: uo.participantPayment.paidBy
+              ? {
+                  id: uo.participantPayment.paidBy.id,
+                  name: uo.participantPayment.paidBy.name ?? null,
+                }
+              : null,
           },
           createdAt: uo.createdAt.toISOString(),
           updatedAt: uo.updatedAt.toISOString(),

@@ -62,6 +62,8 @@ model User {
   orders           Order[]               @relation("UserOrders")
   groupOrders      GroupOrder[]          @relation("GroupOrderLeader")
   userOrders       UserOrder[]           @relation("UserUserOrders")
+  markedReimbursements UserOrder[]       @relation("UserOrderReimbursedBy")
+  markedPayments   UserOrder[]           @relation("UserOrderPaidBy")
   deliveryProfiles UserDeliveryProfile[]
 
   passkeys Passkey[]
@@ -128,6 +130,7 @@ model GroupOrder {
   endDate   DateTime
   status    String   @default("open") // open, closed, submitted, completed
   sessionId String? // Session ID for order verification (links to Cart)
+  fee       Float? // Difference between backend total price and computed price (for reimbursement calculation)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
@@ -152,8 +155,14 @@ model UserOrder {
   userId String // User ID instead of username
 
   // Metadata
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
+  reimbursed      Boolean  @default(false)
+  reimbursedAt    DateTime?
+  reimbursedById  String?
+  paidByUser      Boolean  @default(false)
+  paidByUserAt    DateTime?
+  paidByUserId    String?
 
   // Order Data
   // JSON structure: { tacos: Taco[], extras: Extra[], drinks: Drink[], desserts: Dessert[] }
@@ -170,8 +179,10 @@ model UserOrder {
   tacoIdsHex Json?
 
   // Relations
-  groupOrder GroupOrder @relation(fields: [groupOrderId], references: [id], onDelete: Cascade)
-  user       User       @relation("UserUserOrders", fields: [userId], references: [id], onDelete: Cascade)
+  groupOrder   GroupOrder @relation(fields: [groupOrderId], references: [id], onDelete: Cascade)
+  user         User       @relation("UserUserOrders", fields: [userId], references: [id], onDelete: Cascade)
+  reimbursedBy User?      @relation("UserOrderReimbursedBy", fields: [reimbursedById], references: [id], onDelete: SetNull)
+  paidByUserRef User?     @relation("UserOrderPaidBy", fields: [paidByUserId], references: [id], onDelete: SetNull)
 
   // Indexes optimized for common query patterns
   // Get all orders in a group
@@ -182,6 +193,10 @@ model UserOrder {
   @@index([userId])
   @@index([groupOrderId, userId])
   @@index([userId, createdAt])
+  @@index([reimbursed])
+  @@index([reimbursedById])
+  @@index([paidByUser])
+  @@index([paidByUserId])
   @@map("user_orders")
 }
 

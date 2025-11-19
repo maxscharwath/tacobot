@@ -81,7 +81,9 @@ export function OrdersList({
                   stock={stock}
                   currency={currency}
                   onDuplicate={() => {
-                    // Revalidate loader data after duplication
+                    revalidator.revalidate();
+                  }}
+                  onOrderChange={() => {
                     revalidator.revalidate();
                   }}
                 />

@@ -31,6 +31,18 @@ export class UserOrderRepository {
               name: true,
             },
           },
+          reimbursedBy: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          paidByUserRef: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       });
 
@@ -54,6 +66,18 @@ export class UserOrderRepository {
               name: true,
             },
           },
+          reimbursedBy: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          paidByUserRef: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
         orderBy: {
           createdAt: 'desc',
@@ -74,6 +98,18 @@ export class UserOrderRepository {
         include: {
           user: {
             select: {
+              name: true,
+            },
+          },
+          reimbursedBy: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          paidByUserRef: {
+            select: {
+              id: true,
               name: true,
             },
           },
@@ -151,12 +187,24 @@ export class UserOrderRepository {
     data: {
       items?: UserOrderItems;
       tacoIdsHex?: string[] | null; // Array of taco IDs in hex format (will be stored as Json)
+      reimbursed?: boolean;
+      reimbursedAt?: Date | null;
+      reimbursedByUserId?: string | null;
+      paidByUser?: boolean;
+      paidByUserAt?: Date | null;
+      paidByUserId?: string | null;
     }
   ): Promise<UserOrder> {
     try {
       const updateData: {
         items?: Prisma.InputJsonValue;
         tacoIdsHex?: Prisma.InputJsonValue | typeof Prisma.JsonNull;
+        reimbursed?: boolean;
+        reimbursedAt?: Date | null;
+        reimbursedById?: string | null;
+        paidByUser?: boolean;
+        paidByUserAt?: Date | null;
+        paidByUserId?: string | null;
         updatedAt: Date;
       } = {
         updatedAt: new Date(),
@@ -176,6 +224,24 @@ export class UserOrderRepository {
           ? (data.tacoIdsHex as unknown as Prisma.InputJsonValue)
           : Prisma.JsonNull;
       }
+      if (data.reimbursed !== undefined) {
+        updateData.reimbursed = data.reimbursed;
+      }
+      if (data.reimbursedAt !== undefined) {
+        updateData.reimbursedAt = data.reimbursedAt ?? null;
+      }
+      if (data.reimbursedByUserId !== undefined) {
+        updateData.reimbursedById = data.reimbursedByUserId ?? null;
+      }
+      if (data.paidByUser !== undefined) {
+        updateData.paidByUser = data.paidByUser;
+      }
+      if (data.paidByUserAt !== undefined) {
+        updateData.paidByUserAt = data.paidByUserAt ?? null;
+      }
+      if (data.paidByUserId !== undefined) {
+        updateData.paidByUserId = data.paidByUserId ?? null;
+      }
 
       const dbUserOrder = await this.prisma.client.userOrder.update({
         where: { id },
@@ -183,6 +249,18 @@ export class UserOrderRepository {
         include: {
           user: {
             select: {
+              name: true,
+            },
+          },
+          reimbursedBy: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          paidByUserRef: {
+            select: {
+              id: true,
               name: true,
             },
           },
