@@ -526,6 +526,39 @@
         "missingIdentifier": "Bestellungs-ID fehlt.",
         "missingCustomerDetails": "Alle Felder für Kunde, Lieferart, Adresse und gewünschte Zeit sind erforderlich.",
         "unexpected": "Ein unerwarteter Fehler ist aufgetreten."
+      },
+      "receipts": {
+        "badge": "Belege & Rückzahlungen",
+        "subtitle": "Hier siehst du Zahlungs- und Erstattungsstatus.",
+        "header": "SAMMELBELEG",
+        "guest": "Gast",
+        "unknownGuest": "Gast",
+        "items": "Positionen",
+        "subtotal": "Zwischensumme",
+        "deliveryFee": "Lieferkosten-Anteil",
+        "deliveryFeeShare": "Lieferkosten-Anteil",
+        "feeExplanation": "Aufteilung: {{total}} ÷ {{count}} = {{share}} pro Person.",
+        "total": "Gesamt",
+        "footer": "Danke! 🌮",
+        "status": {
+          "awaitingParticipant": "Nicht bezahlt",
+          "awaitingConfirmation": "Zahlung ausstehend",
+          "settled": "Bezahlt",
+          "leader": "Organisator bezahlt"
+        },
+        "actions": {
+          "markSelfPaid": "Ich habe bezahlt",
+          "unmarkSelfPaid": "Ich habe nicht bezahlt",
+          "confirmReceipt": "Bestätigen",
+          "reopenReceipt": "Bestätigung zurücknehmen"
+        },
+        "summaryBadge": "Gruppenübersicht",
+        "summaryTitle": "Rückzahlungsübersicht",
+        "summarySubtitle": "Teile diese Übersicht, damit alle abrechnen können.",
+        "summaryFood": "Summe Essen",
+        "summaryFee": "Lieferkosten",
+        "summaryPerPerson": "Pro Person ({{count}})",
+        "summaryTotal": "Gesamtbetrag"
       }
     },
     "submit": {

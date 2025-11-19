@@ -199,6 +199,9 @@
       },
       "modify": {
         "invalidStatus": "Impossible de modifier la commande utilisateur. Le statut de la commande de groupe ne permet pas les modifications."
+      },
+      "reimbursement": {
+        "leaderOnly": "Seul le responsable du groupe peut modifier l'état des remboursements."
       }
     },
     "validation": {
@@ -520,6 +523,13 @@
           "drinks_other": "{{count}} boissons",
           "desserts_one": "{{count}} dessert",
           "desserts_other": "{{count}} desserts"
+        },
+        "reimbursement": {
+          "reimbursed": "Remboursé",
+          "pending": "En attente de remboursement",
+          "markPaid": "Marquer remboursé",
+          "markPending": "Marquer en attente",
+          "error": "Impossible de mettre à jour le remboursement. Réessaie."
         }
       },
       "errors": {
@@ -527,6 +537,39 @@
         "missingIdentifier": "Identifiant de commande manquant.",
         "missingCustomerDetails": "Renseigne les informations client, le mode de livraison, l'adresse et l'heure souhaitée.",
         "unexpected": "Erreur inattendue."
+      },
+      "receipts": {
+        "badge": "Reçus & remboursements",
+        "subtitle": "Suivez paiements et remboursements ici.",
+        "header": "COMMANDE GROUPÉE",
+        "guest": "Invité",
+        "unknownGuest": "Invité",
+        "items": "Articles",
+        "subtotal": "Sous-total",
+        "deliveryFee": "Part des frais",
+        "deliveryFeeShare": "Part des frais de livraison",
+        "feeExplanation": "Répartition : {{total}} ÷ {{count}} = {{share}} par personne.",
+        "total": "Total",
+        "footer": "Merci ! 🌮",
+        "status": {
+          "awaitingParticipant": "Non payé",
+          "awaitingConfirmation": "Paiement en attente",
+          "settled": "Payé",
+          "leader": "Leader payé"
+        },
+        "actions": {
+          "markSelfPaid": "J'ai payé",
+          "unmarkSelfPaid": "J'ai pas payé",
+          "confirmReceipt": "Confirmer",
+          "reopenReceipt": "Annuler"
+        },
+        "summaryBadge": "Récapitulatif",
+        "summaryTitle": "Vue d'ensemble des remboursements",
+        "summarySubtitle": "Partage ce résumé pour aider tout le monde à rembourser.",
+        "summaryFood": "Total des tacos",
+        "summaryFee": "Frais de livraison",
+        "summaryPerPerson": "Par personne ({{count}})",
+        "summaryTotal": "Total général"
       }
     },
     "submit": {

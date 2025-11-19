@@ -62,6 +62,10 @@ const preview: Preview = {
         { name: 'light', value: '#ffffff' },
       ],
     },
+    previewTabs: {
+      'storybook/docs/panel': { hidden: true },
+      canvas: { title: 'Playground' },
+    },
   },
 
   globalTypes: {

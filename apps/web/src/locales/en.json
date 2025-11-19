@@ -199,6 +199,9 @@
       },
       "modify": {
         "invalidStatus": "Cannot modify user order. The group order status does not allow modifications."
+      },
+      "reimbursement": {
+        "leaderOnly": "Only the group leader can update reimbursement status."
       }
     },
     "validation": {
@@ -531,6 +534,13 @@
           "drinks_other": "{{count}} drinks",
           "desserts_one": "{{count}} dessert",
           "desserts_other": "{{count}} desserts"
+        },
+        "reimbursement": {
+          "reimbursed": "Reimbursed",
+          "pending": "Pending reimbursement",
+          "markPaid": "Mark reimbursed",
+          "markPending": "Mark pending",
+          "error": "Unable to update reimbursement. Please try again."
         }
       },
       "errors": {
@@ -538,6 +548,39 @@
         "missingIdentifier": "Missing order identifier.",
         "missingCustomerDetails": "All customer, delivery type, address, and requested time fields are required.",
         "unexpected": "Unexpected error occurred."
+      },
+      "receipts": {
+        "badge": "Receipts & reimbursements",
+        "subtitle": "Track payments and reimbursements here.",
+        "header": "GROUP RECEIPT",
+        "guest": "Guest",
+        "unknownGuest": "Guest",
+        "items": "Items",
+        "subtotal": "Subtotal",
+        "deliveryFee": "Delivery fee share",
+        "deliveryFeeShare": "Delivery fee share",
+        "feeExplanation": "Fee split: {{total}} ÷ {{count}} = {{share}} each.",
+        "total": "Total",
+        "footer": "Merci! 🌮",
+        "status": {
+          "awaitingParticipant": "Not paid",
+          "awaitingConfirmation": "Payment pending",
+          "settled": "Paid",
+          "leader": "Leader paid"
+        },
+        "actions": {
+          "markSelfPaid": "I paid",
+          "unmarkSelfPaid": "Undo paid",
+          "confirmReceipt": "Confirm",
+          "reopenReceipt": "Undo confirm"
+        },
+        "summaryBadge": "Group summary",
+        "summaryTitle": "Reimbursement overview",
+        "summarySubtitle": "Share this summary to help everyone settle up.",
+        "summaryFood": "Food total",
+        "summaryFee": "Delivery fees",
+        "summaryPerPerson": "Per person ({{count}})",
+        "summaryTotal": "Grand total"
       }
     },
     "submit": {

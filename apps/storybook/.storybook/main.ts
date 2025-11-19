@@ -26,11 +26,13 @@ const config: StorybookConfig = {
         ...config.resolve?.alias,
         '@tacobot/ui-kit': uiKitPath,
       },
+      dedupe: [...(config.resolve?.dedupe ?? []), 'react', 'react-dom', 'react/jsx-runtime'],
     };
 
     config.optimizeDeps = {
       ...config.optimizeDeps,
       exclude: [...(config.optimizeDeps?.exclude ?? []), '@tacobot/ui-kit'],
+      include: [...(config.optimizeDeps?.include ?? []), 'react', 'react-dom'],
     };
 
     return config;
