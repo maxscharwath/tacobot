@@ -5,17 +5,22 @@
 
 import { injectable } from 'tsyringe';
 import { GroupOrderRepository } from '../../infrastructure/repositories/group-order.repository';
+import { UserRepository } from '../../infrastructure/repositories/user.repository';
 import { UserOrderRepository } from '../../infrastructure/repositories/user-order.repository';
+import { t } from '../../lib/i18n';
 import type { GroupOrderId } from '../../schemas/group-order.schema';
 import type { UserId } from '../../schemas/user.schema';
 import type { UserOrder, UserOrderId } from '../../schemas/user-order.schema';
 import { NotFoundError, ValidationError } from '../../shared/utils/errors.utils';
 import { inject } from '../../shared/utils/inject.utils';
+import { PushNotificationService } from '../push-notification/push-notification.service';
 
 @injectable()
 export class UpdateUserOrderReimbursementStatusUseCase {
   private readonly groupOrderRepository = inject(GroupOrderRepository);
   private readonly userOrderRepository = inject(UserOrderRepository);
+  private readonly userRepository = inject(UserRepository);
+  private readonly pushNotificationService = inject(PushNotificationService);
 
   async execute(
     groupOrderId: GroupOrderId,
@@ -38,10 +43,37 @@ export class UpdateUserOrderReimbursementStatusUseCase {
     }
 
     const reimbursedAt = reimbursed ? new Date() : null;
-    return this.userOrderRepository.update(userOrderId, {
+    const updatedOrder = await this.userOrderRepository.update(userOrderId, {
       reimbursed,
       reimbursedAt,
       reimbursedByUserId: reimbursed ? requesterId : null,
     });
+
+    // Notify the user when their order reimbursement status changes
+    if (userOrder.userId !== requesterId) {
+      // Get user's language preference for localized notification
+      const userLanguage = await this.userRepository.getUserLanguage(userOrder.userId);
+
+      this.pushNotificationService
+        .sendToUser(userOrder.userId, {
+          title: t('notifications.reimbursementUpdate.title', { lng: userLanguage }),
+          body: reimbursed
+            ? t('notifications.reimbursementUpdate.bodyReimbursed', { lng: userLanguage })
+            : t('notifications.reimbursementUpdate.bodyUpdated', { lng: userLanguage }),
+          tag: `reimbursement-${groupOrderId}-${userOrderId}`,
+          url: `/orders/${groupOrderId}`,
+          data: {
+            groupOrderId,
+            userOrderId,
+            type: 'reimbursement',
+            reimbursed,
+          },
+        })
+        .catch(() => {
+          // Ignore notification errors
+        });
+    }
+
+    return updatedOrder;
   }
 }

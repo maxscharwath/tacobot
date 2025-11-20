@@ -103,11 +103,9 @@ export function EditGroupOrderDialog({
 
   // Update error when end date changes
   const handleEndDateChange = (newDate: string) => {
-    // If end date is before start date, update it to start date
-    const finalEndDate = newDate < startDate ? startDate : newDate;
-    setEndDate(finalEndDate);
+    setEndDate(newDate);
     // Validate with the new date
-    const validationError = validateEndDateTime(finalEndDate, endTime, startDate, startTime);
+    const validationError = validateEndDateTime(newDate, endTime, startDate, startTime);
     setError(validationError);
   };
 
@@ -140,13 +138,12 @@ export function EditGroupOrderDialog({
               onDateChange={(newDate) => {
                 setStartDate(newDate);
                 // If end date is before new start date, update end date to start date
-                const finalEndDate = endDate < newDate ? newDate : endDate;
                 if (endDate < newDate) {
-                  setEndDate(finalEndDate);
+                  setEndDate(newDate);
                 }
                 // Re-validate after date change
                 const validationError = validateEndDateTime(
-                  finalEndDate,
+                  endDate < newDate ? newDate : endDate,
                   endTime,
                   newDate,
                   startTime

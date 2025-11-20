@@ -135,6 +135,51 @@
       "success": "Name updated successfully",
       "failed": "Failed to update name"
     },
+    "pushNotifications": {
+      "title": "Push Notifications",
+      "description": "Receive notifications about order updates",
+      "status": "Notification Status",
+      "subscribed": "Subscribed",
+      "notSubscribed": "Not subscribed",
+      "enable": "Enable Notifications",
+      "disable": "Disable Notifications",
+      "subscribeSuccess": "Push notifications enabled successfully!",
+      "unsubscribeSuccess": "Push notifications disabled successfully",
+      "subscribeFailed": "Failed to enable push notifications",
+      "unsubscribeFailed": "Failed to disable push notifications",
+      "notSupported": "Push notifications are not supported in your browser",
+      "permission": {
+        "default": "Permission not requested",
+        "granted": "Permission granted",
+        "denied": "Permission denied"
+      },
+      "permissionDeniedHelp": "Please enable notifications in your browser settings to receive push notifications.",
+      "test": {
+        "title": "Test Notification",
+        "description": "Send a test notification to verify everything is working",
+        "button": "Send Test",
+        "success": "Test notification sent! Check your notifications.",
+        "failed": "Failed to send test notification"
+      },
+      "about": {
+        "title": "About Push Notifications",
+        "description": "Enable push notifications to receive real-time updates when someone marks their order as paid or when your reimbursement status changes. Notifications work even when the app is closed."
+      },
+      "devices": {
+        "title": "Registered Devices",
+        "description": "Manage devices that receive push notifications",
+        "registered": "Registered",
+        "unknownDevice": "Unknown Device",
+        "delete": "Remove",
+        "deleteConfirm": "Are you sure you want to remove this device?",
+        "deleteSuccess": "Device removed successfully",
+        "deleteFailed": "Failed to remove device",
+        "emptyState": {
+          "title": "No devices registered",
+          "description": "When you enable notifications on a device, it will appear here."
+        }
+      }
+    },
     "loading": "Loading...",
     "loadFailed": "Failed to load account data",
     "edit": "Edit",

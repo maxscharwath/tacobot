@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { SegmentedControl, type SegmentedControlOption } from '@/components/ui';
+import { updateUserLanguage } from '@/lib/api/user';
 import { languages } from '@/lib/locale.config';
 
 type LanguageCode = (typeof languages)[number]['code'];
@@ -38,7 +39,13 @@ export function LanguageSwitcher() {
       variant="secondary"
       value={normalizedLanguage}
       onValueChange={(languageCode) => {
+        // Update frontend language immediately
         i18n.changeLanguage(languageCode);
+
+        // Sync to backend (fire and forget - don't block UI)
+        updateUserLanguage(languageCode).catch((error) => {
+          console.error('Failed to update user language preference', error);
+        });
       }}
       options={options}
     />

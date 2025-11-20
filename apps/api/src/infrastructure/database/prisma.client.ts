@@ -22,10 +22,20 @@ export function getPrismaClient(): PrismaClient {
       { level: 'warn', emit: 'event' },
     ] satisfies Prisma.LogDefinition[];
 
-    prismaClient = new PrismaClient({ log: logConfig }) as PrismaClient<
-      Prisma.PrismaClientOptions,
-      'query' | 'error' | 'warn'
-    >;
+    // Prisma 7: pass database URL via datasources option
+    const databaseUrl = process.env['DATABASE_URL'];
+    if (!databaseUrl) {
+      throw new Error('DATABASE_URL environment variable is required');
+    }
+
+    prismaClient = new PrismaClient({
+      log: logConfig,
+      datasources: {
+        db: {
+          url: databaseUrl,
+        },
+      },
+    }) as PrismaClient<Prisma.PrismaClientOptions, 'query' | 'error' | 'warn'>;
 
     // Log queries in development
     const onEvent = prismaClient.$on.bind(prismaClient) as unknown as <

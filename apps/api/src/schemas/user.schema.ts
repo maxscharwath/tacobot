@@ -25,6 +25,7 @@ export const UserSchema = z.object({
   username: z.string().nullable(),
   name: z.string().nullable(),
   slackId: z.string().nullish(),
+  language: z.string().nullable(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
 });
@@ -39,6 +40,7 @@ export const UserFromDbSchema = z.object({
   username: z.string().nullable(),
   name: z.string().nullable(),
   slackId: z.string().nullish(),
+  language: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

@@ -9,8 +9,13 @@ const UserResponseSchema = z.object({
   username: z.string().nullable(),
   name: z.string().nullable(),
   slackId: z.string().optional(),
+  language: z.string().nullable(),
   createdAt: IsoDateStringSchema.optional(),
   updatedAt: IsoDateStringSchema.optional(),
+});
+
+const UpdateUserLanguageRequestSchema = z.object({
+  language: z.enum(['en', 'fr', 'de']),
 });
 
 const CreateUserRequestSchema = z.object({
@@ -86,6 +91,7 @@ export const UserSchemas = {
   UserResponseSchema,
   CreateUserRequestSchema,
   CreateUserResponseSchema,
+  UpdateUserLanguageRequestSchema,
   UserOrderHistoryEntrySchema,
   UserGroupOrderSchema,
   PreviousOrderSchema,

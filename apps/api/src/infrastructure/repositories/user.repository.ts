@@ -19,9 +19,59 @@ export class UserRepository {
   async findById(id: string): Promise<User | null> {
     const dbUser = await this.prisma.client.user.findUnique({
       where: { id },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        slackId: true,
+        language: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     return dbUser ? createUserFromDb(dbUser) : null;
+  }
+
+  /**
+   * Get user language preference (defaults to 'en')
+   */
+  async getUserLanguage(userId: string): Promise<string> {
+    const dbUser = await this.prisma.client.user.findUnique({
+      where: { id: userId },
+      select: { language: true },
+    });
+
+    return dbUser?.language ?? 'en';
+  }
+
+  /**
+   * Update user language preference
+   */
+  async updateLanguage(userId: string, language: 'en' | 'fr' | 'de'): Promise<User | null> {
+    try {
+      const dbUser = await this.prisma.client.user.update({
+        where: { id: userId },
+        data: { language },
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          slackId: true,
+          language: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+      return createUserFromDb(dbUser);
+    } catch (error) {
+      // Prisma error P2025 = Record not found
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+        return null;
+      }
+      logger.error('Failed to update user language', { userId, error });
+      return null;
+    }
   }
 
   async findByUsername(username: string): Promise<User | null> {

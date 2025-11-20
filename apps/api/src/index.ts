@@ -7,12 +7,15 @@ import { wrapBetterAuthErrors } from './api/middleware/better-auth-error-wrapper
 import { errorHandler } from './api/middleware/error-handler.middleware';
 import { groupOrderRoutes } from './api/routes/group-order.routes';
 import { healthRoutes } from './api/routes/health.routes';
+import pushNotificationRoutes from './api/routes/push-notification.routes';
 import { resourceRoutes } from './api/routes/resource.routes';
 import { tacoRoutes } from './api/routes/taco.routes';
 import { userRoutes } from './api/routes/user.routes';
 import { userOrderRoutes } from './api/routes/user-order.routes';
 import { createRouteGroup } from './api/utils/route.utils';
 import { auth } from './auth';
+// Initialize i18n for backend translations
+import './lib/i18n';
 import { config } from './shared/config/app.config';
 import { logger } from './shared/utils/logger.utils';
 import { debugRoutes } from './shared/utils/route-debugger.utils';
@@ -117,7 +120,13 @@ app.route('/api/v1', tacoRoutes);
 // v1 API routes (authenticated) - register AFTER public routes
 app.route(
   '/api/v1',
-  createRouteGroup(resourceRoutes, userRoutes, groupOrderRoutes, userOrderRoutes)
+  createRouteGroup(
+    resourceRoutes,
+    userRoutes,
+    groupOrderRoutes,
+    userOrderRoutes,
+    pushNotificationRoutes
+  )
 );
 
 // 404 handler

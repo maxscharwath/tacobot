@@ -19,12 +19,19 @@ import { routes } from '@/lib/routes';
 import type { RootLoaderData } from './root.loader';
 
 export function RootLayout() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { profile } = useLoaderData<RootLoaderData>();
   const { isEnabled: isDeveloperMode, toggle: toggleDeveloperMode } = useDeveloperMode();
 
   // Use Better Auth's useSession hook for reactive, cached session data
   const { data: session, refetch } = useSession();
+
+  // Sync user's language preference from profile to i18n
+  useEffect(() => {
+    if (profile?.language && profile.language !== i18n.language.split('-')[0]) {
+      i18n.changeLanguage(profile.language);
+    }
+  }, [profile?.language, i18n]);
 
   // Compute user name and initials from session or fallback to profile
   const userName = session?.user?.name || profile?.username || 'User';
@@ -42,6 +49,20 @@ export function RootLayout() {
       globalThis.removeEventListener('userNameUpdated', handleNameUpdate);
     };
   }, [refetch]);
+
+  // Register service worker for push notifications
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then(() => {
+          // Service Worker registered successfully
+        })
+        .catch(() => {
+          // Service Worker registration failed - silently fail
+        });
+    }
+  }, []);
   type NavItem = {
     href: string;
     labelKey: string;

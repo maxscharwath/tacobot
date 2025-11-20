@@ -77,6 +77,7 @@ export class UserService {
       username: dbUser.username,
       name: dbUser.name,
       slackId: dbUser.slackId ?? undefined,
+      language: dbUser.language ?? undefined,
       createdAt: dbUser.createdAt,
       updatedAt: dbUser.updatedAt,
     } as User;
@@ -93,8 +94,26 @@ export class UserService {
       username: dbUser.username,
       name: dbUser.name,
       slackId: dbUser.slackId ?? undefined,
+      language: dbUser.language ?? undefined,
       createdAt: dbUser.createdAt,
       updatedAt: dbUser.updatedAt,
+    } as User;
+  }
+
+  async updateUserLanguage(userId: UserId, language: 'en' | 'fr' | 'de'): Promise<User> {
+    const updatedUser = await this.userRepository.updateLanguage(userId, language);
+    if (!updatedUser) {
+      throw new Error(`User not found: ${userId}`);
+    }
+
+    return {
+      id: updatedUser.id,
+      username: updatedUser.username,
+      name: updatedUser.name,
+      slackId: updatedUser.slackId ?? undefined,
+      language: updatedUser.language ?? undefined,
+      createdAt: updatedUser.createdAt,
+      updatedAt: updatedUser.updatedAt,
     } as User;
   }
 

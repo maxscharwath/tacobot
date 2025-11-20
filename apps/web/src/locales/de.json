@@ -135,6 +135,51 @@
       "success": "Name erfolgreich aktualisiert",
       "failed": "Name konnte nicht aktualisiert werden"
     },
+    "pushNotifications": {
+      "title": "Push-Benachrichtigungen",
+      "description": "Erhalten Sie Benachrichtigungen über Bestellaktualisierungen",
+      "status": "Benachrichtigungsstatus",
+      "subscribed": "Abonniert",
+      "notSubscribed": "Nicht abonniert",
+      "enable": "Benachrichtigungen aktivieren",
+      "disable": "Benachrichtigungen deaktivieren",
+      "subscribeSuccess": "Push-Benachrichtigungen erfolgreich aktiviert!",
+      "unsubscribeSuccess": "Push-Benachrichtigungen erfolgreich deaktiviert",
+      "subscribeFailed": "Push-Benachrichtigungen konnten nicht aktiviert werden",
+      "unsubscribeFailed": "Push-Benachrichtigungen konnten nicht deaktiviert werden",
+      "notSupported": "Push-Benachrichtigungen werden in Ihrem Browser nicht unterstützt",
+      "permission": {
+        "default": "Berechtigung nicht angefordert",
+        "granted": "Berechtigung erteilt",
+        "denied": "Berechtigung verweigert"
+      },
+      "permissionDeniedHelp": "Bitte aktivieren Sie Benachrichtigungen in Ihren Browsereinstellungen, um Push-Benachrichtigungen zu erhalten.",
+      "test": {
+        "title": "Test-Benachrichtigung",
+        "description": "Senden Sie eine Test-Benachrichtigung, um zu überprüfen, ob alles funktioniert",
+        "button": "Test senden",
+        "success": "Test-Benachrichtigung gesendet! Überprüfen Sie Ihre Benachrichtigungen.",
+        "failed": "Test-Benachrichtigung konnte nicht gesendet werden"
+      },
+      "about": {
+        "title": "Über Push-Benachrichtigungen",
+        "description": "Aktivieren Sie Push-Benachrichtigungen, um Echtzeit-Updates zu erhalten, wenn jemand seine Bestellung als bezahlt markiert oder wenn sich Ihr Rückerstattungsstatus ändert. Benachrichtigungen funktionieren auch, wenn die App geschlossen ist."
+      },
+      "devices": {
+        "title": "Registrierte Geräte",
+        "description": "Verwalten Sie Geräte, die Push-Benachrichtigungen erhalten",
+        "registered": "Registriert",
+        "unknownDevice": "Unbekanntes Gerät",
+        "delete": "Entfernen",
+        "deleteConfirm": "Möchten Sie dieses Gerät wirklich entfernen?",
+        "deleteSuccess": "Gerät erfolgreich entfernt",
+        "deleteFailed": "Gerät konnte nicht entfernt werden",
+        "emptyState": {
+          "title": "Keine Geräte registriert",
+          "description": "Wenn Sie Benachrichtigungen auf einem Gerät aktivieren, wird es hier angezeigt."
+        }
+      }
+    },
     "loading": "Laden...",
     "loadFailed": "Kontodaten konnten nicht geladen werden",
     "edit": "Bearbeiten",

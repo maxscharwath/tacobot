@@ -89,8 +89,53 @@ app.openapi(
         username: user.username,
         name: user.name,
         slackId: user.slackId ?? undefined,
+        language: user.language ?? null,
         createdAt: user.createdAt?.toISOString(),
         updatedAt: user.updatedAt?.toISOString(),
+      },
+      200
+    );
+  }
+);
+
+app.openapi(
+  createRoute({
+    method: 'patch',
+    path: '/users/me/language',
+    tags: ['User'],
+    security: authSecurity,
+    request: {
+      body: {
+        content: jsonContent(UserSchemas.UpdateUserLanguageRequestSchema),
+      },
+    },
+    responses: {
+      200: {
+        description: 'User language updated',
+        content: jsonContent(UserSchemas.UserResponseSchema),
+      },
+      400: {
+        description: 'Invalid language',
+        content: jsonContent(UserSchemas.ErrorResponseSchema),
+      },
+    },
+  }),
+  async (c) => {
+    const userId = requireUserId(c);
+    const { language } = c.req.valid('json');
+    const userService = inject(UserService);
+
+    const updatedUser = await userService.updateUserLanguage(userId, language);
+
+    return c.json(
+      {
+        id: updatedUser.id,
+        username: updatedUser.username,
+        name: updatedUser.name,
+        slackId: updatedUser.slackId ?? undefined,
+        language: updatedUser.language ?? null,
+        createdAt: updatedUser.createdAt?.toISOString(),
+        updatedAt: updatedUser.updatedAt?.toISOString(),
       },
       200
     );

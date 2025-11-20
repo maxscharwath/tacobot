@@ -6,7 +6,9 @@
 import { PaymentMethod } from '@tacobot/gigatacos-client';
 import { injectable } from 'tsyringe';
 import { GroupOrderRepository } from '../../infrastructure/repositories/group-order.repository';
+import { UserRepository } from '../../infrastructure/repositories/user.repository';
 import { UserOrderRepository } from '../../infrastructure/repositories/user-order.repository';
+import { t } from '../../lib/i18n';
 import { canSubmitGroupOrder, type GroupOrderId } from '../../schemas/group-order.schema';
 import { isUserOrderEmpty, type UserOrder } from '../../schemas/user-order.schema';
 import type { Customer, DeliveryInfo, StockAvailability } from '../../shared/types/types';
@@ -17,6 +19,7 @@ import { logger } from '../../shared/utils/logger.utils';
 import { calculateTotalPriceFromUserOrders } from '../../shared/utils/order-price.utils';
 import { validateItemAvailability } from '../../shared/utils/order-validation.utils';
 import { BackendOrderSubmissionService } from '../order/backend-order-submission.service';
+import { PushNotificationService } from '../push-notification/push-notification.service';
 import { ResourceService } from '../resource/resource.service';
 
 type SubmissionResult = {
@@ -40,8 +43,10 @@ type ExecuteResult = {
 export class SubmitGroupOrderUseCase {
   private readonly groupOrderRepository = inject(GroupOrderRepository);
   private readonly userOrderRepository = inject(UserOrderRepository);
+  private readonly userRepository = inject(UserRepository);
   private readonly resourceService = inject(ResourceService);
   private readonly backendOrderSubmissionService = inject(BackendOrderSubmissionService);
+  private readonly pushNotificationService = inject(PushNotificationService);
 
   async execute(
     groupOrderId: GroupOrderId,
@@ -50,7 +55,7 @@ export class SubmitGroupOrderUseCase {
     paymentMethod?: PaymentMethod,
     dryRun = false
   ): Promise<ExecuteResult> {
-    await this.validateGroupOrder(groupOrderId);
+    const groupOrder = await this.validateGroupOrder(groupOrderId);
     const userOrders = await this.getAndValidateUserOrders(groupOrderId);
     const stock = await this.resourceService.getStock();
 
@@ -91,6 +96,40 @@ export class SubmitGroupOrderUseCase {
       transactionId: result.transactionId,
       dryRun,
     });
+
+    // Notify all participants that the order has been submitted (including dry run)
+    const participantIds = [...new Set(userOrders.map((order) => order.userId))];
+    const orderName = groupOrder.name || 'the group order';
+
+    // Send localized notifications to each participant
+    const notificationPromises = participantIds.map(async (participantId) => {
+      try {
+        // Get user's language preference
+        const userLanguage = await this.userRepository.getUserLanguage(participantId);
+
+        // Get localized notification content
+        const title = t('notifications.orderSubmitted.title', { lng: userLanguage });
+        const body = t('notifications.orderSubmitted.body', { lng: userLanguage, orderName });
+
+        await this.pushNotificationService.sendToUser(participantId, {
+          title,
+          body,
+          tag: `submitted-${groupOrderId}${dryRun ? '-dryrun' : ''}`,
+          url: `/orders/${groupOrderId}`,
+          data: {
+            groupOrderId,
+            type: 'submitted',
+            orderId: result.orderId,
+            transactionId: result.transactionId,
+            dryRun,
+          },
+        });
+      } catch (error) {
+        // Ignore notification errors
+        logger.debug('Failed to send notification to user', { participantId, error });
+      }
+    });
+    await Promise.allSettled(notificationPromises);
 
     return {
       groupOrderId,

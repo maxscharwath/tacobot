@@ -21,6 +21,7 @@ export interface UserProfile {
   username: string | null;
   name: string | null;
   slackId?: string;
+  language?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

@@ -39,3 +39,9 @@ export function updateDeliveryProfile(id: string, body: DeliveryProfilePayload) 
 export function deleteDeliveryProfile(id: string) {
   return apiClient.delete<void>(`/api/v1/users/me/delivery-profiles/${id}`);
 }
+
+export function updateUserLanguage(language: 'en' | 'fr' | 'de') {
+  return apiClient.patch<UserProfile>('/api/v1/users/me/language', {
+    body: { language },
+  });
+}

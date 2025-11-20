@@ -135,6 +135,51 @@
       "success": "Nom mis à jour avec succès",
       "failed": "Échec de la mise à jour du nom"
     },
+    "pushNotifications": {
+      "title": "Notifications Push",
+      "description": "Recevez des notifications sur les mises à jour des commandes",
+      "status": "Statut des notifications",
+      "subscribed": "Abonné",
+      "notSubscribed": "Non abonné",
+      "enable": "Activer les notifications",
+      "disable": "Désactiver les notifications",
+      "subscribeSuccess": "Notifications push activées avec succès !",
+      "unsubscribeSuccess": "Notifications push désactivées avec succès",
+      "subscribeFailed": "Échec de l'activation des notifications push",
+      "unsubscribeFailed": "Échec de la désactivation des notifications push",
+      "notSupported": "Les notifications push ne sont pas prises en charge dans votre navigateur",
+      "permission": {
+        "default": "Permission non demandée",
+        "granted": "Permission accordée",
+        "denied": "Permission refusée"
+      },
+      "permissionDeniedHelp": "Veuillez activer les notifications dans les paramètres de votre navigateur pour recevoir des notifications push.",
+      "test": {
+        "title": "Notification de test",
+        "description": "Envoyer une notification de test pour vérifier que tout fonctionne",
+        "button": "Envoyer un test",
+        "success": "Notification de test envoyée ! Vérifiez vos notifications.",
+        "failed": "Échec de l'envoi de la notification de test"
+      },
+      "about": {
+        "title": "À propos des notifications push",
+        "description": "Activez les notifications push pour recevoir des mises à jour en temps réel lorsqu'une personne marque sa commande comme payée ou lorsque le statut de votre remboursement change. Les notifications fonctionnent même lorsque l'application est fermée."
+      },
+      "devices": {
+        "title": "Appareils enregistrés",
+        "description": "Gérer les appareils qui reçoivent des notifications push",
+        "registered": "Enregistré",
+        "unknownDevice": "Appareil inconnu",
+        "delete": "Supprimer",
+        "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cet appareil ?",
+        "deleteSuccess": "Appareil supprimé avec succès",
+        "deleteFailed": "Échec de la suppression de l'appareil",
+        "emptyState": {
+          "title": "Aucun appareil enregistré",
+          "description": "Lorsque vous activez les notifications sur un appareil, il apparaîtra ici."
+        }
+      }
+    },
     "loading": "Chargement...",
     "loadFailed": "Échec du chargement des données du compte",
     "edit": "Modifier",

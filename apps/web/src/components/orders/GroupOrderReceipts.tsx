@@ -1,5 +1,5 @@
 import { ScrollText } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRevalidator } from 'react-router';
 import { Avatar, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui';
@@ -111,48 +111,47 @@ export function GroupOrderReceipts({
   isLeader,
   currentUserId,
 }: GroupOrderReceiptsProps) {
+  // ALL hooks must be called unconditionally before any early returns
   const { t } = useTranslation();
   const revalidator = useRevalidator();
   const { formatDate, formatTime } = useLocaleFormatter(currency);
   const [processing, setProcessing] = useState<ProcessingState>(null);
 
+  // Conditional checks
   const hasFee = groupOrder.fee !== undefined && groupOrder.fee !== null;
-  if (userOrders.length === 0 || !hasFee) {
-    return null;
-  }
-
   const shouldShowReceipts = groupOrder.status === 'submitted' || groupOrder.status === 'completed';
-  if (!shouldShowReceipts) {
-    return null;
-  }
+  const canRender = userOrders.length > 0 && hasFee && shouldShowReceipts;
 
-  const groupedOrders = useMemo<GroupedOrders[]>(() => {
-    const map = new Map<string, GroupedOrders>();
+  // Group orders by user (React Compiler will memoize automatically)
+  const groupedOrders: GroupedOrders[] = canRender
+    ? (() => {
+        const map = new Map<string, GroupedOrders>();
 
-    for (const order of userOrders) {
-      const existing = map.get(order.userId);
-      if (existing) {
-        existing.orders.push(order);
-      } else {
-        map.set(order.userId, { userId: order.userId, name: order.name, orders: [order] });
-      }
-    }
+        for (const order of userOrders) {
+          const existing = map.get(order.userId);
+          if (existing) {
+            existing.orders.push(order);
+          } else {
+            map.set(order.userId, { userId: order.userId, name: order.name, orders: [order] });
+          }
+        }
 
-    return Array.from(map.values()).sort((a, b) => {
-      const nameA = (a.name ?? '').trim().toLowerCase();
-      const nameB = (b.name ?? '').trim().toLowerCase();
-      if (nameA && nameB) {
-        return nameA.localeCompare(nameB);
-      }
-      if (nameA) return -1;
-      if (nameB) return 1;
-      return a.userId.localeCompare(b.userId);
-    });
-  }, [userOrders]);
+        return Array.from(map.values()).sort((a, b) => {
+          const nameA = (a.name ?? '').trim().toLowerCase();
+          const nameB = (b.name ?? '').trim().toLowerCase();
+          if (nameA && nameB) {
+            return nameA.localeCompare(nameB);
+          }
+          if (nameA) return -1;
+          if (nameB) return 1;
+          return a.userId.localeCompare(b.userId);
+        });
+      })()
+    : [];
 
-  const receipts = useMemo<ReceiptViewModel[]>(
-    () =>
-      groupedOrders.map((group) => {
+  // Build receipt view models (React Compiler will memoize automatically)
+  const receipts: ReceiptViewModel[] = canRender
+    ? groupedOrders.map((group) => {
         const items = group.orders.flatMap((order) => buildReceiptItems(order, stock));
         const subtotal = group.orders.reduce(
           (sum, order) => sum + calculateOrderPrice(order, stock),
@@ -172,9 +171,8 @@ export function GroupOrderReceipts({
           participantPaid,
           isLeaderReceipt,
         } satisfies ReceiptViewModel;
-      }),
-    [groupedOrders, stock, groupOrder.leader.id]
-  );
+      })
+    : [];
 
   const totalFee = groupOrder.fee ?? 0;
   const participantCount = receipts.length || 1;
@@ -230,9 +228,9 @@ export function GroupOrderReceipts({
     }
   };
 
-  const ticketEntries = useMemo(
-    () =>
-      receipts.map((receipt, index) => ({
+  // Build ticket entries (React Compiler will memoize automatically)
+  const ticketEntries = canRender
+    ? receipts.map((receipt, index) => ({
         key: receipt.group.userId,
         model: {
           index,
@@ -249,9 +247,13 @@ export function GroupOrderReceipts({
         orders: receipt.group.orders,
         participantPaid: receipt.participantPaid,
         reimbursementComplete: receipt.reimbursementComplete,
-      })),
-    [receipts, currentUserId, isLeader]
-  );
+      }))
+    : [];
+
+  // Now we can safely do conditional rendering (not early return)
+  if (!canRender) {
+    return null;
+  }
 
   return (
     <Card className="border-white/10 bg-slate-900/50">
