@@ -9,8 +9,10 @@
     "loading": "Chargement",
     "error": "Erreur",
     "save": "Enregistrer",
+    "saving": "Enregistrement…",
     "cancel": "Annuler",
     "delete": "Supprimer",
+    "ok": "OK",
     "edit": "Modifier",
     "submit": "Envoyer",
     "back": "Retour",
@@ -467,6 +469,8 @@
             "completed": "Commande terminée"
           },
           "submit": "Passer la commande",
+          "moreOptions": "Plus d'options",
+          "editOrder": "Modifier la commande",
           "closeOrder": "Fermer la commande",
           "reopenOrder": "Rouvrir la commande",
           "deleteOrder": "Supprimer la commande",
@@ -489,6 +493,16 @@
           "linkCopied": "Lien copié !",
           "codeCopied": "Code copié !",
           "inviteInstructions": "Partagez ce lien ou ce code avec votre équipe pour rejoindre cette commande."
+        }
+      },
+      "edit": {
+        "title": "Modifier la commande de groupe",
+        "description": "Mettez à jour le nom de la commande et la fenêtre horaire.",
+        "error": {
+          "endDateBeforeStart": "La date de fin doit être égale ou postérieure à la date de début.",
+          "endDateTimeBeforeStart": "La date et l'heure de fin doivent être postérieures à la date et l'heure de début.",
+          "endTimeBeforeStart": "L'heure de fin doit être postérieure à l'heure de début lorsque la même date est utilisée.",
+          "generic": "Échec de la mise à jour de la commande de groupe. Veuillez réessayer."
         }
       },
       "list": {

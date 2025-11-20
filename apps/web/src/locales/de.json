@@ -9,8 +9,10 @@
     "loading": "Laden",
     "error": "Fehler",
     "save": "Speichern",
+    "saving": "Speichern…",
     "cancel": "Abbrechen",
     "delete": "Löschen",
+    "ok": "OK",
     "edit": "Bearbeiten",
     "submit": "Absenden",
     "back": "Zurück",
@@ -463,6 +465,9 @@
             "completed": "Bestellung abgeschlossen"
           },
           "submit": "Bestellung aufgeben",
+          "submit": "Bestellung aufgeben",
+          "moreOptions": "Weitere Optionen",
+          "editOrder": "Bestellung bearbeiten",
           "closeOrder": "Bestellung schließen",
           "reopenOrder": "Bestellung öffnen",
           "deleteOrder": "Bestellung löschen",
@@ -485,6 +490,16 @@
           "linkCopied": "Link kopiert!",
           "codeCopied": "Code kopiert!",
           "inviteInstructions": "Teile diesen Link oder Code mit deinem Team, um dieser Bestellung beizutreten."
+        }
+      },
+      "edit": {
+        "title": "Gruppenbestellung bearbeiten",
+        "description": "Aktualisiere den Bestellnamen und das Zeitfenster.",
+        "error": {
+          "endDateBeforeStart": "Das Enddatum muss am oder nach dem Startdatum liegen.",
+          "endDateTimeBeforeStart": "Das Enddatum und die Endzeit müssen nach dem Startdatum und der Startzeit liegen.",
+          "endTimeBeforeStart": "Die Endzeit muss nach der Startzeit liegen, wenn dasselbe Datum verwendet wird.",
+          "generic": "Aktualisierung der Gruppenbestellung fehlgeschlagen. Bitte versuche es erneut."
         }
       },
       "list": {

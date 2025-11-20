@@ -1,7 +1,7 @@
-import { Lock, LockOpen, MoreVertical, Plus, Send, Trash2 } from 'lucide-react';
+import { Edit, Lock, LockOpen, MoreVertical, Plus, Send, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Form, Link, useNavigate, useRevalidator } from 'react-router';
+import { Link, useNavigate, useRevalidator } from 'react-router';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +27,7 @@ import type { GroupOrder, UserOrderSummary } from '@/lib/api';
 import { OrdersApi } from '@/lib/api';
 import { routes } from '@/lib/routes';
 import { toDate } from '@/lib/utils/date';
+import { EditGroupOrderDialog } from './EditGroupOrderDialog';
 
 /**
  * OrderHero - Hero section for order detail page
@@ -57,8 +58,6 @@ export function OrderHero({
   canAddOrders,
   canSubmit,
   orderId,
-  canManageStatus = false,
-  statusIntent,
   isClosedManually = false,
   isSubmitting = false,
   isLeader = false,
@@ -72,7 +71,16 @@ export function OrderHero({
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const { status, name, startDate, endDate, leader } = groupOrder;
+
+  // Determine which actions are available
+  const canEdit = isLeader;
+  const canDelete = isLeader && !isSubmitted;
+  const canReopen = isLeader && isSubmitted && isDeveloperMode;
+
+  // Show menu only if at least one action is available
+  const shouldShowLeaderMenu = canEdit || canDelete || canReopen;
 
   const nowTime = Date.now();
   const startTime = toDate(startDate).getTime();
@@ -118,6 +126,21 @@ export function OrderHero({
     }
   };
 
+  const handleEditSuccess = () => {
+    revalidator.revalidate();
+  };
+
+  const handleStatusChange = async () => {
+    const newStatus = isReopening ? 'open' : 'closed';
+    try {
+      await OrdersApi.updateGroupOrderStatus(groupOrder.id, newStatus);
+      revalidator.revalidate();
+    } catch (error) {
+      console.error('Failed to update group order status:', error);
+      setShowErrorDialog(true);
+    }
+  };
+
   return (
     <Card className="relative overflow-hidden border-brand-400/30 bg-linear-to-br from-brand-500/20 via-slate-900/80 to-slate-950/90 p-6 lg:p-8">
       <div className="-top-24 pointer-events-none absolute right-0 h-60 w-60 rounded-full bg-brand-400/30 blur-3xl" />
@@ -133,10 +156,10 @@ export function OrderHero({
               label={t(`common.status.${groupOrder.status}`)}
             />
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 divide-x divide-white/10">
             {userOrders.length > 0 && (
-              <>
-                <div className="text-right">
+              <div className="flex items-center divide-x divide-white/10 pr-6">
+                <div className="pr-6 text-right">
                   <p className="font-semibold text-slate-300 text-xs uppercase tracking-wider">
                     {t('orders.detail.hero.participants.label')}
                   </p>
@@ -145,8 +168,7 @@ export function OrderHero({
                     {t('orders.detail.hero.participants.count', { count: userOrders.length })}
                   </p>
                 </div>
-                <div className="h-12 w-px bg-white/10" />
-                <div className="text-right">
+                <div className="pl-6 text-right">
                   <p className="font-semibold text-slate-300 text-xs uppercase tracking-wider">
                     {t('orders.detail.hero.total.label')}
                   </p>
@@ -157,10 +179,9 @@ export function OrderHero({
                     {t('orders.detail.hero.total.caption')}
                   </p>
                 </div>
-                <div className="h-12 w-px bg-white/10" />
-              </>
+              </div>
             )}
-            {isLeader && !isSubmitted && (
+            {shouldShowLeaderMenu && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -173,14 +194,34 @@ export function OrderHero({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    destructive
-                    onClick={handleDeleteClick}
-                    disabled={isDeleting || isSubmitting}
-                  >
-                    <Trash2 size={16} />
-                    {t('orders.detail.hero.actions.deleteOrder')}
-                  </DropdownMenuItem>
+                  {canEdit && (
+                    <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
+                      <Edit size={16} />
+                      {t('orders.detail.hero.actions.editOrder')}
+                    </DropdownMenuItem>
+                  )}
+                  {canReopen && (
+                    <DropdownMenuItem
+                      onClick={handleStatusChange}
+                      disabled={
+                        isSubmitting ||
+                        (isDeveloperMode && isSubmitted && revalidator.state === 'loading')
+                      }
+                    >
+                      {statusButtonConfig.icon}
+                      {statusButtonConfig.label}
+                    </DropdownMenuItem>
+                  )}
+                  {canDelete && (
+                    <DropdownMenuItem
+                      destructive
+                      onClick={handleDeleteClick}
+                      disabled={isDeleting || isSubmitting}
+                    >
+                      <Trash2 size={16} />
+                      {t('orders.detail.hero.actions.deleteOrder')}
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
@@ -225,28 +266,6 @@ export function OrderHero({
             </Button>
           )}
           <div className="flex-1" />
-          {canManageStatus && statusIntent && (
-            <Form method="PATCH">
-              <input
-                type="hidden"
-                name="status"
-                value={isClosedManually || (isDeveloperMode && isSubmitted) ? 'open' : 'closed'}
-              />
-              <Button
-                type="submit"
-                variant={statusButtonConfig.variant}
-                size="sm"
-                disabled={
-                  isSubmitting ||
-                  (isDeveloperMode && isSubmitted && revalidator.state === 'loading')
-                }
-                className={statusButtonConfig.className}
-              >
-                {statusButtonConfig.icon}
-                {statusButtonConfig.label}
-              </Button>
-            </Form>
-          )}
           {canSubmit && (
             <Link to={routes.root.orderSubmit({ orderId })} className="ml-auto cursor-pointer">
               <Button
@@ -298,6 +317,14 @@ export function OrderHero({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Group Order Dialog */}
+      <EditGroupOrderDialog
+        groupOrder={groupOrder}
+        isOpen={showEditDialog}
+        onClose={() => setShowEditDialog(false)}
+        onSuccess={handleEditSuccess}
+      />
     </Card>
   );
 }

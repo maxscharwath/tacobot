@@ -90,6 +90,18 @@ export function updateGroupOrderStatus(
   });
 }
 
+export interface UpdateGroupOrderBody {
+  name?: string | null;
+  startDate?: string;
+  endDate?: string;
+}
+
+export function updateGroupOrder(groupOrderId: string, body: UpdateGroupOrderBody) {
+  return apiClient.patch<GroupOrder>(`/api/v1/orders/${groupOrderId}`, {
+    body,
+  });
+}
+
 export interface OrderCookiesResponse {
   cookies: Record<string, string>;
   csrfToken: string;

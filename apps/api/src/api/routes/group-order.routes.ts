@@ -17,6 +17,7 @@ import { CreateGroupOrderUseCase } from '../../services/group-order/create-group
 import { DeleteGroupOrderUseCase } from '../../services/group-order/delete-group-order.service';
 import { GetGroupOrderUseCase } from '../../services/group-order/get-group-order.service';
 import { GetGroupOrderWithUserOrdersUseCase } from '../../services/group-order/get-group-order-with-user-orders.service';
+import { UpdateGroupOrderUseCase } from '../../services/group-order/update-group-order.service';
 import { UpdateGroupOrderStatusUseCase } from '../../services/group-order/update-group-order-status.service';
 import { SessionService } from '../../services/session/session.service';
 import { UserService } from '../../services/user/user.service';
@@ -91,6 +92,12 @@ const GroupOrderWithUserOrdersSchema = z.object({
 
 const UpdateGroupOrderStatusRequestSchema = z.object({
   status: z.enum([GroupOrderStatus.OPEN, GroupOrderStatus.CLOSED, GroupOrderStatus.SUBMITTED]),
+});
+
+const UpdateGroupOrderRequestSchema = z.object({
+  name: z.string().nullable().optional(),
+  startDate: z.iso.datetime().optional(),
+  endDate: z.iso.datetime().optional(),
 });
 
 async function serializeGroupOrderResponse(groupOrder: GroupOrder) {
@@ -215,6 +222,42 @@ app.openapi(
     const userId = requireUserId(c);
     const updateGroupOrderStatusUseCase = inject(UpdateGroupOrderStatusUseCase);
     const groupOrder = await updateGroupOrderStatusUseCase.execute(id, userId, body.status);
+
+    return c.json(await serializeGroupOrderResponse(groupOrder), 200);
+  }
+);
+
+app.openapi(
+  createRoute({
+    method: 'patch',
+    path: '/orders/{id}',
+    tags: ['Orders'],
+    security: authSecurity,
+    request: {
+      params: z.object({
+        id: GroupOrderIdSchema,
+      }),
+      body: {
+        content: jsonContent(UpdateGroupOrderRequestSchema),
+      },
+    },
+    responses: {
+      200: {
+        description: 'Group order details updated',
+        content: jsonContent(GroupOrderResponseSchema),
+      },
+    },
+  }),
+  async (c) => {
+    const { id } = c.req.valid('param');
+    const body = c.req.valid('json');
+    const userId = requireUserId(c);
+    const updateGroupOrderUseCase = inject(UpdateGroupOrderUseCase);
+    const groupOrder = await updateGroupOrderUseCase.execute(id, userId, {
+      name: body.name,
+      startDate: body.startDate ? new Date(body.startDate) : undefined,
+      endDate: body.endDate ? new Date(body.endDate) : undefined,
+    });
 
     return c.json(await serializeGroupOrderResponse(groupOrder), 200);
   }

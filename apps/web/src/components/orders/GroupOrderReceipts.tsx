@@ -1,28 +1,19 @@
-import type { LucideIcon } from 'lucide-react';
-import { Clock3, RefreshCcw, ScrollText, ShieldCheck, Undo2, Wallet } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { ScrollText } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRevalidator } from 'react-router';
-import {
-  Avatar,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui';
+import { Avatar, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui';
+import { useLocaleFormatter } from '@/hooks/useLocaleFormatter';
 import { calculateOrderPrice } from '@/hooks/useOrderPrice';
 import type { StockResponse } from '@/lib/api';
 import { OrdersApi } from '@/lib/api';
 import type { GroupOrder, UserOrderSummary } from '@/lib/api/types';
-
-type ReceiptItem = {
-  name: string;
-  details: string;
-  price: number;
-};
+import {
+  type ReceiptItem,
+  type ReceiptStatusVariant,
+  ReceiptTicket,
+  type ReceiptTicketModel,
+} from './ReceiptTicket';
 
 type GroupedOrders = {
   userId: string;
@@ -43,61 +34,6 @@ type ProcessingState = {
   userId: string;
   action: 'reimburse' | 'paid';
 } | null;
-
-type ReceiptStatusVariant = 'leader' | 'settled' | 'awaitingParticipant' | 'awaitingConfirmation';
-type StatusTone = 'success' | 'warning' | 'danger';
-
-type ReceiptCopy = {
-  badge: string;
-  subtitle: string;
-  header: string;
-  guestLabel: string;
-  unknownGuest: string;
-  itemsLabel: string;
-  subtotalLabel: string;
-  feeShareLabel: string;
-  totalLabel: string;
-  actions: {
-    markSelfPaid: string;
-    unmarkSelfPaid: string;
-    confirmReceipt: string;
-    reopenReceipt: string;
-  };
-  status: Record<ReceiptStatusVariant, string>;
-};
-
-type ReceiptTotalsLabels = {
-  subtotal: string;
-  feeShare: string;
-  total: string;
-  explanation: string;
-};
-
-const STATUS_ICONS: Record<ReceiptStatusVariant, LucideIcon> = {
-  leader: ShieldCheck,
-  settled: ShieldCheck,
-  awaitingParticipant: Clock3,
-  awaitingConfirmation: RefreshCcw,
-};
-
-const STATUS_TONES: Record<ReceiptStatusVariant, StatusTone> = {
-  leader: 'success',
-  settled: 'success',
-  awaitingParticipant: 'danger',
-  awaitingConfirmation: 'warning',
-};
-
-const BADGE_BASE_CLASS =
-  'inline-flex max-w-max border px-2 py-1 text-[9px] uppercase tracking-wide';
-
-const STATUS_BADGE_CLASS: Record<StatusTone, string> = {
-  success: `${BADGE_BASE_CLASS} border-emerald-400/60 bg-emerald-400/90 text-emerald-950`,
-  warning: `${BADGE_BASE_CLASS} border-amber-400/60 bg-amber-400/90 text-amber-950`,
-  danger: `${BADGE_BASE_CLASS} border-rose-500/70 bg-rose-500/90 text-rose-950`,
-};
-
-const ACTION_BUTTON_CLASS =
-  'border border-white/20 bg-slate-900/90 text-white text-xs uppercase tracking-wide';
 
 function formatTacoDetails(order: UserOrderSummary['items']['tacos'][number]) {
   const details: string[] = [];
@@ -175,8 +111,9 @@ export function GroupOrderReceipts({
   isLeader,
   currentUserId,
 }: GroupOrderReceiptsProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const revalidator = useRevalidator();
+  const { formatDate, formatTime } = useLocaleFormatter(currency);
   const [processing, setProcessing] = useState<ProcessingState>(null);
 
   const hasFee = groupOrder.fee !== undefined && groupOrder.fee !== null;
@@ -243,55 +180,15 @@ export function GroupOrderReceipts({
   const participantCount = receipts.length || 1;
   const feePerPerson = participantCount > 0 ? totalFee / participantCount : 0;
   const displayDate = new Date(groupOrder.updatedAt ?? groupOrder.endDate ?? groupOrder.startDate);
-  const ticketTime = displayDate.toLocaleTimeString(i18n.language);
-
-  const currencyFormatter = useMemo(
-    () =>
-      new Intl.NumberFormat(i18n.language, {
-        style: 'currency',
-        currency,
-        minimumFractionDigits: 2,
-      }),
-    [i18n.language, currency]
-  );
-
-  const formatAmount = useCallback(
-    (amount: number) => currencyFormatter.format(amount),
-    [currencyFormatter]
-  );
-
-  const feeExplanation = t('orders.detail.receipts.feeExplanation', {
-    total: formatAmount(totalFee),
-    share: formatAmount(feePerPerson),
-    count: participantCount,
+  const ticketTime = formatTime(displayDate, { hour: '2-digit', minute: '2-digit' });
+  const ticketDate = formatDate(displayDate, {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
   });
 
-  const copy = useMemo<ReceiptCopy>(
-    () => ({
-      badge: t('orders.detail.receipts.badge'),
-      subtitle: t('orders.detail.receipts.subtitle'),
-      header: t('orders.detail.receipts.header'),
-      guestLabel: t('orders.detail.receipts.guest'),
-      unknownGuest: t('orders.detail.receipts.unknownGuest'),
-      itemsLabel: t('orders.detail.receipts.items'),
-      subtotalLabel: t('orders.detail.receipts.subtotal'),
-      feeShareLabel: t('orders.detail.receipts.deliveryFeeShare'),
-      totalLabel: t('orders.detail.receipts.total'),
-      actions: {
-        markSelfPaid: t('orders.detail.receipts.actions.markSelfPaid'),
-        unmarkSelfPaid: t('orders.detail.receipts.actions.unmarkSelfPaid'),
-        confirmReceipt: t('orders.detail.receipts.actions.confirmReceipt'),
-        reopenReceipt: t('orders.detail.receipts.actions.reopenReceipt'),
-      },
-      status: {
-        leader: t('orders.detail.receipts.status.leader'),
-        settled: t('orders.detail.receipts.status.settled'),
-        awaitingParticipant: t('orders.detail.receipts.status.awaitingParticipant'),
-        awaitingConfirmation: t('orders.detail.receipts.status.awaitingConfirmation'),
-      },
-    }),
-    [t]
-  );
+  const sectionTitle = t('orders.detail.receipts.badge');
+  const sectionSubtitle = t('orders.detail.receipts.subtitle');
 
   const toggleParticipantPayment = async (
     userId: string,
@@ -333,6 +230,29 @@ export function GroupOrderReceipts({
     }
   };
 
+  const ticketEntries = useMemo(
+    () =>
+      receipts.map((receipt, index) => ({
+        key: receipt.group.userId,
+        model: {
+          index,
+          participantName: receipt.group.name ? receipt.group.name.toUpperCase() : null,
+          statusVariant: resolveReceiptStatusVariant(receipt),
+          items: receipt.items,
+          subtotal: receipt.subtotal,
+          participantPaid: receipt.participantPaid,
+          reimbursementComplete: receipt.reimbursementComplete,
+          canShowParticipantAction: receipt.group.userId === currentUserId && !isLeader,
+          canShowReimbursementAction: isLeader && !receipt.isLeaderReceipt,
+        } satisfies ReceiptTicketModel,
+        userId: receipt.group.userId,
+        orders: receipt.group.orders,
+        participantPaid: receipt.participantPaid,
+        reimbursementComplete: receipt.reimbursementComplete,
+      })),
+    [receipts, currentUserId, isLeader]
+  );
+
   return (
     <Card className="border-white/10 bg-slate-900/50">
       <CardHeader className="gap-2">
@@ -341,293 +261,34 @@ export function GroupOrderReceipts({
             <ScrollText />
           </Avatar>
           <div>
-            <CardTitle className="text-lg text-white">{copy.badge}</CardTitle>
-            <CardDescription className="mt-0.5 text-xs">{copy.subtitle}</CardDescription>
+            <CardTitle className="text-lg text-white">{sectionTitle}</CardTitle>
+            <CardDescription className="mt-0.5 text-xs">{sectionSubtitle}</CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
-          {receipts.map((receipt, idx) => (
-            <ReceiptTicket
-              key={receipt.group.userId}
-              index={idx}
-              receipt={receipt}
-              copy={copy}
-              ticketTime={ticketTime}
-              feePerPerson={feePerPerson}
-              formatAmount={formatAmount}
-              feeExplanation={feeExplanation}
-              isLeader={isLeader}
-              currentUserId={currentUserId}
-              processing={processing}
-              onParticipantToggle={toggleParticipantPayment}
-              onReimbursementToggle={toggleReimbursement}
-            />
-          ))}
+          {ticketEntries.map(
+            ({ key, model, userId, orders, participantPaid, reimbursementComplete }) => (
+              <ReceiptTicket
+                key={key}
+                ticket={model}
+                timestamp={{ date: ticketDate, time: ticketTime }}
+                feePerPerson={feePerPerson}
+                feeInfo={{ total: totalFee, participants: participantCount }}
+                currency={currency}
+                isBusy={processing?.userId === userId}
+                onParticipantToggle={() =>
+                  toggleParticipantPayment(userId, orders, !participantPaid)
+                }
+                onReimbursementToggle={() =>
+                  toggleReimbursement(userId, orders, !reimbursementComplete)
+                }
+              />
+            )
+          )}
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-type ReceiptTicketProps = {
-  index: number;
-  receipt: ReceiptViewModel;
-  copy: ReceiptCopy;
-  ticketTime: string;
-  feePerPerson: number;
-  formatAmount: (amount: number) => string;
-  feeExplanation: string;
-  isLeader: boolean;
-  currentUserId: string;
-  processing: ProcessingState;
-  onParticipantToggle: (userId: string, orders: UserOrderSummary[], paid: boolean) => Promise<void>;
-  onReimbursementToggle: (
-    userId: string,
-    orders: UserOrderSummary[],
-    settled: boolean
-  ) => Promise<void>;
-};
-
-function ReceiptTicket({
-  index,
-  receipt,
-  copy,
-  ticketTime,
-  feePerPerson,
-  formatAmount,
-  feeExplanation,
-  isLeader,
-  currentUserId,
-  processing,
-  onParticipantToggle,
-  onReimbursementToggle,
-}: ReceiptTicketProps) {
-  const total = receipt.subtotal + feePerPerson;
-  const participantName = (receipt.group.name ?? copy.unknownGuest).toUpperCase();
-  const isOwnReceipt = receipt.group.userId === currentUserId;
-  const isBusy = processing?.userId === receipt.group.userId;
-  const canShowParticipantAction = isOwnReceipt && !isLeader;
-  const canShowReimbursementAction = isLeader && !receipt.isLeaderReceipt;
-  const statusVariant = resolveReceiptStatusVariant(receipt);
-
-  return (
-    <div className="transform bg-white/90 p-1 shadow-2xl transition-transform hover:scale-[1.01]">
-      <div className="flex h-full flex-col border-4 border-gray-300 border-dashed bg-white p-5 font-mono text-gray-900 text-xs">
-        <div className="mb-3 border-gray-800 border-b-2 border-dashed pb-3">
-          <div className="space-y-1 text-center">
-            <p className="font-black text-lg tracking-[0.3em]">TACOCREW</p>
-            <p className="font-semibold text-[10px] tracking-[0.4em]">{copy.header}</p>
-          </div>
-          <div className="mt-2 flex items-center justify-between text-[10px]">
-            <span>#{index + 1}</span>
-            <span>{ticketTime}</span>
-          </div>
-        </div>
-
-        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[10px] text-gray-500 uppercase tracking-[0.3em]">
-              {copy.guestLabel}
-            </p>
-            <p className="font-black text-xl">{participantName}</p>
-          </div>
-          <ReceiptStatusBadge variant={statusVariant} label={copy.status[statusVariant]} />
-        </div>
-
-        <ReceiptItemsList
-          items={receipt.items}
-          itemsLabel={copy.itemsLabel}
-          formatAmount={formatAmount}
-        />
-
-        <ReceiptTotals
-          subtotal={receipt.subtotal}
-          total={total}
-          feePerPerson={feePerPerson}
-          formatAmount={formatAmount}
-          labels={{
-            subtotal: copy.subtotalLabel,
-            feeShare: copy.feeShareLabel,
-            total: copy.totalLabel,
-            explanation: feeExplanation,
-          }}
-        />
-
-        <ReceiptActions
-          participantPaid={receipt.participantPaid}
-          reimbursementComplete={receipt.reimbursementComplete}
-          canShowParticipantAction={canShowParticipantAction}
-          canShowReimbursementAction={canShowReimbursementAction}
-          isBusy={Boolean(isBusy)}
-          actionsCopy={copy.actions}
-          onParticipantToggle={() =>
-            onParticipantToggle(
-              receipt.group.userId,
-              receipt.group.orders,
-              !receipt.participantPaid
-            )
-          }
-          onReimbursementToggle={() =>
-            onReimbursementToggle(
-              receipt.group.userId,
-              receipt.group.orders,
-              !receipt.reimbursementComplete
-            )
-          }
-        />
-      </div>
-    </div>
-  );
-}
-
-type ReceiptItemsListProps = {
-  items: ReceiptItem[];
-  itemsLabel: string;
-  formatAmount: (amount: number) => string;
-};
-
-function ReceiptItemsList({ items, itemsLabel, formatAmount }: ReceiptItemsListProps) {
-  return (
-    <div className="my-3 flex-1 space-y-2 border-gray-800 border-t border-b border-dashed py-3">
-      <p className="font-bold text-[10px] text-gray-500 tracking-[0.3em]">{itemsLabel}</p>
-      <div className="max-h-48 space-y-2 overflow-y-auto pr-1">
-        {items.map((item, index) => (
-          <div
-            key={`${item.name}-${index}`}
-            className="border-gray-200 border-b pb-2 last:border-b-0"
-          >
-            <div className="flex justify-between font-semibold text-[11px]">
-              <span className="pr-3">{item.name}</span>
-              <span>{formatAmount(item.price)}</span>
-            </div>
-            {item.details ? <p className="text-[10px] text-gray-600">{item.details}</p> : null}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-type ReceiptTotalsProps = {
-  subtotal: number;
-  total: number;
-  feePerPerson: number;
-  formatAmount: (amount: number) => string;
-  labels: ReceiptTotalsLabels;
-};
-
-function ReceiptTotals({
-  subtotal,
-  total,
-  feePerPerson,
-  formatAmount,
-  labels,
-}: ReceiptTotalsProps) {
-  return (
-    <div className="space-y-2 rounded-lg bg-slate-100/70 p-3 text-[11px] text-slate-900">
-      <div className="flex justify-between">
-        <span>{labels.subtotal}</span>
-        <span>{formatAmount(subtotal)}</span>
-      </div>
-      <div className="flex justify-between">
-        <span>{labels.feeShare}</span>
-        <span>{formatAmount(feePerPerson)}</span>
-      </div>
-      <p className="text-[10px] text-slate-600">{labels.explanation}</p>
-      <div className="flex justify-between border-slate-300 border-t pt-2 font-black text-base">
-        <span>{labels.total}</span>
-        <span>{formatAmount(total)}</span>
-      </div>
-    </div>
-  );
-}
-
-type ReceiptActionsProps = {
-  participantPaid: boolean;
-  reimbursementComplete: boolean;
-  canShowParticipantAction: boolean;
-  canShowReimbursementAction: boolean;
-  isBusy: boolean;
-  actionsCopy: ReceiptCopy['actions'];
-  onParticipantToggle: () => void;
-  onReimbursementToggle: () => void;
-};
-
-function ReceiptActions({
-  participantPaid,
-  reimbursementComplete,
-  canShowParticipantAction,
-  canShowReimbursementAction,
-  isBusy,
-  actionsCopy,
-  onParticipantToggle,
-  onReimbursementToggle,
-}: ReceiptActionsProps) {
-  if (!canShowParticipantAction && !canShowReimbursementAction) {
-    return null;
-  }
-
-  return (
-    <div className="mt-auto flex flex-col gap-2 pt-3">
-      {canShowParticipantAction && (
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={isBusy}
-          onClick={onParticipantToggle}
-          className={`${ACTION_BUTTON_CLASS} ${participantPaid ? 'opacity-80' : ''}`}
-        >
-          <div className="flex items-center gap-2">
-            {participantPaid ? (
-              <Undo2 className="h-3.5 w-3.5" />
-            ) : (
-              <Wallet className="h-3.5 w-3.5" />
-            )}
-            <span>{participantPaid ? actionsCopy.unmarkSelfPaid : actionsCopy.markSelfPaid}</span>
-          </div>
-        </Button>
-      )}
-      {canShowReimbursementAction && (
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={isBusy}
-          onClick={onReimbursementToggle}
-          className={`${ACTION_BUTTON_CLASS} ${reimbursementComplete ? 'opacity-80' : ''}`}
-        >
-          <div className="flex items-center gap-2">
-            {reimbursementComplete ? (
-              <RefreshCcw className="h-3.5 w-3.5" />
-            ) : (
-              <ShieldCheck className="h-3.5 w-3.5" />
-            )}
-            <span>
-              {reimbursementComplete ? actionsCopy.reopenReceipt : actionsCopy.confirmReceipt}
-            </span>
-          </div>
-        </Button>
-      )}
-    </div>
-  );
-}
-
-type ReceiptStatusBadgeProps = {
-  variant: ReceiptStatusVariant;
-  label: string;
-};
-
-function ReceiptStatusBadge({ variant, label }: ReceiptStatusBadgeProps) {
-  const tone = STATUS_TONES[variant];
-  const Icon = STATUS_ICONS[variant];
-
-  return (
-    <Badge tone={tone} className={STATUS_BADGE_CLASS[tone]}>
-      <div className="flex items-center gap-1">
-        <Icon className="h-3 w-3" />
-        <span>{label}</span>
-      </div>
-    </Badge>
   );
 }

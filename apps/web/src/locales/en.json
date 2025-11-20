@@ -9,8 +9,10 @@
     "loading": "Loading",
     "error": "Error",
     "save": "Save",
+    "saving": "Saving...",
     "cancel": "Cancel",
     "delete": "Delete",
+    "ok": "OK",
     "edit": "Edit",
     "submit": "Submit",
     "back": "Back",
@@ -469,6 +471,8 @@
         },
         "actions": {
           "create": "Create new order",
+          "moreOptions": "More options",
+          "editOrder": "Edit order",
           "closedReasons": {
             "open": "Order period expired",
             "expired": "Order period expired",
@@ -500,6 +504,16 @@
           "linkCopied": "Link copied!",
           "codeCopied": "Code copied!",
           "inviteInstructions": "Share this link or code with your team to join this order."
+        }
+      },
+      "edit": {
+        "title": "Edit group order",
+        "description": "Update the order name and time window.",
+        "error": {
+          "endDateBeforeStart": "End date must be on or after start date.",
+          "endDateTimeBeforeStart": "End date and time must be after start date and time.",
+          "endTimeBeforeStart": "End time must be after start time when using the same date.",
+          "generic": "Failed to update group order. Please try again."
         }
       },
       "list": {

@@ -66,14 +66,17 @@ export function RootLayout() {
           {/* Top Section: Brand + User Actions */}
           <div className="flex items-center justify-between gap-4 border-white/10 border-b px-6 py-4">
             {/* Brand Section */}
-            <div className="flex min-w-0 items-center gap-3">
+            <Link
+              to={routes.root.dashboard()}
+              className="group -mx-2 -my-1.5 flex min-w-0 items-center gap-3 rounded-lg px-2 py-1.5 transition-all hover:bg-brand-500/10 hover:text-brand-100 active:bg-brand-500/15"
+            >
               <Avatar color="brandHero" size="md" variant="elevated">
                 <span className="text-base">🌮</span>
               </Avatar>
               <h1 className="truncate font-semibold text-white text-xl tracking-tight">
                 {t('root.tacobot')}
               </h1>
-            </div>
+            </Link>
 
             {/* User Actions Section */}
             <div className="flex shrink-0 items-center gap-2.5">
