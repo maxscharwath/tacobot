@@ -34,15 +34,10 @@ declare module 'web-push' {
     }
   ): Promise<SendResult>;
 
-  export function setVapidDetails(
-    subject: string,
-    publicKey: string,
-    privateKey: string
-  ): void;
+  export function setVapidDetails(subject: string, publicKey: string, privateKey: string): void;
 
   export function generateVAPIDKeys(): {
     publicKey: string;
     privateKey: string;
   };
 }
-

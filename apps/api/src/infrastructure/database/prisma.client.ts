@@ -5,8 +5,8 @@
  * @module infrastructure/database/prisma.client
  */
 
-import { Prisma, PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { Prisma, PrismaClient } from '../../generated/client';
 import { logger } from '../../shared/utils/logger.utils';
 
 // Singleton pattern to ensure only one PrismaClient instance exists
@@ -36,7 +36,7 @@ export function getPrismaClient(): PrismaClient {
     prismaClient = new PrismaClient({
       log: logConfig,
       adapter,
-    }) as PrismaClient<Prisma.PrismaClientOptions, 'query' | 'error' | 'warn'>;
+    });
 
     // Log queries in development
     const onEvent = prismaClient.$on.bind(prismaClient) as unknown as <

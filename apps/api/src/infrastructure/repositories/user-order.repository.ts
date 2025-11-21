@@ -3,7 +3,7 @@
  * @module infrastructure/repositories/user-order
  */
 
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/client';
 import { injectable } from 'tsyringe';
 import type { GroupOrderId } from '../../schemas/group-order.schema';
 import type { UserId } from '../../schemas/user.schema';
