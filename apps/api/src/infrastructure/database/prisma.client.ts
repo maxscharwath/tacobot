@@ -22,10 +22,17 @@ export function getPrismaClient(): PrismaClient {
       { level: 'warn', emit: 'event' },
     ] satisfies Prisma.LogDefinition[];
 
-    // Prisma 7: DATABASE_URL is read from environment variables automatically
-    // The url is configured in prisma.config.ts, not in the schema
+    // Prisma 7: When using "client" engine, must provide adapter with database URL
+    const databaseUrl = process.env['DATABASE_URL'];
+    if (!databaseUrl) {
+      throw new Error('DATABASE_URL environment variable is required');
+    }
+
     prismaClient = new PrismaClient({
       log: logConfig,
+      adapter: {
+        url: databaseUrl,
+      },
     }) as PrismaClient<Prisma.PrismaClientOptions, 'query' | 'error' | 'warn'>;
 
     // Log queries in development
