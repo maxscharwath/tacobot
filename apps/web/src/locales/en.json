@@ -180,6 +180,27 @@
         }
       }
     },
+    "avatar": {
+      "title": "Profile Picture",
+      "description": "Upload a profile picture to personalize your account",
+      "invalidType": "Invalid file type. Only images are allowed.",
+      "fileTooLarge": "File is too large. Maximum size is 5MB.",
+      "uploadFailed": "Failed to upload image. Please try again.",
+      "deleteConfirm": "Are you sure you want to delete your profile image?",
+      "deleteFailed": "Failed to delete image. Please try again.",
+      "uploading": "Uploading...",
+      "confirm": "Confirm Upload",
+      "cancel": "Cancel",
+      "confirmHint": "Review your image and click \"Confirm Upload\" to save it.",
+      "select": "Select Image",
+      "delete": "Delete",
+      "hint": "JPG, PNG, WebP or GIF. Max 5MB. Image will be resized to 512x512px and converted to WebP.",
+      "dragDrop": "Drag and drop an image, or click \"Select Image\" above",
+      "dropHere": "Drop image here",
+      "supportedFormats": "JPG, PNG, WebP, GIF up to 5MB",
+      "uploadSuccess": "Profile image uploaded successfully!",
+      "retry": "Retry"
+    },
     "loading": "Loading...",
     "loadFailed": "Failed to load account data",
     "edit": "Edit",

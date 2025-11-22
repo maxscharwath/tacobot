@@ -1,3 +1,4 @@
+import { ENV } from '@/lib/env';
 import { apiClient } from './http';
 import type {
   DeliveryProfile,
@@ -44,4 +45,29 @@ export function updateUserLanguage(language: 'en' | 'fr' | 'de') {
   return apiClient.patch<UserProfile>('/api/v1/users/me/language', {
     body: { language },
   });
+}
+
+export function uploadAvatar(imageFile: File) {
+  const formData = new FormData();
+  formData.append('image', imageFile);
+  return apiClient.post<UserProfile>('/api/v1/users/me/avatar', {
+    body: formData,
+  });
+}
+
+export function deleteAvatar() {
+  return apiClient.delete<UserProfile>('/api/v1/users/me/avatar');
+}
+
+/**
+ * Get avatar image URL for a user
+ * This endpoint serves images with proper cache headers
+ */
+export function getAvatarUrl(userId: string): string {
+  const path = `/api/v1/users/${userId}/avatar`;
+  if (ENV.apiBaseUrl) {
+    return new URL(path, ENV.apiBaseUrl).toString();
+  }
+  // Fallback to relative URL if no API base URL is configured
+  return path;
 }

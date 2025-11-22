@@ -26,6 +26,7 @@ export const UserSchema = z.object({
   name: z.string().nullable(),
   slackId: z.string().nullish(),
   language: z.string().nullable(),
+  hasImage: z.boolean().optional(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
 });
@@ -35,12 +36,18 @@ export type User = z.infer<typeof UserSchema>;
 /**
  * User from database (with nullable slackId and username)
  */
+const DbImageSchema = z
+  .union([z.instanceof(Buffer), z.instanceof(Uint8Array), z.string()])
+  .nullable()
+  .optional();
+
 export const UserFromDbSchema = z.object({
   id: z.string(), // UUID from DB as string
   username: z.string().nullable(),
   name: z.string().nullable(),
   slackId: z.string().nullish(),
   language: z.string().nullable(),
+  image: DbImageSchema,
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -49,7 +56,12 @@ export const UserFromDbSchema = z.object({
  * Create User from database model
  */
 export function createUserFromDb(data: z.infer<typeof UserFromDbSchema>): User {
-  return UserSchema.parse(data);
+  const parsed = UserFromDbSchema.parse(data);
+  const { image, ...rest } = parsed;
+  return UserSchema.parse({
+    ...rest,
+    hasImage: Boolean(image),
+  });
 }
 
 /**

@@ -19,6 +19,7 @@ import {
   type UserDeliveryProfileId,
 } from '../../schemas/user-delivery-profile.schema';
 import { NotFoundError } from '../../shared/utils/errors.utils';
+import { buildAvatarUrl } from '../../shared/utils/image.utils';
 import { inject } from '../../shared/utils/inject.utils';
 import { GetPreviousOrdersUseCase, type PreviousOrder } from './get-previous-orders.service';
 import { GetUserOrdersHistoryUseCase } from './get-user-orders-history.service';
@@ -72,15 +73,7 @@ export class UserService {
       throw new Error(`User not found: ${userId}`);
     }
 
-    return {
-      id: dbUser.id,
-      username: dbUser.username,
-      name: dbUser.name,
-      slackId: dbUser.slackId ?? undefined,
-      language: dbUser.language ?? undefined,
-      createdAt: dbUser.createdAt,
-      updatedAt: dbUser.updatedAt,
-    } as User;
+    return dbUser;
   }
 
   async getUserByEmail(email: string): Promise<User> {
@@ -89,15 +82,7 @@ export class UserService {
       throw new Error(`User not found: ${email}`);
     }
 
-    return {
-      id: dbUser.id,
-      username: dbUser.username,
-      name: dbUser.name,
-      slackId: dbUser.slackId ?? undefined,
-      language: dbUser.language ?? undefined,
-      createdAt: dbUser.createdAt,
-      updatedAt: dbUser.updatedAt,
-    } as User;
+    return dbUser;
   }
 
   async updateUserLanguage(userId: UserId, language: 'en' | 'fr' | 'de'): Promise<User> {
@@ -106,15 +91,7 @@ export class UserService {
       throw new Error(`User not found: ${userId}`);
     }
 
-    return {
-      id: updatedUser.id,
-      username: updatedUser.username,
-      name: updatedUser.name,
-      slackId: updatedUser.slackId ?? undefined,
-      language: updatedUser.language ?? undefined,
-      createdAt: updatedUser.createdAt,
-      updatedAt: updatedUser.updatedAt,
-    } as User;
+    return updatedUser;
   }
 
   getUserOrderHistory(userId: UserId): Promise<
@@ -143,6 +120,7 @@ export class UserService {
       leader: {
         id: UserId;
         name: string | null;
+        image: string | null;
       };
     }>
   > {
@@ -161,6 +139,8 @@ export class UserService {
           select: {
             id: true,
             name: true,
+            image: true,
+            updatedAt: true,
           },
         },
       },
@@ -169,7 +149,14 @@ export class UserService {
 
     return dbGroupOrders.map((go) => {
       const groupOrder = createGroupOrderFromDb(go);
-      const leader = go.leader ?? { id: go.leaderId, name: null };
+      const leader =
+        go.leader ??
+        ({ id: go.leaderId, name: null, image: null, updatedAt: null } as const);
+      const leaderForUrl = {
+        id: leader.id as UserId,
+        hasImage: Boolean(leader.image),
+        updatedAt: leader.updatedAt ?? null,
+      };
       return {
         id: go.id as GroupOrderId,
         name: go.name,
@@ -181,6 +168,7 @@ export class UserService {
         leader: {
           id: leader.id as UserId,
           name: leader.name,
+          image: buildAvatarUrl(leaderForUrl),
         },
       };
     });
@@ -220,5 +208,20 @@ export class UserService {
       throw new NotFoundError({ resource: 'UserDeliveryProfile', id: profileId });
     }
     await this.userDeliveryProfileRepository.delete(profileId, userId);
+  }
+
+  async updateUserImage(userId: UserId, image: Buffer | null): Promise<User> {
+    const updatedUser = await this.userRepository.updateImage(userId, image);
+    if (!updatedUser) {
+      throw new Error(`User not found: ${userId}`);
+    }
+
+    return updatedUser;
+  }
+
+  async getUserAvatar(
+    userId: UserId
+  ): Promise<{ image: Buffer; updatedAt: Date | null } | null> {
+    return this.userRepository.findAvatarById(userId);
   }
 }

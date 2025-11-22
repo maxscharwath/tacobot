@@ -1,5 +1,5 @@
 import type { ComponentPropsWithoutRef, ReactElement } from 'react';
-import { cloneElement, isValidElement } from 'react';
+import { cloneElement, isValidElement, useEffect, useState } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from './utils';
 
@@ -24,6 +24,7 @@ const avatarVariants = cva('flex items-center justify-center font-semibold', {
       md: 'h-10 w-10 text-sm',
       lg: 'h-12 w-12 text-base',
       xl: 'h-14 w-14 text-lg',
+      '2xl': 'h-24 w-24 text-3xl',
     },
     variant: {
       default: 'rounded-lg border',
@@ -49,16 +50,24 @@ const avatarVariants = cva('flex items-center justify-center font-semibold', {
   },
 });
 
-const iconSizeMap = {
+const iconSizeMap: Record<string, number> = {
   sm: 14,
   md: 20,
   lg: 24,
   xl: 28,
-} as const;
+  '2xl': 48,
+};
+
+const imageRadius: Record<NonNullable<AvatarProps['variant']>, string> = {
+  default: 'rounded-lg',
+  elevated: 'rounded-xl',
+};
 
 export type AvatarProps = ComponentPropsWithoutRef<'div'> &
   VariantProps<typeof avatarVariants> & {
     readonly children?: React.ReactNode;
+    readonly src?: string | null;
+    readonly alt?: string;
   };
 
 export function Avatar({
@@ -67,31 +76,50 @@ export function Avatar({
   size = 'md',
   variant = 'default',
   children,
+  src,
+  alt = 'Avatar',
   ...props
 }: AvatarProps) {
-  if (!children) {
+  const [hasImageError, setHasImageError] = useState(false);
+  const radiusClass = imageRadius[variant ?? 'default'] ?? imageRadius.default;
+
+  useEffect(() => {
+    setHasImageError(false);
+  }, [src]);
+
+  const showImage = Boolean(src) && !hasImageError;
+
+  let content: React.ReactNode = children;
+
+  if (isValidElement(children) && typeof children.type !== 'string') {
+    content = cloneElement(children as ReactElement<{ size?: number; className?: string }>, {
+      size: iconSizeMap[size || 'md'],
+      className: cn(
+        'text-current',
+        (children as ReactElement<{ size?: number; className?: string }>).props?.className
+      ),
+    });
+  } else if (typeof children === 'string') {
+    content = <span className="select-none">{children}</span>;
+  }
+
+  if (!showImage && !content) {
     return null;
   }
 
-  // If children is a React element (like an icon), clone it with proper size
-  const content =
-    isValidElement(children) && typeof children.type !== 'string'
-      ? cloneElement(children as ReactElement<{ size?: number; className?: string }>, {
-          size: iconSizeMap[size || 'md'],
-          className: cn(
-            'text-current',
-            (children as ReactElement<{ size?: number; className?: string }>).props?.className
-          ),
-        })
-      : typeof children === 'string' ? (
-          <span className="select-none">{children}</span>
-        ) : (
-          children
-        );
-
   return (
     <div className={cn(avatarVariants({ color, size, variant }), className)} {...props}>
-      {content}
+      {showImage ? (
+        <img
+          src={src ?? undefined}
+          alt={alt}
+          className={cn('h-full w-full object-cover', radiusClass)}
+          loading="lazy"
+          onError={() => setHasImageError(true)}
+        />
+      ) : (
+        content
+      )}
     </div>
   );
 }

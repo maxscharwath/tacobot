@@ -180,6 +180,27 @@
         }
       }
     },
+    "avatar": {
+      "title": "Profilbild",
+      "description": "Lade ein Profilbild hoch, um dein Konto zu personalisieren",
+      "invalidType": "Ungültiger Dateityp. Es sind nur Bilder erlaubt.",
+      "fileTooLarge": "Datei ist zu groß. Maximal 5 MB.",
+      "uploadFailed": "Bild konnte nicht hochgeladen werden. Bitte versuche es erneut.",
+      "deleteConfirm": "Möchtest du dein Profilbild wirklich löschen?",
+      "deleteFailed": "Bild konnte nicht gelöscht werden. Bitte versuche es erneut.",
+      "uploading": "Wird hochgeladen...",
+      "confirm": "Upload bestätigen",
+      "cancel": "Abbrechen",
+      "confirmHint": "Überprüfe dein Bild und klicke dann auf „Upload bestätigen“, um es zu speichern.",
+      "select": "Bild auswählen",
+      "delete": "Löschen",
+      "hint": "JPG, PNG, WebP oder GIF. Max. 5 MB. Das Bild wird auf 512×512 px verkleinert und in WebP konvertiert.",
+      "dragDrop": "Ziehe ein Bild hierher oder klicke oben auf „Bild auswählen“",
+      "dropHere": "Bild hier ablegen",
+      "supportedFormats": "JPG, PNG, WebP, GIF bis 5 MB",
+      "uploadSuccess": "Profilbild erfolgreich hochgeladen!",
+      "retry": "Erneut versuchen"
+    },
     "loading": "Laden...",
     "loadFailed": "Kontodaten konnten nicht geladen werden",
     "edit": "Bearbeiten",

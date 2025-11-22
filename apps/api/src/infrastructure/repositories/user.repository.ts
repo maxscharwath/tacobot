@@ -25,6 +25,7 @@ export class UserRepository {
         name: true,
         slackId: true,
         language: true,
+        image: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -59,6 +60,7 @@ export class UserRepository {
           name: true,
           slackId: true,
           language: true,
+          image: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -77,6 +79,16 @@ export class UserRepository {
   async findByUsername(username: string): Promise<User | null> {
     const dbUser = await this.prisma.client.user.findUnique({
       where: { username },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        slackId: true,
+        language: true,
+        image: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     return dbUser ? createUserFromDb(dbUser) : null;
@@ -85,6 +97,16 @@ export class UserRepository {
   async findByEmail(email: string): Promise<User | null> {
     const dbUser = await this.prisma.client.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        slackId: true,
+        language: true,
+        image: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     return dbUser ? createUserFromDb(dbUser) : null;
@@ -145,5 +167,56 @@ export class UserRepository {
       logger.error('Failed to update user username', { email, error });
       return null;
     }
+  }
+
+  /**
+   * Update user profile image
+   */
+  async updateImage(userId: string, image: Buffer | null): Promise<User | null> {
+    try {
+      const storedImage = image ? image.toString('base64') : null;
+      const dbUser = await this.prisma.client.user.update({
+        where: { id: userId },
+        data: { image: storedImage },
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          slackId: true,
+          language: true,
+          image: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+      return createUserFromDb(dbUser);
+    } catch (error) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+        return null;
+      }
+      logger.error('Failed to update user image', { userId, error });
+      return null;
+    }
+  }
+
+  async findAvatarById(
+    userId: string
+  ): Promise<{ image: Buffer; updatedAt: Date | null } | null> {
+    const dbUser = await this.prisma.client.user.findUnique({
+      where: { id: userId },
+      select: {
+        image: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!dbUser?.image) {
+      return null;
+    }
+
+    return {
+      image: Buffer.from(dbUser.image, 'base64'),
+      updatedAt: dbUser.updatedAt,
+    };
   }
 }

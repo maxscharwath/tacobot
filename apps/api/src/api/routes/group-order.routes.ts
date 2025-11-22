@@ -22,6 +22,7 @@ import { UpdateGroupOrderStatusUseCase } from '../../services/group-order/update
 import { SessionService } from '../../services/session/session.service';
 import { UserService } from '../../services/user/user.service';
 import { GroupOrderStatus } from '../../shared/types/types';
+import { buildAvatarUrl } from '../../shared/utils/image.utils';
 import { NotFoundError } from '../../shared/utils/errors.utils';
 import { inject } from '../../shared/utils/inject.utils';
 import { jsonContent } from '../schemas/shared.schemas';
@@ -41,6 +42,7 @@ const GroupOrderResponseSchema = z.object({
   leader: z.object({
     id: z.string(),
     name: z.string().nullable(),
+    image: z.string().nullable().optional(),
   }),
   name: z.string().nullable(),
   startDate: z.string(),
@@ -109,6 +111,7 @@ async function serializeGroupOrderResponse(groupOrder: GroupOrder) {
     leader: {
       id: leader.id,
       name: leader.name,
+      image: buildAvatarUrl(leader),
     },
     name: groupOrder.name ?? null,
     startDate: groupOrder.startDate.toISOString(),

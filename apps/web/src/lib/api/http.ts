@@ -132,11 +132,22 @@ async function send<TResponse>(method: HttpMethod, path: string, options: Reques
   const headers = setupHeaders(options);
   const urlString = typeof url === 'string' ? url : url.toString();
 
+  // Handle FormData separately (for file uploads)
+  const isFormData = options.body instanceof FormData;
+  if (isFormData) {
+    // Don't set Content-Type for FormData - browser will set it with boundary
+    headers.delete('Content-Type');
+  }
+
   const response = await fetch(urlString, {
     ...options,
     method,
     headers,
-    body: options.body ? JSON.stringify(options.body) : undefined,
+    body: isFormData
+      ? (options.body as FormData)
+      : options.body
+        ? JSON.stringify(options.body)
+        : undefined,
     credentials: 'include', // Include cookies for Better Auth sessions
   });
 

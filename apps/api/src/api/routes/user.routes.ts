@@ -3,16 +3,36 @@
  * @module api/routes/user
  */
 
+import { createHash } from 'node:crypto';
 import { createRoute } from '@hono/zod-openapi';
 import { z } from 'zod';
 import type { UserDeliveryProfile } from '../../schemas/user-delivery-profile.schema';
 import { UserDeliveryProfileIdSchema } from '../../schemas/user-delivery-profile.schema';
+import type { User } from '../../schemas/user.schema';
 import { UserService } from '../../services/user/user.service';
 import { inject } from '../../shared/utils/inject.utils';
+import { buildAvatarUrl, processProfileImage } from '../../shared/utils/image.utils';
 import { jsonContent, UserSchemas } from '../schemas/user.schemas';
 import { authSecurity, createAuthenticatedRouteApp, requireUserId } from '../utils/route.utils';
 
 const app = createAuthenticatedRouteApp();
+
+function serializeUserResponse(user: User) {
+  return {
+    id: user.id,
+    username: user.username,
+    name: user.name,
+    slackId: user.slackId ?? undefined,
+    language: user.language ?? null,
+    image: buildAvatarUrl(user),
+    createdAt: user.createdAt?.toISOString(),
+    updatedAt: user.updatedAt?.toISOString(),
+  };
+}
+
+function buildErrorResponse(code: string, message: string) {
+  return { error: { code, message } };
+}
 
 const DeliveryProfileParamsSchema = z.object({
   profileId: z.uuid(),
@@ -83,18 +103,7 @@ app.openapi(
       }
     }
 
-    return c.json(
-      {
-        id: user.id,
-        username: user.username,
-        name: user.name,
-        slackId: user.slackId ?? undefined,
-        language: user.language ?? null,
-        createdAt: user.createdAt?.toISOString(),
-        updatedAt: user.updatedAt?.toISOString(),
-      },
-      200
-    );
+    return c.json(serializeUserResponse(user), 200);
   }
 );
 
@@ -127,18 +136,7 @@ app.openapi(
 
     const updatedUser = await userService.updateUserLanguage(userId, language);
 
-    return c.json(
-      {
-        id: updatedUser.id,
-        username: updatedUser.username,
-        name: updatedUser.name,
-        slackId: updatedUser.slackId ?? undefined,
-        language: updatedUser.language ?? null,
-        createdAt: updatedUser.createdAt?.toISOString(),
-        updatedAt: updatedUser.updatedAt?.toISOString(),
-      },
-      200
-    );
+    return c.json(serializeUserResponse(updatedUser), 200);
   }
 );
 
@@ -319,6 +317,156 @@ app.openapi(
     const profileId = UserDeliveryProfileIdSchema.parse(rawProfileId);
     await inject(UserService).deleteDeliveryProfile(userId, profileId);
     return c.body(null, 204);
+  }
+);
+
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/users/me/avatar',
+    tags: ['User'],
+    security: authSecurity,
+    request: {
+      body: {
+        content: {
+          'multipart/form-data': {
+            schema: z.object({
+              image: z.any(),
+            }),
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: 'Avatar uploaded successfully',
+        content: jsonContent(UserSchemas.UserResponseSchema),
+      },
+      400: {
+        description: 'Invalid image file',
+        content: jsonContent(UserSchemas.ErrorResponseSchema),
+      },
+      401: {
+        description: 'Unauthorized',
+        content: jsonContent(UserSchemas.ErrorResponseSchema),
+      },
+    },
+  }),
+  async (c) => {
+    const userId = requireUserId(c);
+    const formData = await c.req.formData();
+    const file = formData.get('image');
+
+    if (!(file instanceof Blob)) {
+      return c.json(buildErrorResponse('USER_AVATAR_INVALID', 'Image file is required'), 400);
+    }
+
+    try {
+      // Process and compress the image
+      const processedImage = await processProfileImage(file);
+
+      // Update user image
+      const userService = inject(UserService);
+      const updatedUser = await userService.updateUserImage(userId, processedImage);
+
+      return c.json(serializeUserResponse(updatedUser), 200);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload avatar';
+      return c.json(buildErrorResponse('USER_AVATAR_UPLOAD_FAILED', errorMessage), 400);
+    }
+  }
+);
+
+app.openapi(
+  createRoute({
+    method: 'delete',
+    path: '/users/me/avatar',
+    tags: ['User'],
+    security: authSecurity,
+    responses: {
+      200: {
+        description: 'Avatar deleted successfully',
+        content: jsonContent(UserSchemas.UserResponseSchema),
+      },
+      401: {
+        description: 'Unauthorized',
+        content: jsonContent(UserSchemas.ErrorResponseSchema),
+      },
+    },
+  }),
+  async (c) => {
+    const userId = requireUserId(c);
+    const userService = inject(UserService);
+
+    // Remove user image
+    const updatedUser = await userService.updateUserImage(userId, null);
+
+    return c.json(serializeUserResponse(updatedUser), 200);
+  }
+);
+
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/users/{userId}/avatar',
+    tags: ['User'],
+    security: authSecurity,
+    request: {
+      params: z.object({
+        userId: z.string(),
+      }),
+    },
+    responses: {
+      200: {
+        description: 'User avatar image',
+        content: {
+          'image/webp': {
+            schema: z.instanceof(Buffer),
+          },
+        },
+      },
+      404: {
+        description: 'Avatar not found',
+        content: jsonContent(UserSchemas.ErrorResponseSchema),
+      },
+    },
+  }),
+  async (c) => {
+    const { userId } = c.req.valid('param');
+    const userService = inject(UserService);
+
+    try {
+      const avatar = await userService.getUserAvatar(userId as any);
+
+      if (!avatar) {
+        return c.json(buildErrorResponse('USER_AVATAR_NOT_FOUND', 'Avatar not found'), 404);
+      }
+
+      const imageBuffer = avatar.image;
+      const etag = `"${createHash('sha1').update(imageBuffer).digest('hex')}"`;
+
+      if (c.req.header('if-none-match') === etag) {
+        c.header('ETag', etag);
+        if (avatar.updatedAt) {
+          c.header('Last-Modified', avatar.updatedAt.toUTCString());
+        }
+        return c.body(null, 304);
+      }
+
+      // Set cache headers for 1 year (immutable thanks to versioned URL)
+      c.header('Cache-Control', 'public, max-age=31536000, immutable');
+      c.header('Content-Type', 'image/webp');
+      c.header('Content-Length', imageBuffer.length.toString());
+      c.header('ETag', etag);
+      if (avatar.updatedAt) {
+        c.header('Last-Modified', avatar.updatedAt.toUTCString());
+      }
+
+      const responseBuffer = new Uint8Array(imageBuffer);
+      return c.body(responseBuffer, 200);
+    } catch (error) {
+      return c.json(buildErrorResponse('USER_AVATAR_NOT_FOUND', 'Avatar not found'), 404);
+    }
   }
 );
 

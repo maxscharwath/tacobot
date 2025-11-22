@@ -24,7 +24,7 @@ import {
 } from '@/components/ui';
 import { useDateFormat } from '@/hooks/useDateFormat';
 import type { GroupOrder, UserOrderSummary } from '@/lib/api';
-import { OrdersApi } from '@/lib/api';
+import { OrdersApi, resolveImageUrl } from '@/lib/api';
 import { routes } from '@/lib/routes';
 import { toDate } from '@/lib/utils/date';
 import { EditGroupOrderDialog } from './EditGroupOrderDialog';
@@ -233,7 +233,13 @@ export function OrderHero({
           </h1>
           <p className="text-slate-200 text-sm">{formatDateTimeRange(startDate, endDate)}</p>
           <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
-            <Avatar color="brandHero" size="md" variant="elevated">
+            <Avatar
+              color="brandHero"
+              size="md"
+              variant="elevated"
+              src={leader?.image ? resolveImageUrl(leader.image) : undefined}
+              alt={leaderName}
+            >
               {leaderInitial}
             </Avatar>
             <div>

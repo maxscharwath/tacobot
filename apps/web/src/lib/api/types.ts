@@ -22,6 +22,7 @@ export interface UserProfile {
   name: string | null;
   slackId?: string;
   language?: string | null;
+  image?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -114,6 +115,7 @@ export interface StockResponse {
 export interface GroupLeader {
   id: string;
   name: string | null;
+  image?: string | null;
 }
 
 export interface GroupOrder {

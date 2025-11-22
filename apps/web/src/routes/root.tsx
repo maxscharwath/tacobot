@@ -14,6 +14,7 @@ import {
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Alert, Avatar, Button, Card } from '@/components/ui';
 import { useDeveloperMode } from '@/hooks/useDeveloperMode';
+import { resolveImageUrl } from '@/lib/api';
 import { useSession } from '@/lib/auth-client';
 import { routes } from '@/lib/routes';
 import type { RootLoaderData } from './root.loader';
@@ -36,6 +37,7 @@ export function RootLayout() {
   // Compute user name and initials from session or fallback to profile
   const userName = session?.user?.name || profile?.username || 'User';
   const userInitials = userName.slice(0, 2).toUpperCase();
+  const userImage = session?.user?.image || profile?.image || null;
 
   // Listen for custom name update events to refetch session
   useEffect(() => {
@@ -43,10 +45,16 @@ export function RootLayout() {
       refetch?.();
     };
 
+    const handleImageUpdate = () => {
+      refetch?.();
+    };
+
     globalThis.addEventListener('userNameUpdated', handleNameUpdate);
+    globalThis.addEventListener('userImageUpdated', handleImageUpdate);
 
     return () => {
       globalThis.removeEventListener('userNameUpdated', handleNameUpdate);
+      globalThis.removeEventListener('userImageUpdated', handleImageUpdate);
     };
   }, [refetch]);
 
@@ -114,7 +122,7 @@ export function RootLayout() {
               <LanguageSwitcher />
               <div className="flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-linear-to-br from-slate-900/90 via-slate-900/80 to-slate-950/90 px-2.5 py-1.5 shadow-black/20 shadow-lg backdrop-blur-sm">
                 <Link to={routes.root.profile()} className="cursor-pointer">
-                  <Avatar color="brandHero" size="sm">
+                  <Avatar color="brandHero" size="sm" src={resolveImageUrl(userImage)}>
                     {userInitials}
                   </Avatar>
                 </Link>

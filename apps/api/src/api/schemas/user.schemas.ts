@@ -10,6 +10,7 @@ const UserResponseSchema = z.object({
   name: z.string().nullable(),
   slackId: z.string().optional(),
   language: z.string().nullable(),
+  image: z.string().nullable().optional(),
   createdAt: IsoDateStringSchema.optional(),
   updatedAt: IsoDateStringSchema.optional(),
 });
@@ -76,6 +77,7 @@ const UserGroupOrderSchema = z.object({
   leader: z.object({
     id: z.string(),
     name: z.string().nullable(),
+    image: z.string().nullable().optional(),
   }),
 });
 
