@@ -3,14 +3,17 @@
  * @module api/routes/user
  */
 
-import { createHash } from 'node:crypto';
 import { createRoute } from '@hono/zod-openapi';
 import { z } from 'zod';
 import type { User, UserId } from '../../schemas/user.schema';
 import type { UserDeliveryProfile } from '../../schemas/user-delivery-profile.schema';
 import { UserDeliveryProfileIdSchema } from '../../schemas/user-delivery-profile.schema';
 import { UserService } from '../../services/user/user.service';
-import { buildAvatarUrl, processProfileImage } from '../../shared/utils/image.utils';
+import {
+  buildAvatarUrl,
+  processAvatarImage,
+  processProfileImage,
+} from '../../shared/utils/image.utils';
 import { inject } from '../../shared/utils/inject.utils';
 import { jsonContent, UserSchemas } from '../schemas/user.schemas';
 import { authSecurity, createAuthenticatedRouteApp, requireUserId } from '../utils/route.utils';
@@ -365,7 +368,8 @@ app.openapi(
     try {
       // Extract optional background color
       const backgroundColor = formData.get('backgroundColor');
-      const bgColor = backgroundColor && typeof backgroundColor === 'string' ? backgroundColor : undefined;
+      const bgColor =
+        backgroundColor && typeof backgroundColor === 'string' ? backgroundColor : undefined;
 
       // Process and compress the image with optional background color
       const processedImage = await processProfileImage(file, bgColor);
@@ -420,6 +424,24 @@ app.openapi(
       params: z.object({
         userId: z.string(),
       }),
+      query: z.object({
+        w: z
+          .string()
+          .optional()
+          .transform((val) => (val ? parseInt(val, 10) : undefined)),
+        h: z
+          .string()
+          .optional()
+          .transform((val) => (val ? parseInt(val, 10) : undefined)),
+        size: z
+          .string()
+          .optional()
+          .transform((val) => (val ? parseInt(val, 10) : undefined)),
+        dpr: z
+          .string()
+          .optional()
+          .transform((val) => (val ? parseFloat(val) : undefined)),
+      }),
     },
     responses: {
       200: {
@@ -438,6 +460,7 @@ app.openapi(
   }),
   async (c) => {
     const { userId } = c.req.valid('param');
+    const { w, h, size, dpr } = c.req.valid('query');
     const userService = inject(UserService);
 
     try {
@@ -447,28 +470,30 @@ app.openapi(
         return c.json(buildErrorResponse('USER_AVATAR_NOT_FOUND', 'Avatar not found'), 404);
       }
 
-      const imageBuffer = avatar.image;
-      const etag = `"${createHash('sha1').update(imageBuffer).digest('hex')}"`;
+      const { buffer: imageBuffer, etag } = await processAvatarImage(avatar.image, {
+        width: w,
+        height: h,
+        size,
+        dpr,
+      });
 
-      if (c.req.header('if-none-match') === etag) {
-        c.header('ETag', etag);
-        if (avatar.updatedAt) {
-          c.header('Last-Modified', avatar.updatedAt.toUTCString());
-        }
-        return c.body(null, 304);
-      }
-
-      // Set cache headers for 1 year (immutable thanks to versioned URL)
-      c.header('Cache-Control', 'public, max-age=31536000, immutable');
-      c.header('Content-Type', 'image/webp');
-      c.header('Content-Length', imageBuffer.length.toString());
+      // Set common headers
       c.header('ETag', etag);
       if (avatar.updatedAt) {
         c.header('Last-Modified', avatar.updatedAt.toUTCString());
       }
 
-      const responseBuffer = new Uint8Array(imageBuffer);
-      return c.body(responseBuffer, 200);
+      // Check for 304 Not Modified
+      if (c.req.header('if-none-match') === etag) {
+        return c.body(null, 304);
+      }
+
+      // Set response headers
+      c.header('Cache-Control', 'public, max-age=31536000, immutable');
+      c.header('Content-Type', 'image/webp');
+      c.header('Content-Length', imageBuffer.length.toString());
+
+      return c.body(new Uint8Array(imageBuffer), 200);
     } catch (_error) {
       return c.json(buildErrorResponse('USER_AVATAR_NOT_FOUND', 'Avatar not found'), 404);
     }

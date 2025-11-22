@@ -53,7 +53,7 @@ export function ProfileRoute() {
                 {profile.image ? (
                   <div className="absolute inset-0 overflow-hidden rounded-[32px] border border-white/15 bg-linear-to-br from-brand-500 via-brand-600 to-sky-500 shadow-2xl">
                     <img
-                      src={resolveImageUrl(profile.image) || ''}
+                      src={resolveImageUrl(profile.image, { size: 240 }) || ''}
                       alt={userName}
                       className="h-full w-full object-cover"
                     />

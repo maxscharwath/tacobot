@@ -3,8 +3,9 @@
  * @module shared/utils/image
  */
 
+import { createHash } from 'node:crypto';
+import { getTime, isValid } from 'date-fns';
 import sharp from 'sharp';
-import { isValid, getTime } from 'date-fns';
 import { logger } from './logger.utils';
 
 const MAX_IMAGE_SIZE = 512;
@@ -55,6 +56,100 @@ export async function processProfileImage(
   });
 
   return processedBuffer;
+}
+
+/**
+ * Apply DPR multiplier to dimensions (like Cloudinary/Imgix)
+ */
+function applyDprToDimensions(
+  width?: number,
+  height?: number,
+  size?: number,
+  dpr?: number
+): { width?: number; height?: number; size?: number } {
+  if (!dpr || dpr <= 1) {
+    return { width, height, size };
+  }
+
+  if (size) {
+    return { size: Math.round(size * dpr) };
+  }
+
+  return {
+    width: width ? Math.round(width * dpr) : undefined,
+    height: height ? Math.round(height * dpr) : undefined,
+  };
+}
+
+/**
+ * Build ETag key for avatar caching (includes dimensions and dpr)
+ */
+function buildAvatarEtagKey(width?: number, height?: number, size?: number, dpr?: number): string {
+  const parts: string[] = [];
+
+  if (size) {
+    parts.push(`size-${size}`);
+  } else if (width || height) {
+    parts.push(`w${width ?? 0}-h${height ?? 0}`);
+  } else {
+    parts.push('original');
+  }
+
+  if (dpr && dpr > 1) {
+    parts.push(`dpr${dpr}`);
+  }
+
+  return parts.join('-');
+}
+
+/**
+ * Resize an image buffer to specified dimensions
+ */
+export async function resizeImage(
+  imageBuffer: Buffer,
+  width?: number,
+  height?: number,
+  size?: number
+): Promise<Buffer> {
+  const targetWidth = size ?? width;
+  const targetHeight = size ?? height;
+
+  if (!targetWidth && !targetHeight) {
+    return imageBuffer;
+  }
+
+  return await sharp(imageBuffer)
+    .resize(targetWidth, targetHeight, {
+      fit: 'cover',
+      withoutEnlargement: false,
+    })
+    .webp({ quality: QUALITY })
+    .toBuffer();
+}
+
+/**
+ * Process avatar image with resizing and DPR support
+ * Returns the processed image buffer and ETag for caching
+ */
+export async function processAvatarImage(
+  imageBuffer: Buffer,
+  options?: { width?: number; height?: number; size?: number; dpr?: number }
+): Promise<{ buffer: Buffer; etag: string }> {
+  const { width, height, size, dpr } = options ?? {};
+  const {
+    width: targetWidth,
+    height: targetHeight,
+    size: targetSize,
+  } = applyDprToDimensions(width, height, size, dpr);
+
+  const processedBuffer = await resizeImage(imageBuffer, targetWidth, targetHeight, targetSize);
+
+  // Build ETag using original dimensions + dpr (not DPR-adjusted dimensions)
+  // This ensures same ETag for same request params regardless of processing
+  const etagKey = buildAvatarEtagKey(width, height, size, dpr);
+  const etag = `"${createHash('sha1').update(imageBuffer).update(etagKey).digest('hex')}"`;
+
+  return { buffer: processedBuffer, etag };
 }
 
 export function buildAvatarUrl(user: {

@@ -1,5 +1,5 @@
-import { ENV } from '@/lib/env';
 import { apiClient } from './http';
+import { resolveImageUrl } from './image-utils';
 import type {
   DeliveryProfile,
   DeliveryProfilePayload,
@@ -63,14 +63,14 @@ export function deleteAvatar() {
 }
 
 /**
- * Get avatar image URL for a user
- * This endpoint serves images with proper cache headers
+ * Get avatar image URL for a user with optional size parameters
+ * This endpoint serves images with proper cache headers and on-the-fly resizing
+ * Automatically handles high-DPI displays using dpr parameter (Cloudinary/Imgix pattern)
  */
-export function getAvatarUrl(userId: string): string {
+export function getAvatarUrl(
+  userId: string,
+  options?: { size?: number; w?: number; h?: number; dpr?: number }
+): string {
   const path = `/api/v1/users/${userId}/avatar`;
-  if (ENV.apiBaseUrl) {
-    return new URL(path, ENV.apiBaseUrl).toString();
-  }
-  // Fallback to relative URL if no API base URL is configured
-  return path;
+  return resolveImageUrl(path, options) ?? path;
 }

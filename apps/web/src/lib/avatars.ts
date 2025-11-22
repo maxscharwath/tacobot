@@ -11,10 +11,11 @@ import avatar05 from '@/avatars/avatar-05.png';
 import avatar06 from '@/avatars/avatar-06.png';
 import avatar07 from '@/avatars/avatar-07.png';
 import avatar08 from '@/avatars/avatar-08.png';
-import avatar09 from '@/avatars/avatar-09.png';
 import avatar10 from '@/avatars/avatar-10.png';
 import avatar11 from '@/avatars/avatar-11.png';
 import avatar12 from '@/avatars/avatar-12.png';
+import avatar13 from '@/avatars/avatar-13.png';
+import avatar14 from '@/avatars/avatar-14.png';
 
 export const PREDEFINED_AVATARS = [
   avatar01,
@@ -25,10 +26,11 @@ export const PREDEFINED_AVATARS = [
   avatar06,
   avatar07,
   avatar08,
-  avatar09,
   avatar10,
   avatar11,
   avatar12,
+  avatar13,
+  avatar14,
 ] as const;
 
 /**
