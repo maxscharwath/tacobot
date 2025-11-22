@@ -237,7 +237,7 @@ export function OrderHero({
               color="brandHero"
               size="md"
               variant="elevated"
-              src={leader?.image ? resolveImageUrl(leader.image) : undefined}
+              src={resolveImageUrl(leader?.image)}
               alt={leaderName}
             >
               {leaderInitial}

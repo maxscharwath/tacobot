@@ -199,9 +199,7 @@ export class UserRepository {
     }
   }
 
-  async findAvatarById(
-    userId: string
-  ): Promise<{ image: Buffer; updatedAt: Date | null } | null> {
+  async findAvatarById(userId: string): Promise<{ image: Buffer; updatedAt: Date | null } | null> {
     const dbUser = await this.prisma.client.user.findUnique({
       where: { id: userId },
       select: {

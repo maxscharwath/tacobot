@@ -77,7 +77,9 @@ export async function processProfileImage(file: UploadableFile): Promise<Buffer>
     logger.debug('Image processed successfully', {
       originalSize: file.size,
       processedSize: processedBuffer.length,
-      compressionRatio: file.size ? ((1 - processedBuffer.length / file.size) * 100).toFixed(2) + '%' : undefined,
+      compressionRatio: file.size
+        ? ((1 - processedBuffer.length / file.size) * 100).toFixed(2) + '%'
+        : undefined,
       originalMime: mimeType,
       outputMime: OUTPUT_MIME_TYPE,
     });

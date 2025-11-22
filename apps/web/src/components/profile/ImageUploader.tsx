@@ -12,7 +12,6 @@ import {
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Avatar, type AvatarProps, Button } from '@/components/ui';
-import { resolveImageUrl } from '@/lib/api';
 import { deleteAvatar, uploadAvatar } from '@/lib/api/user';
 import { cn } from '@/lib/utils';
 
@@ -57,22 +56,20 @@ export function ImageUploader({ currentImage, onImageUpdate, size = 'xl' }: Imag
   const cameraSize = cameraSizeMap[avatarSize];
   const showDeleteButton = Boolean(preview && !pendingFile && !isUploading);
 
-  const resolvePreviewImage = useCallback((value?: string | null): string | null => {
-    if (!value) {
-      return null;
-    }
-    if (value.startsWith('data:')) {
-      return value;
-    }
-    return resolveImageUrl(value) ?? value;
-  }, []);
 
   // Update preview when currentImage changes externally
+  // Only use endpoint URLs, never base64 for final images
   useEffect(() => {
     if (!pendingFile) {
-      setPreview(resolvePreviewImage(currentImage));
+      // currentImage should be an endpoint URL, not base64
+      // Only set preview if it's not a base64 data URL (which is only for temporary preview)
+      if (currentImage && !currentImage.startsWith('data:')) {
+        setPreview(currentImage);
+      } else if (!currentImage) {
+        setPreview(null);
+      }
     }
-  }, [currentImage, pendingFile, resolvePreviewImage]);
+  }, [currentImage, pendingFile]);
 
   // Clear success message after 3 seconds
   useEffect(() => {
@@ -136,14 +133,15 @@ export function ImageUploader({ currentImage, onImageUpdate, size = 'xl' }: Imag
 
     try {
       const updatedProfile = await uploadAvatar(pendingFile);
-      const normalizedImage = resolvePreviewImage(updatedProfile.image);
-      setPreview(normalizedImage);
+      // API returns endpoint URL - use it directly (never base64)
+      const endpointUrl = updatedProfile.image || null;
+      setPreview(endpointUrl);
       setPendingFile(null);
       setFileSize(null);
       setSuccess(true);
-      onImageUpdate?.(normalizedImage);
+      onImageUpdate?.(endpointUrl);
       // Trigger a custom event to notify other components
-      const detail = { ...updatedProfile, image: normalizedImage };
+      const detail = { ...updatedProfile, image: endpointUrl };
       globalThis.dispatchEvent(new CustomEvent('userImageUpdated', { detail }));
     } catch (err) {
       setError(
@@ -151,15 +149,24 @@ export function ImageUploader({ currentImage, onImageUpdate, size = 'xl' }: Imag
           ? err.message
           : t('account.avatar.uploadFailed') || 'Failed to upload image. Please try again.'
       );
-      // Revert preview on error
-      setPreview(resolvePreviewImage(currentImage));
+      // Revert preview on error - use endpoint URL, not base64
+      if (currentImage && !currentImage.startsWith('data:')) {
+        setPreview(currentImage);
+      } else {
+        setPreview(null);
+      }
     } finally {
       setIsUploading(false);
     }
-  }, [pendingFile, currentImage, onImageUpdate, t, resolvePreviewImage]);
+  }, [pendingFile, currentImage, onImageUpdate, t]);
 
   const handleCancelPreview = useCallback(() => {
-    setPreview(resolvePreviewImage(currentImage));
+    // Revert to endpoint URL (not base64)
+    if (currentImage && !currentImage.startsWith('data:')) {
+      setPreview(currentImage);
+    } else {
+      setPreview(null);
+    }
     setPendingFile(null);
     setFileSize(null);
     setError(null);
@@ -167,7 +174,7 @@ export function ImageUploader({ currentImage, onImageUpdate, size = 'xl' }: Imag
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  }, [currentImage, resolvePreviewImage]);
+  }, [currentImage]);
 
   const handleDelete = useCallback(async () => {
     if (

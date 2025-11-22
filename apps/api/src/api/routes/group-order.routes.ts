@@ -22,8 +22,8 @@ import { UpdateGroupOrderStatusUseCase } from '../../services/group-order/update
 import { SessionService } from '../../services/session/session.service';
 import { UserService } from '../../services/user/user.service';
 import { GroupOrderStatus } from '../../shared/types/types';
-import { buildAvatarUrl } from '../../shared/utils/image.utils';
 import { NotFoundError } from '../../shared/utils/errors.utils';
+import { buildAvatarUrl } from '../../shared/utils/image.utils';
 import { inject } from '../../shared/utils/inject.utils';
 import { jsonContent } from '../schemas/shared.schemas';
 import { UserOrderItemsSchema } from '../schemas/user-order.schemas';

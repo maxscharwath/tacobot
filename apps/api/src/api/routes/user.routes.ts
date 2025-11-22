@@ -6,12 +6,12 @@
 import { createHash } from 'node:crypto';
 import { createRoute } from '@hono/zod-openapi';
 import { z } from 'zod';
+import type { User, UserId } from '../../schemas/user.schema';
 import type { UserDeliveryProfile } from '../../schemas/user-delivery-profile.schema';
 import { UserDeliveryProfileIdSchema } from '../../schemas/user-delivery-profile.schema';
-import type { User } from '../../schemas/user.schema';
 import { UserService } from '../../services/user/user.service';
-import { inject } from '../../shared/utils/inject.utils';
 import { buildAvatarUrl, processProfileImage } from '../../shared/utils/image.utils';
+import { inject } from '../../shared/utils/inject.utils';
 import { jsonContent, UserSchemas } from '../schemas/user.schemas';
 import { authSecurity, createAuthenticatedRouteApp, requireUserId } from '../utils/route.utils';
 
@@ -436,7 +436,7 @@ app.openapi(
     const userService = inject(UserService);
 
     try {
-      const avatar = await userService.getUserAvatar(userId as any);
+      const avatar = await userService.getUserAvatar(userId as UserId);
 
       if (!avatar) {
         return c.json(buildErrorResponse('USER_AVATAR_NOT_FOUND', 'Avatar not found'), 404);
@@ -464,7 +464,7 @@ app.openapi(
 
       const responseBuffer = new Uint8Array(imageBuffer);
       return c.body(responseBuffer, 200);
-    } catch (error) {
+    } catch (_error) {
       return c.json(buildErrorResponse('USER_AVATAR_NOT_FOUND', 'Avatar not found'), 404);
     }
   }
